@@ -23,3 +23,15 @@ class Player(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.team.name})"
+
+class Match(models.Model):
+    home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_matches')
+    away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_matches')
+    home_score = models.PositiveIntegerField(default=0, verbose_name="Home Team Score")
+    away_score = models.PositiveIntegerField(default=0, verbose_name="Away Team Score")
+    date = models.DateField()
+    time = models.TimeField()
+    status = models.CharField(max_length=20, choices=[('scheduled', 'Scheduled'), ('finished', 'Finished')], default='scheduled')
+
+    def __str__(self):
+        return f"{self.home_team} vs {self.away_team}"
