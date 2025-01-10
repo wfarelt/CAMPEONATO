@@ -1,0 +1,28 @@
+.bloque {
+    background-color: #267c4a;
+    font-family: monospace; 
+    color: white;
+    border-radius: 10px;
+    box-shadow: 10px 10px 5px #000000;   
+    height: 500px;
+}
+
+.titulo {
+    background-color: #002a00;
+    color: #abd1bc;
+    font-family: 'Roboto', sans-serif;
+    border-radius: 10px 10px 0px 0px;
+    padding: 10px;
+}
+
+.nav-link {
+    color: #abd1bc;
+}  
+
+.nav-link:hover {
+    color: #002a00;
+}
+
+li a {
+    color: #abd1bc;
+}

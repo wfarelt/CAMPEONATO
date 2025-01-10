@@ -1,6 +1,9 @@
 {% extends 'tournament/base.html' %}
-
+{% load static %}
 {% block content %}
-    <h1>Home</h1>
-    <p>Welcome to the tournament app!</p>
+    <h1 class="titulo">Inicio</h1>
+    <div class="text-center p-5">
+        <p>¡Bienvenidos a la aplicación del torneo!</p>
+        <img src="{% static 'tournament/img/logo.png' %}" alt="Logo" width="100" height="100">
+    </div>
 {% endblock %}

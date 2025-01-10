@@ -10,3 +10,7 @@ def home(request):
 def teams(request):
     teams = Team.objects.all()
     return render(request, 'tournament/teams.html', {'teams': teams})
+
+def team(request, team_id):
+    team = Team.objects.get(pk=team_id)
+    return render(request, 'tournament/team.html', {'team': team})
