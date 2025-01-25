@@ -9,29 +9,36 @@
     <!-- Css -->
     <link rel="stylesheet" href="{% static 'tournament/css/style.css' %}">
     <title>Tournament</title>
+    <style>
+        .bloque {
+            background-image: url("{% static 'tournament/img/fondo.jpg' %}");
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5 bloque">
         <div class="row p-5">
             <div class="col-md-4" style="border-right: 1px solid #ccc;">
                 <h1>Torneo Futbol7 BOYUIBE 2025</h1>
-                <ul class="nav flex-column mt-5">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'teams' %}">Equipos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="">Partidos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="">Goles</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="">Tarjetas</a>
-                    </li>
-                </ul>
+                <div class="p-5 subbloque">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'home' %}">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'teams' %}">Equipos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="">Partidos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="">Goles</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="">Tarjetas</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="col-md-8">
                 {% block content %}

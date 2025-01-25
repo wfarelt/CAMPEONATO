@@ -1,10 +1,15 @@
 {% extends "tournament/base.html" %}
 
+{% load static %}
+
 {% block content %}
     <h1 class="titulo">Equipos</h1>
-    <ul class="p-5">
-        {% for team in teams %}
-            <li><a href="{% url 'team' team.id %}">{{ team.name }}</a></li>
-        {% endfor %}
-    </ul>
+    <div class="p-3 subbloque">
+        <ul>
+            {% for team in teams %}
+                <li><a href="{% url 'team' team.id %}">{{ team.name }}</a></li>
+            {% endfor %}   
+        </ul>
+    </div>
+    
 {% endblock %}
