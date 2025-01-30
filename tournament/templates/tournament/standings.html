@@ -3,37 +3,37 @@
 {% block content %}
 
 <h1>Tabla de Posiciones</h1>
-    <table border="1" class="table table-striped" style="background-color: aquamarine;">
-        <thead>
-            <tr>
-                <th>Posición</th>
-                <th>Equipo</th>
-                <th>PJ</th>
-                <th>PG</th>
-                <th>PE</th>
-                <th>PP</th>
-                <th>GF</th>
-                <th>GC</th>
-                <th>DIF</th>
-                <th>Puntos</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for team in standings %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ team.team }}</td>
-                <td>{{ team.matches_played }}</td>
-                <td>{{ team.won }}</td>
-                <td>{{ team.drawn }}</td>
-                <td>{{ team.lost }}</td>
-                <td>{{ team.goals_for }}</td>
-                <td>{{ team.goals_against }}</td>
-                <td>{{ team.goal_difference }}</td>
-                <td>{{ team.points }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<table border="1" class="table table-sm" style="background-color: rgb(253, 253, 253);">
+    <thead>
+        <tr>
+            <th>Posición</th>
+            <th>Equipo</th>
+            <th>PJ</th>
+            <th>PG</th>
+            <th>PE</th>
+            <th>PP</th>
+            <th>GF</th>
+            <th>GC</th>
+            <th>DIF</th>
+            <th>Puntos</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team in standings %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ team.team }}</td>
+            <td>{{ team.matches_played }}</td>
+            <td>{{ team.won }}</td>
+            <td>{{ team.drawn }}</td>
+            <td>{{ team.lost }}</td>
+            <td>{{ team.goals_for }}</td>
+            <td>{{ team.goals_against }}</td>
+            <td>{{ team.goal_difference }}</td>
+            <td>{{ team.points }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}

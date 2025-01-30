@@ -51,3 +51,10 @@ def standings_view(request):
     standings = sorted(standings, key=lambda x: (-x['points'], -x['goal_difference'], -x['goals_for']))
 
     return render(request, 'tournament/standings.html', {'standings': standings})
+
+# Mostrar lista de partidos pendientes
+
+def matches(request):
+    matches_pending = Match.objects.filter(status='scheduled')
+    matches_finished = Match.objects.filter(status='finished')
+    return render(request, 'tournament/matches.html', {'matches_pending': matches_pending, 'matches_finished': matches_finished})

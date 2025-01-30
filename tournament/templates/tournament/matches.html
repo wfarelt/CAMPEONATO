@@ -1,0 +1,22 @@
+{% extends "tournament/base.html" %}
+
+{% load static %}
+
+{% block content %}
+    <h1 class="titulo">Partidos</h1>
+    <div class="p-3 subbloque">
+        <h2>Próximos partidos</h2>
+        <ul>
+            {% for match in matches_pending %}
+                <li>{{ match.date }} - {{ match.home_team }} vs {{ match.away_team }}
+            {% endfor %}   
+        </ul>
+        <br>
+        <h2>Partidos jugados</h2>
+        <ul style="color: black;">
+            {% for match in matches_finished %}
+                <li>{{ match.date }} - {{ match.home_team }} {{ match.home_score }} - {{ match.away_score }} {{ match.away_team }}
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

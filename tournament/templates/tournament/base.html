@@ -20,7 +20,6 @@
         <div class="row p-5">
             <div class="col-md-4" style="border-right: 1px solid #ccc;">
                 <h1>Torneo Futbol7 BOYUIBE 2025</h1>
-<<<<<<< HEAD
                 <div class="p-5 subbloque">
                     <ul class="nav flex-column">
                         <li class="nav-item">
@@ -30,38 +29,13 @@
                             <a class="nav-link" href="{% url 'teams' %}">Equipos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="">Partidos</a>
+                            <a class="nav-link" href="{% url 'standings' %}">Posiciones</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="">Goles</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="">Tarjetas</a>
+                            <a class="nav-link" href="{% url 'matches' %}">Partidos</a>
                         </li>
                     </ul>
                 </div>
-=======
-                <ul class="nav flex-column mt-5">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'standings' %}">Tabla de posiciones</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'teams' %}">Equipos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="">Partidos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="">Goles</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="">Tarjetas</a>
-                    </li>
-                </ul>
->>>>>>> 7fb36498a068b0a2e2d010f95ff70c0c4ab9d04f
             </div>
             <div class="col-md-8">
                 {% block content %}
