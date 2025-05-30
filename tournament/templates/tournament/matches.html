@@ -3,20 +3,40 @@
 {% load static %}
 
 {% block content %}
-    <h1 class="titulo">Partidos</h1>
-    <div class="p-3 subbloque">
-        <h2>Próximos partidos</h2>
-        <ul>
-            {% for match in matches_pending %}
-                <li>{{ match.date }} - {{ match.home_team }} vs {{ match.away_team }}
-            {% endfor %}   
-        </ul>
-        <br>
-        <h2>Partidos jugados</h2>
-        <ul style="color: black;">
-            {% for match in matches_finished %}
-                <li>{{ match.date }} - {{ match.home_team }} {{ match.home_score }} - {{ match.away_score }} {{ match.away_team }}
-            {% endfor %}
-        </ul>
+<div class="card-header bloque">
+    <h1 class="text-center">Partidos</h1>
+</div>
+<div class="card-body text-center">
+    <h2>Próximos partidos</h2>
+
+    {% for match in matches_pending %}
+    <div class="card">
+        {{ match.date }} - {{ match.home_team }} vs {{ match.away_team }}
     </div>
+    {% endfor %}
+
+    <br>
+    <h2>Partidos jugados</h2>
+    {% regroup matches_finished by date as match_list %}
+
+    <div class="accordion" id="accordionMatches">
+        {% for group in match_list %}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <strong>{{ group.grouper|date:"d M Y" }}</strong>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for match in group.list %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ match.home_team }} <strong>({{ match.home_score }})</strong></span>
+                    <span>-</span>
+                    <span><strong>({{ match.away_score }})</strong> {{ match.away_team }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
 {% endblock %}

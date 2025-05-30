@@ -25,7 +25,14 @@ SECRET_KEY = 'django-insecure-@)#26*&o&8ei=yi4c=f)#^-#r*s3a!*m597=!d2e3j3&3$7z78
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+if DEBUG:
+    # Allow all hosts in debug mode
+    ALLOWED_HOSTS = []
+else:
+    # In production, specify allowed hosts
+    # Example: ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com']
+    # For local development, you can use:
+    ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -118,7 +125,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 # Archivos estaticos
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 

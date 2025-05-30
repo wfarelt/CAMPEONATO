@@ -56,5 +56,6 @@ def standings_view(request):
 
 def matches(request):
     matches_pending = Match.objects.filter(status='scheduled')
-    matches_finished = Match.objects.filter(status='finished')
+    matches_finished = Match.objects.filter(status='finished').order_by('date')
     return render(request, 'tournament/matches.html', {'matches_pending': matches_pending, 'matches_finished': matches_finished})
+

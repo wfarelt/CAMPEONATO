@@ -1,9 +1,12 @@
 {% extends 'tournament/base.html' %}
 {% load static %}
 {% block content %}
-    <h1 class="titulo">Inicio</h1>
-    <div class="text-center p-5">
-        <p>¡Bienvenidos a la aplicación del torneo!</p>
+    <div class="card-header bloque">
+        <h1 class="text-center">¡Bienvenidos!</h1>
+    </div>
+    <div class="card-body text-center">
+        <h5 class="card-title">Super Liga Nacional Florida 2025</h5>
+        <p class="card-text">¡Bienvenidos a la aplicación del torneo!</p>
         <img src="{% static 'tournament/img/logo.png' %}" alt="Logo" width="100" height="100">
     </div>
 {% endblock %}

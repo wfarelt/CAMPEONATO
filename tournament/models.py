@@ -8,6 +8,12 @@ class Team(models.Model):
     def __str__(self):
         return self.name
 
+    # Ordenar los equipos por nombre
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Team"
+        verbose_name_plural = "Teams" 
+
 class Player(models.Model):
     POSITION_CHOICES = [
         ('GK', 'Arquero'),
@@ -35,3 +41,7 @@ class Match(models.Model):
 
     def __str__(self):
         return f"{self.home_team} vs {self.away_team}"
+
+    @property
+    def is_finished(self):
+        return self.status == 'finished'
