@@ -1,31 +1,37 @@
-.titulo {
-    background-color: #002a00;
-    color: #abd1bc;
-    font-family: 'Roboto', sans-serif;
-    border-radius: 10px 10px 0px 0px;
-    padding: 10px;
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);   
 }
 
+.card-team{
+    background: #deffc6;
+}
+
+
+.card-header {
+    background-image: url('/static/tournament/img/fondo.jpg');
+    color: white;  
+}
 
 a, .nav-link {
     color: inherit;
     text-decoration: none;
-    color: #005025;
+    color: #ffffff;
 }
   
-a, .nav-link {
+.nav-link {
     background:
         linear-gradient(
-        to right,
-        rgb(51, 114, 46),
-        rgb(88, 214, 30)
+            to right,
+            transparent 0%,
+            transparent 100%
         ),
         linear-gradient(
-        to right,
-        #009F4A,
-        #006F34,
-        rgb(247, 247, 247)
-    );
+            to right,
+            #327d25 0%,
+            #abfe94 100%
+        );  
+
+    
     background-size: 100% 3px, 0 3px;
     background-position: 100% 100%, 0 100%;
     background-repeat: no-repeat;
@@ -40,4 +46,17 @@ a:hover {
 .nav-link:hover {
     color: yellow;
     background-size: 0 3px, 100% 3px;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: #32722e; /* Verde oscuro */
+    border-radius: 50%;
+    opacity: 0.9;
+}
+
+
+.navbar-brand {
+    font-weight: bold;
+    color:#7dd869;
 }

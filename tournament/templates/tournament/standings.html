@@ -1,11 +1,12 @@
 {% extends "tournament/base.html" %}
 {% load static %}
 {% block content %}
-<div class="card-header bloque">
+<div class="card-header">
     <h1 class="text-center">Tabla de Posiciones</h1>
 </div>
 <div class="card-body text-center">
-    <table border="1" class="table table-sm" style="background-color: rgb(253, 253, 253);">
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
         <thead>
             <tr>
                 <th>Posición</th>
@@ -37,6 +38,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     <p class="text-muted">* Tabla actualizada al finalizar la última jornada.</p>
 </div>
 {% endblock %}
