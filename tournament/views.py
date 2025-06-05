@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.db.models import Sum, F, Q
 from .models import Team, Player, Match
+from django.utils import timezone
+
 # Create your views here.
 
 # home
@@ -54,8 +56,53 @@ def standings_view(request):
 
 # Mostrar lista de partidos pendientes
 
-def matches(request):
-    matches_pending = Match.objects.filter(status='scheduled')
-    matches_finished = Match.objects.filter(status='finished').order_by('date')
-    return render(request, 'tournament/matches.html', {'matches_pending': matches_pending, 'matches_finished': matches_finished})
 
+
+def get_last_results(team, exclude_match=None, n=5):
+    # Busca los últimos n partidos terminados del equipo, excluyendo el partido actual si se indica
+    matches = Match.objects.filter(
+        ((Q(home_team=team) | Q(away_team=team)) & Q(status='finished'))
+    )
+    if exclude_match:
+        matches = matches.exclude(pk=exclude_match.pk)
+    matches = matches.order_by('-date', '-time')[:n]
+    results = []
+    for m in matches:
+        if m.home_team == team:
+            if m.home_score > m.away_score:
+                results.append('G')
+            elif m.home_score == m.away_score:
+                results.append('E')
+            else:
+                results.append('P')
+        else:
+            if m.away_score > m.home_score:
+                results.append('G')
+            elif m.away_score == m.home_score:
+                results.append('E')
+            else:
+                results.append('P')
+    return results
+
+def matches(request):
+    matches_pending = Match.objects.filter(status='scheduled').order_by('date', 'time')
+    matches_finished = Match.objects.filter(status='finished').order_by('date', 'time')
+
+    matches_pending_list = []
+    for match in matches_pending:
+        home_logo = match.home_team.logo.url if match.home_team.logo else '/static/tournament/img/default_logo.jpg'
+        away_logo = match.away_team.logo.url if match.away_team.logo else '/static/tournament/img/default_logo.jpg'
+        matches_pending_list.append({
+            'home_team': match.home_team.name,
+            'home_team_logo': home_logo,
+            'home_team_last_results': get_last_results(match.home_team, exclude_match=match),
+            'away_team': match.away_team.name,
+            'away_team_logo': away_logo,
+            'away_team_last_results': get_last_results(match.away_team, exclude_match=match),
+            'date': f"{match.date} {match.time.strftime('%H:%M')}",
+        })
+
+    return render(request, 'tournament/matches.html', {
+        'matches_pending': matches_pending_list,
+        'matches_finished': matches_finished,
+    })

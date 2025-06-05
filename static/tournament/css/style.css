@@ -60,3 +60,8 @@ a:hover {
     font-weight: bold;
     color:#7dd869;
 }
+
+.card .rounded-circle {
+    border: 3px solid #32722e;
+}
+
