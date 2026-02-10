@@ -1,12 +1,7 @@
 {% extends "tournament/base.html" %}
 
-{% load static %}
-
 {% block styles %}
 <style>
-.card-body {
-    background-color: #a0a5aa; /* Fondo claro */
-}
 
 .vs-futurista-container {
     min-width: 60px;      /* Puedes reducir más si quieres */
@@ -80,7 +75,7 @@
                     <!-- Equipo local -->
                     <div class="text-center">
                         <img src="{{ match.home_team_logo }}" alt="{{ match.home_team }}" class="rounded-circle" style="width:70px; height:70px; object-fit:cover; border:3px solid #32722e;">
-                        <div class="fw-bold mt-2">{{ match.home_team }}</div>
+                        <div class="fw-bold mt-2 team-name-fixed">{{ match.home_team }}</div>
                         <div>
                             {% for res in match.home_team_last_results %}
                                 <span class="badge 
@@ -99,7 +94,7 @@
                     <!-- Equipo visitante -->
                     <div class="text-center">
                         <img src="{{ match.away_team_logo }}" alt="{{ match.away_team }}" class="rounded-circle" style="width:70px; height:70px; object-fit:cover; border:3px solid #32722e;">
-                        <div class="fw-bold mt-2">{{ match.away_team }}</div>
+                        <div class="fw-bold mt-2 team-name-fixed">{{ match.away_team }}</div>
                         <div>
                             {% for res in match.away_team_last_results %}
                                 <span class="badge 

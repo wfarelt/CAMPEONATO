@@ -1,0 +1,923 @@
+<!doctype html>
+
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Tournament Standings Table - Championship Manager</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+            },
+            fontFamily: {
+              display: ["Lexend"],
+            },
+            borderRadius: {
+              DEFAULT: "1rem",
+              lg: "2rem",
+              xl: "3rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      .form-dot {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 800;
+        border-radius: 9999px;
+      }
+      .bg-win {
+        background-color: #22c55e;
+      }
+      .bg-draw {
+        background-color: #94a3b8;
+      }
+      .bg-loss {
+        background-color: #ef4444;
+      }
+
+      /* Zebra striping for dark mode */
+      .zebra-table tr:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.02);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen"
+  >
+    <div class="relative flex flex-col w-full min-h-screen overflow-x-hidden">
+      <!-- Top Navigation Bar -->
+      <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-10 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-50"
+      >
+        <div class="flex items-center gap-8">
+          <div class="flex items-center gap-4 text-primary">
+            <div
+              class="size-6 flex items-center justify-center bg-primary rounded text-white"
+            >
+              <span class="material-symbols-outlined text-lg">trophy</span>
+            </div>
+            <h2
+              class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight"
+            >
+              Championship Manager
+            </h2>
+          </div>
+          <nav class="flex items-center gap-6">
+            <a
+              class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors"
+              href="#"
+              >Dashboard</a
+            >
+            <a
+              class="text-primary text-sm font-bold border-b-2 border-primary pb-1"
+              href="#"
+              >Standings</a
+            >
+            <a
+              class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors"
+              href="#"
+              >Fixtures</a
+            >
+            <a
+              class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors"
+              href="#"
+              >Teams</a
+            >
+          </nav>
+        </div>
+        <div class="flex flex-1 justify-end gap-4 items-center">
+          <label class="flex flex-col min-w-40 h-10 max-w-64">
+            <div
+              class="flex w-full flex-1 items-stretch rounded-xl h-full bg-slate-100 dark:bg-slate-800 border border-transparent focus-within:border-primary transition-all"
+            >
+              <div class="text-slate-400 flex items-center justify-center pl-4">
+                <span class="material-symbols-outlined text-xl">search</span>
+              </div>
+              <input
+                class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400 px-4 pl-2 text-sm font-normal"
+                placeholder="Search team..."
+              />
+            </div>
+          </label>
+          <div class="flex gap-2">
+            <button
+              class="flex items-center justify-center rounded-full h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span class="material-symbols-outlined">settings</span>
+            </button>
+            <button
+              class="flex items-center justify-center rounded-full h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 relative"
+            >
+              <span class="material-symbols-outlined">notifications</span>
+              <span
+                class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-slate-100 dark:border-slate-800"
+              ></span>
+            </button>
+          </div>
+          <div
+            class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200 dark:border-slate-700"
+            data-alt="User profile avatar with professional photo"
+            style="
+              background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuAo3BTOPt2l6FwbdbhIjfOGficc8QY7R5gWVLEvBaQ2mDiXeC1A1ObblnO-9Vb63QuHU2EJexs4z4DDCHi5uM0LJPMil1u4CmxGy60vml61yUrheqBiiL5f6kHGDgqYGBUqDCcijrCfZBuqDzBWp3qSrBEZCqBUfQVz4CWGHWF91iaEw_7h62moWkIic32NyzamZtw0d8sfWUG6zRdbW-tjovLdRRmG5fIYYj5DDxpbgkmVn0lNtuzr2CND4q-gM0WLLUX7obSYQYI&quot;);
+            "
+          ></div>
+        </div>
+      </header>
+      <main class="flex-1 flex justify-center py-8">
+        <div class="max-w-[1200px] w-full px-6 flex flex-col gap-6">
+          <!-- Page Heading -->
+          <div class="flex flex-wrap justify-between items-end gap-4">
+            <div class="flex flex-col gap-1">
+              <h1
+                class="text-slate-900 dark:text-white text-4xl font-black tracking-tight"
+              >
+                League Standings
+              </h1>
+              <p
+                class="text-slate-500 dark:text-slate-400 text-base font-normal"
+              >
+                Season 2023/24 • Last updated: 2 minutes ago
+              </p>
+            </div>
+            <div class="flex gap-3">
+              <button
+                class="flex items-center gap-2 rounded-xl h-10 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+              >
+                <span class="material-symbols-outlined text-lg">download</span>
+                <span>Export CSV</span>
+              </button>
+              <button
+                class="flex items-center gap-2 rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
+              >
+                <span class="material-symbols-outlined text-lg">sync</span>
+                <span>Refresh Data</span>
+              </button>
+            </div>
+          </div>
+          <!-- Tabs -->
+          <div class="border-b border-slate-200 dark:border-slate-800">
+            <div class="flex gap-8">
+              <a
+                class="flex items-center gap-2 border-b-[3px] border-primary text-primary pb-4 font-bold text-sm"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-sm">public</span>
+                All Teams
+              </a>
+              <a
+                class="flex items-center gap-2 border-b-[3px] border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 pb-4 font-bold text-sm transition-all"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-sm">home</span>
+                Home
+              </a>
+              <a
+                class="flex items-center gap-2 border-b-[3px] border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 pb-4 font-bold text-sm transition-all"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-sm">flight</span>
+                Away
+              </a>
+            </div>
+          </div>
+          <!-- Standings Table Container -->
+          <div
+            class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm"
+          >
+            <table class="w-full text-left zebra-table">
+              <thead class="bg-slate-50 dark:bg-slate-800/80">
+                <tr>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider w-16 text-center"
+                  >
+                    Pos
+                  </th>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider min-w-[200px]"
+                  >
+                    Team
+                  </th>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider text-center w-12"
+                  >
+                    PJ
+                  </th>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider text-center w-12"
+                  >
+                    G
+                  </th>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider text-center w-12"
+                  >
+                    E
+                  </th>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider text-center w-12"
+                  >
+                    P
+                  </th>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider text-center w-12"
+                  >
+                    GF
+                  </th>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider text-center w-12"
+                  >
+                    GC
+                  </th>
+                  <th
+                    class="px-4 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider text-center w-12"
+                  >
+                    DG
+                  </th>
+                  <th
+                    class="px-4 py-4 text-primary text-xs font-extrabold uppercase tracking-wider text-center w-16"
+                  >
+                    Pts
+                  </th>
+                  <th
+                    class="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider w-40"
+                  >
+                    Last 5 Matches
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                <!-- CHAMPIONS LEAGUE ZONE (Highlighted) -->
+                <tr
+                  class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors border-l-4 border-primary"
+                >
+                  <td
+                    class="px-4 py-4 text-center font-bold text-slate-900 dark:text-white"
+                  >
+                    1
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="size-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700"
+                        data-alt="Manchester City club logo"
+                        style="
+                          background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuCHs3T23s7zIN8pWYcwgVKFXIrH-Eekp08OQUivgTpu9xVa-t4FZA0iBmCR0elhxaSml3bZIRe-sB1dFBO64PMKJXqtBTjX2eNyd5sHhOdM5eR_kYlylAY0gAH0W0Ri-2G255KFjSaQtVRDc2pK4527sovW8ZtInwqnoIrxajM5OIaLRPG8EQ_N_znL71ndDTT8f3vpX_Dbnfk_WCOvLCphaoCFx4qZZThSUcvi6RwynQXcziSRZOUPpQmpWgLymxGru8Z5lIWBdsM&quot;);
+                          background-size: 70%;
+                          background-position: center;
+                          background-repeat: no-repeat;
+                        "
+                      ></div>
+                      <span class="font-bold text-slate-900 dark:text-white"
+                        >Manchester City</span
+                      >
+                    </div>
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    38
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    28
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    7
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    3
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    96
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    34
+                  </td>
+                  <td class="px-4 py-4 text-center text-green-500 font-medium">
+                    +62
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center font-black text-primary text-lg"
+                  >
+                    91
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex gap-1.5">
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors border-l-4 border-primary"
+                >
+                  <td
+                    class="px-4 py-4 text-center font-bold text-slate-900 dark:text-white"
+                  >
+                    2
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="size-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700"
+                        data-alt="Arsenal club logo"
+                        style="
+                          background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuBS8D2Zb2TuiBq-CS65WNDDS3GG7W4beU_pSLiBw-rWEmxL0J2OWU3119CS40L8kZ3oq9RJA0S0HO_68gV4Zr87AJpD3U8e0pcOOyM-h27UroCLOjlm5b4-CqRJeh0_FpBZlzzWKHiJfWGdWYYGeM2tFanRO2BC9psH4i6uz0MMJePCUxpHKq5sUwRxBS3lzOBlfnOcoif3ZnHSFhHLhaM-71VJb32YMbkPfzcaNlzekXn0KdyaA_K9EnfudefzvL46PADlCDsuyOM&quot;);
+                          background-size: 70%;
+                          background-position: center;
+                          background-repeat: no-repeat;
+                        "
+                      ></div>
+                      <span class="font-bold text-slate-900 dark:text-white"
+                        >Arsenal</span
+                      >
+                    </div>
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    38
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    28
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    5
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    5
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    91
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    29
+                  </td>
+                  <td class="px-4 py-4 text-center text-green-500 font-medium">
+                    +62
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center font-black text-primary text-lg"
+                  >
+                    89
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex gap-1.5">
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors border-l-4 border-primary"
+                >
+                  <td
+                    class="px-4 py-4 text-center font-bold text-slate-900 dark:text-white"
+                  >
+                    3
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="size-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700"
+                        data-alt="Liverpool club logo"
+                        style="
+                          background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuACH0xLfjAagsFD2aAN9OmxY1_PRoAtzPrYHzvtXTylwRLV50ww17MEMK8Wc6jPHUzw2wNZ9NS8aTSnG2dx4W1NlIYIHgX0m-FWIVfRKqJe9kbE9ciKODuM1OKkXWwPonxg4tH1Fp2w83O3UcjgSkGVjGV4zGoqvuAoKCmG9_rOJz4Rj7QOOJYJ0TLEa5CYYuZX_EkTIoA-Gv3giPuAy3k3mAvh4o5YAwSGRI-SqPgumkTiOBoQwcExnAeOv8sh7ICfoIO_-ls4yhA&quot;);
+                          background-size: 70%;
+                          background-position: center;
+                          background-repeat: no-repeat;
+                        "
+                      ></div>
+                      <span class="font-bold text-slate-900 dark:text-white"
+                        >Liverpool</span
+                      >
+                    </div>
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    38
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    24
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    10
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    4
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    86
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    41
+                  </td>
+                  <td class="px-4 py-4 text-center text-green-500 font-medium">
+                    +45
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center font-black text-primary text-lg"
+                  >
+                    82
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex gap-1.5">
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-draw text-white">D</div>
+                      <div class="form-dot bg-draw text-white">D</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors border-l-4 border-primary"
+                >
+                  <td
+                    class="px-4 py-4 text-center font-bold text-slate-900 dark:text-white"
+                  >
+                    4
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="size-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700"
+                        data-alt="Aston Villa club logo"
+                        style="
+                          background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDEx7bxrkPVhz9N96HyCODO9Zq4BUZ0l7e94PDwfP71Y91Uti59f9sbf2-kBvuptmTY605ptnhuTzHPY0uu70RXHezXUMMAgJfv5Pp9wbQHYUiF6zf9_R9zi7pF4_hrJJsLgnxQY72wErKzR-ixQt6lk6fWJY8YrCTKzclAb0HDSFs8lXQ9Iry8NySK695Jej6iZ97rayCX_0wzQUL2B7ZkTEzM5Pb5XNku3S30-rUVyvhABVBgifeYpX8MifOgGhpVjwLzq4R1u3I&quot;);
+                          background-size: 70%;
+                          background-position: center;
+                          background-repeat: no-repeat;
+                        "
+                      ></div>
+                      <span class="font-bold text-slate-900 dark:text-white"
+                        >Aston Villa</span
+                      >
+                    </div>
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    38
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    20
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    8
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    10
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    76
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    61
+                  </td>
+                  <td class="px-4 py-4 text-center text-green-500 font-medium">
+                    +15
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center font-black text-primary text-lg"
+                  >
+                    68
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex gap-1.5">
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-draw text-white">D</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-draw text-white">D</div>
+                    </div>
+                  </td>
+                </tr>
+                <!-- MIDDLE TABLE (Placeholder row for visual structure) -->
+                <tr
+                  class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                  <td class="px-4 py-4 text-center font-bold text-slate-400">
+                    ...
+                  </td>
+                  <td
+                    class="px-4 py-4 text-slate-400 italic text-sm"
+                    colspan="10"
+                  >
+                    Teams 5 through 17 omitted for brevity
+                  </td>
+                </tr>
+                <!-- RELEGATION ZONE (Highlighted) -->
+                <tr
+                  class="group hover:bg-red-500/5 dark:hover:bg-red-500/10 transition-colors border-l-4 border-red-500"
+                >
+                  <td
+                    class="px-4 py-4 text-center font-bold text-slate-900 dark:text-white"
+                  >
+                    18
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="size-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700"
+                        data-alt="Luton Town club logo"
+                        style="
+                          background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuAYgiGhluvdaNJ__Vkt8hBuHT1sm2sxXO1VdPlOf6NwMgQVmgIZPDICWlNd6ape0sufxFFlHpno9FnRr_JAmUO7VsvUGTtlhyTiMdoK8aWfo5MUTGjxdCrZU5iTXZeorGYfDO12ohUCwESAkeOQRcZyS1Q3-y62iJO_aPmqsgRJ0Qca_Uz8nHq14QJ9-gUVyX90tGq9ym7oB8oyn6XllalPwLncpSpT1DSrZMexBhSC7Ub2VDzb_xFb3Mjh6YYJFlJzBSpnIXJkUe4&quot;);
+                          background-size: 70%;
+                          background-position: center;
+                          background-repeat: no-repeat;
+                        "
+                      ></div>
+                      <span class="font-bold text-slate-900 dark:text-white"
+                        >Luton Town</span
+                      >
+                    </div>
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    38
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    6
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    8
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    24
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    52
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    85
+                  </td>
+                  <td class="px-4 py-4 text-center text-red-500 font-medium">
+                    -33
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center font-black text-slate-900 dark:text-white text-lg"
+                  >
+                    26
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex gap-1.5">
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-draw text-white">D</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="group hover:bg-red-500/5 dark:hover:bg-red-500/10 transition-colors border-l-4 border-red-500"
+                >
+                  <td
+                    class="px-4 py-4 text-center font-bold text-slate-900 dark:text-white"
+                  >
+                    19
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="size-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700"
+                        data-alt="Burnley club logo"
+                        style="
+                          background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDCwZrnCcMYCk8gmuMapbJTgAtmYycM0Z4BzKdX4dip-3YeZPXHEtln97D-53lj_f4Yic_HiiEzi0KjHXFtf_BjMnU-U5iWP2rDY8ffukY4e8j2dnXe-uRf_sp8ChlX-ytd0GsXDk6NI7tIbxJjWg2G-AujaE9j7KhLPMB_URZgJwEocS9QOB3gfAHOfYu0ke4UQ0lP4z7L_xXiPAQlhYt229PUzbkHOQ-Jm4BG20mvcTVZZ-GAk0lGB1NE7v9yd_qP125Tm_PGP8o&quot;);
+                          background-size: 70%;
+                          background-position: center;
+                          background-repeat: no-repeat;
+                        "
+                      ></div>
+                      <span class="font-bold text-slate-900 dark:text-white"
+                        >Burnley</span
+                      >
+                    </div>
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    38
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    5
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    9
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    24
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    41
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    78
+                  </td>
+                  <td class="px-4 py-4 text-center text-red-500 font-medium">
+                    -37
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center font-black text-slate-900 dark:text-white text-lg"
+                  >
+                    24
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex gap-1.5">
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-win text-white">W</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-draw text-white">D</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="group hover:bg-red-500/5 dark:hover:bg-red-500/10 transition-colors border-l-4 border-red-500"
+                >
+                  <td
+                    class="px-4 py-4 text-center font-bold text-slate-900 dark:text-white"
+                  >
+                    20
+                  </td>
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="size-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700"
+                        data-alt="Sheffield United club logo"
+                        style="
+                          background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuAqA7zDzhkBILc-NK5lNov2WDFNkpvuKRigYcA4qmSoho4unF07NEdwQdfJFs7jDHsAw3aYrB04bnbPaHcCyvcFIST03N5k609np7THKvF6QSzvOFfvusoScP5cj4stPPNZVVG_WEYyJ21mcZO86DLH5KqkYYo_3IdTYBePYcPbs7TdRki-RQ2YdLzICzs09lqqdqB1THHDJ84bvu0vDAkorUvZ1pfcgy_wBUgj8R3Xkl4z-UKecXIKwraPp9PmL6dT_Qa4RZIgocY&quot;);
+                          background-size: 70%;
+                          background-position: center;
+                          background-repeat: no-repeat;
+                        "
+                      ></div>
+                      <span class="font-bold text-slate-900 dark:text-white"
+                        >Sheffield United</span
+                      >
+                    </div>
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    38
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    3
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    7
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    28
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    35
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center text-slate-600 dark:text-slate-400"
+                  >
+                    104
+                  </td>
+                  <td class="px-4 py-4 text-center text-red-500 font-medium">
+                    -69
+                  </td>
+                  <td
+                    class="px-4 py-4 text-center font-black text-slate-900 dark:text-white text-lg"
+                  >
+                    16
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex gap-1.5">
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                      <div class="form-dot bg-loss text-white">L</div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Legend / Qualification Rules -->
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 dark:bg-slate-800/30 rounded-xl p-6 border border-slate-200 dark:border-slate-800"
+          >
+            <div class="flex flex-col gap-4">
+              <h3
+                class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider"
+              >
+                Qualification &amp; Relegation
+              </h3>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="size-3 rounded-full bg-primary shadow-sm shadow-primary/40"
+                  ></div>
+                  <p class="text-sm text-slate-600 dark:text-slate-400">
+                    Positions 1-4:
+                    <span class="text-slate-900 dark:text-slate-200 font-medium"
+                      >UEFA Champions League Group Stage</span
+                    >
+                  </p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div
+                    class="size-3 rounded-full bg-red-500 shadow-sm shadow-red-500/40"
+                  ></div>
+                  <p class="text-sm text-slate-600 dark:text-slate-400">
+                    Positions 18-20:
+                    <span class="text-slate-900 dark:text-slate-200 font-medium"
+                      >Relegation to Championship</span
+                    >
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-4">
+              <h3
+                class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider"
+              >
+                Abbreviations Legend
+              </h3>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div
+                  class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1"
+                >
+                  <span class="text-xs text-slate-500 uppercase">PJ</span>
+                  <span
+                    class="text-xs text-slate-900 dark:text-slate-200 font-bold"
+                    >Played</span
+                  >
+                </div>
+                <div
+                  class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1"
+                >
+                  <span class="text-xs text-slate-500 uppercase">G</span>
+                  <span
+                    class="text-xs text-slate-900 dark:text-slate-200 font-bold"
+                    >Won</span
+                  >
+                </div>
+                <div
+                  class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1"
+                >
+                  <span class="text-xs text-slate-500 uppercase">E</span>
+                  <span
+                    class="text-xs text-slate-900 dark:text-slate-200 font-bold"
+                    >Drawn</span
+                  >
+                </div>
+                <div
+                  class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1"
+                >
+                  <span class="text-xs text-slate-500 uppercase">P</span>
+                  <span
+                    class="text-xs text-slate-900 dark:text-slate-200 font-bold"
+                    >Lost</span
+                  >
+                </div>
+                <div
+                  class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1"
+                >
+                  <span class="text-xs text-slate-500 uppercase">GF/GC</span>
+                  <span
+                    class="text-xs text-slate-900 dark:text-slate-200 font-bold"
+                    >Goals For/Against</span
+                  >
+                </div>
+                <div
+                  class="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-1"
+                >
+                  <span class="text-xs text-slate-500 uppercase">DG</span>
+                  <span
+                    class="text-xs text-slate-900 dark:text-slate-200 font-bold"
+                    >Goal Diff</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      <!-- Footer -->
+      <footer
+        class="py-8 px-10 border-t border-slate-200 dark:border-slate-800 text-center"
+      >
+        <p class="text-slate-500 text-xs font-medium uppercase tracking-widest">
+          © 2024 Championship Manager • Enterprise Data Platform
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

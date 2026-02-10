@@ -1,0 +1,167 @@
+.contenedor-flex {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.bloque {
+  flex: 1 1 calc(25% - 1rem); /* 4 columnas */
+  background-color: #f8f9fa;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Responsivo para tablets */
+@media (max-width: 992px) {
+  .bloque {
+    flex: 1 1 calc(50% - 1rem); /* 2 columnas */
+  }
+}
+
+/* Responsivo para móviles */
+@media (max-width: 576px) {
+  .bloque {
+    flex: 1 1 100%; /* 1 columna */
+  }
+}
+
+
+.titulo-bloque {
+    color: #c00; /* Rojo */
+    border-bottom: 2px solid #c00;
+    padding-bottom: 5px;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.lista-partidos {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.item-partido {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;   
+    border-left: 5px solid #c00; /* Rojo */
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(255, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.item-partido:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
+}
+
+.equipo-puntos {
+    background-color: #c00; /* Rojo */
+    color: #fff;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.sin-partidos {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+}
+
+
+
+
+.bloque-resultados {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.titulo-bloque {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000;
+    border-bottom: 2px solid #c00;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.lista-resultados {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.item-resultado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.item-resultado:last-child {
+    border-bottom: none;
+}
+
+.resultado-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.fecha-resultado {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.nombre-oponente {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #000;
+}
+
+.resultado-score {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.marcador {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #000;
+}
+
+.badge {
+    padding: 0.4rem 0.7rem;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Colores ya proporcionados por Bootstrap si lo usas,
+   pero en caso de CSS puro: */
+.bg-success { background-color: #28a745; }
+.bg-secondary { background-color: #6c757d; }
+.bg-danger { background-color: #dc3545; }
+
+.sin-resultados {
+    color: #888;
+    font-style: italic;
+    padding: 0.5rem 0;
+}

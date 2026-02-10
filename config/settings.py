@@ -27,12 +27,12 @@ DEBUG = True
 
 if DEBUG:
     # Allow all hosts in debug mode
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['*']
 else:
     # In production, specify allowed hosts
     # Example: ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com']
     # For local development, you can use:
-    ALLOWED_HOSTS = ['localhost']
+    ALLOWED_HOSTS = ['localhost','*']
 
 
 # Application definition
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tournament',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -55,14 +56,17 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,7 +130,9 @@ USE_TZ = True
 
 # Archivos estaticos
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Archivos multimedia

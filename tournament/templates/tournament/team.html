@@ -1,39 +1,77 @@
 {% extends "tournament/base.html" %}
 {% load static %}
 {% block content %}
-<div class="card-header bloque">
-    <h1 class="text-center">Equipo</h1>
-</div>
-<div class="card-body">
-    <div class="row align-items-center">
-        <!-- Columna izquierda: Logo + nombre + entrenador -->
-        <div class="col-md-6 d-flex align-items-center">
-            {% if team.logo %}
-            <img src="{{ team.logo.url }}" alt="{{ team.name }}" width="100" height="100" class="me-3 rounded">
-            {% else %}
-            <img src="{% static 'tournament/img/default.jpg' %}" alt="{{ team.name }}" width="100" height="100"
-                class="me-3 rounded">
-            {% endif %}
-            <div>
-                <h2 class="mb-1">{{ team.name }}</h2>
-                <p class="mb-0"><strong>Entrenador:</strong> {{ team.coach }}</p>
-            </div>
-        </div>
 
-        <!-- Columna derecha: Lista de jugadores -->
-        <div class="col-md-6">
-            <h4>Jugadores</h4>
-            <ul class="list-group list-group-flush">
-                {% if team.players.all.count == 0 %}
-                <li class="list-group-item">No hay jugadores</li>
-                {% else %}
-                {% for player in team.players.all %}
-                <li class="list-group-item">{{ player.number }} - {{ player.name }} - {{ player.position }}</li>
-                {% endfor %}
-                {% endif %}
-            </ul>
+<div class="contenedor-flex">
+    <div class="">
+        {% if team.logo %}
+        <img src="{{ team.logo.url }}" alt="{{ team.name }}" width="100" height="100" class="me-3 rounded">
+        {% else %}
+        <img src="{% static 'tournament/img/default.jpg' %}" alt="{{ team.name }}" width="100" height="100"
+            class="me-3 rounded">
+        {% endif %}
+        <div>
+            <h2 class="mb-1">{{ team.name }}</h2>
+            <p class="mb-0"><strong>Entrenador:</strong> {{ team.coach }}</p>
         </div>
     </div>
+    <div class="bloque">
+        <h4 class="titulo-bloque">Jugadores</h4>
+        <ul class="list-group list-group-flush">
+            {% if team.players.all.count == 0 %}
+            <li class="list-group-item">No hay jugadores</li>
+            {% else %}
+            {% for player in team.players.all %}
+            <li class="list-group-item">{{ player.number }} - {{ player.name }} - {{ player.position }}</li>
+            {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+    <div class="bloque">
+        <h4 class="titulo-bloque">Próximos partidos</h4>
+        {% if next_opponents %}
+        <ul class="lista-partidos">
+            {% for opponent in next_opponents %}
+            <li class="item-partido">
+                <div class="equipo-nombre">{{ opponent.team.name }}</div>
+                
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="sin-partidos">No hay partidos pendientes.</p>
+        {% endif %}
+    </div>
+    <div class="bloque bloque-resultados">
+        <h4 class="titulo-bloque">📊 Resultados</h4>
+        {% if results %}
+        <ul class="lista-resultados">
+            {% for r in results %}
+            <li class="item-resultado">
+                <div class="resultado-info">
+                    <span class="fecha-resultado">{{ r.date }}</span>
+                    <span class="nombre-oponente">
+                        {% if r.is_home %}vs{% else %}@{% endif %} {{ r.opponent }}
+                    </span>
+                </div>
+                <div class="resultado-score">
+                    <span class="marcador">{{ r.goals_for }} - {{ r.goals_against }}</span>
+                    <span class="badge 
+                    {% if r.result == 'G' %}bg-success
+                    {% elif r.result == 'E' %}bg-secondary
+                    {% elif r.result == 'P' %}bg-danger
+                    {% endif %}">
+                        {% if r.result == 'G' %}G{% elif r.result == 'E' %}E{% else %}P{% endif %}
+                    </span>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="sin-resultados">No hay resultados disponibles.</p>
+        {% endif %}
+    </div>
+
 </div>
 
 <div class="card-footer text-center">

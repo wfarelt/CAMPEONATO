@@ -1,21 +1,26 @@
-.card {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);   
+:root {
+    --color-red: #AE0000;
+    --color-black: #000000; 
+    --secondary-color: #737070;
+    --text-color: #FFFFFF;
+    --background-color: #A20000;
+    --background-sec: #6E4444;
+    --border-color: #3C0000;
 }
 
 .card-team{
-    background: #deffc6;
+    background: var(--background-sec);
 }
 
-
 .card-header {
-    background-image: url('/static/tournament/img/fondo.jpg');
-    color: white;  
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 a, .nav-link {
     color: inherit;
     text-decoration: none;
-    color: #ffffff;
+    color: white;
 }
   
 .nav-link {
@@ -27,8 +32,8 @@ a, .nav-link {
         ),
         linear-gradient(
             to right,
-            #327d25 0%,
-            #abfe94 100%
+            var(--background-color) 0%,
+            var(--text-color) 100%
         );  
 
     
@@ -44,24 +49,37 @@ a:hover {
 }
 
 .nav-link:hover {
-    color: yellow;
+    color: var(--background-color);
+    background-color: white;
     background-size: 0 3px, 100% 3px;
 }
 
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
-    background-color: #32722e; /* Verde oscuro */
+    background-color: var(--background-color);
     border-radius: 50%;
     opacity: 0.9;
 }
 
-
 .navbar-brand {
     font-weight: bold;
-    color:#7dd869;
+    color: var(--background-color);
 }
 
 .card .rounded-circle {
     border: 3px solid #32722e;
 }
 
+.team-name-fixed {
+    display: inline-block;
+    min-width: 90px;   /* Ajusta según lo largo de tus nombres */
+    max-width: 120px;  /* Ajusta según lo largo de tus nombres */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.tname {
+    color: var(--background-color);
+}

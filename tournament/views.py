@@ -1,9 +1,95 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, F, Q
-from .models import Team, Player, Match
+from .models import Team, Player, Match, MatchDay
 from django.utils import timezone
+from django.http import JsonResponse
+from .forms import MatchDayForm, MatchFormSet
 
 # Create your views here.
+
+# MatchDay Views
+def create_matchday(request):
+    """Crear una nueva jornada con múltiples partidos"""
+    if request.method == 'POST':
+        matchday_form = MatchDayForm(request.POST)
+        formset = MatchFormSet(request.POST)
+        
+        if matchday_form.is_valid() and formset.is_valid():
+            matchday = matchday_form.save()
+            
+            # Guardar los matches sin commitear para asignar fecha primero
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.date = matchday.date
+                instance.match_day = matchday
+                instance.save()
+            
+            # Manejar deletes
+            for obj in formset.deleted_objects:
+                obj.delete()
+            
+            return redirect('matchday_detail', matchday_id=matchday.id)
+    else:
+        matchday_form = MatchDayForm()
+        formset = MatchFormSet()
+    
+    context = {
+        'matchday_form': matchday_form,
+        'formset': formset,
+    }
+    return render(request, 'tournament/create_matchday.html', context)
+
+def edit_matchday(request, matchday_id):
+    """Editar una jornada existente"""
+    matchday = get_object_or_404(MatchDay, pk=matchday_id)
+    
+    if request.method == 'POST':
+        matchday_form = MatchDayForm(request.POST, instance=matchday)
+        formset = MatchFormSet(request.POST, instance=matchday)
+        
+        if matchday_form.is_valid() and formset.is_valid():
+            matchday = matchday_form.save()
+            
+            # Guardar los matches sin commitear para asignar fecha primero
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.date = matchday.date
+                instance.match_day = matchday
+                instance.save()
+            
+            # Manejar deletes
+            for obj in formset.deleted_objects:
+                obj.delete()
+            
+            return redirect('matchday_detail', matchday_id=matchday.id)
+    else:
+        matchday_form = MatchDayForm(instance=matchday)
+        formset = MatchFormSet(instance=matchday)
+    
+    context = {
+        'matchday_form': matchday_form,
+        'formset': formset,
+        'matchday': matchday,
+        'is_edit': True,
+    }
+    return render(request, 'tournament/create_matchday.html', context)
+
+def matchday_detail(request, matchday_id):
+    """Ver los detalles de una jornada"""
+    matchday = get_object_or_404(MatchDay, pk=matchday_id)
+    matches = matchday.matches.all()
+    
+    context = {
+        'matchday': matchday,
+        'matches': matches,
+    }
+    return render(request, 'tournament/matchday_detail.html', context)
+
+def matchdays_list(request):
+    """Listar todas las jornadas"""
+    matchdays = MatchDay.objects.all()
+    context = {'matchdays': matchdays}
+    return render(request, 'tournament/matchdays_list.html', context)
 
 # home
 def home(request):
@@ -16,7 +102,14 @@ def teams(request):
 
 def team(request, team_id):
     team = Team.objects.get(pk=team_id)
-    return render(request, 'tournament/team.html', {'team': team})
+    next_opponents = get_opponents(team) 
+    results = results_by_team(team)   
+    context = {
+        'team': team,
+        'next_opponents': next_opponents,
+        'results': results,
+    }
+    return render(request, 'tournament/team.html', context)
 
 def standings_view(request):
     teams = Team.objects.all()
@@ -29,6 +122,13 @@ def standings_view(request):
         won = matches_played.filter(
             Q(home_team=team, home_score__gt=F('away_score')) | Q(away_team=team, away_score__gt=F('home_score'))
         ).count()
+        drawn = matches_played.filter(home_score=F('away_score')).count()
+        points_from_matches = won * 3 + drawn
+
+        # Suma los ajustes de puntos
+        adjustments = team.points_adjustments.aggregate(total=Sum('points'))['total'] or 0
+        total_points = points_from_matches + adjustments
+        
         lost = matches_played.filter(
             Q(home_team=team, home_score__lt=F('away_score')) | Q(away_team=team, away_score__lt=F('home_score'))
         ).count()
@@ -43,20 +143,16 @@ def standings_view(request):
             'matches_played': matches_played.count(),
             'won': won,
             'drawn': drawn,
-            'lost': lost,
+            'lost': matches_played.count() - won - drawn,
             'goals_for': goals_for,
             'goals_against': goals_against,
             'goal_difference': goals_for - goals_against,
-            'points': won * 3 + drawn,
+            'points': total_points,
         })
 
     standings = sorted(standings, key=lambda x: (-x['points'], -x['goal_difference'], -x['goals_for']))
 
     return render(request, 'tournament/standings.html', {'standings': standings})
-
-# Mostrar lista de partidos pendientes
-
-
 
 def get_last_results(team, exclude_match=None, n=5):
     # Busca los últimos n partidos terminados del equipo, excluyendo el partido actual si se indica
@@ -106,3 +202,120 @@ def matches(request):
         'matches_pending': matches_pending_list,
         'matches_finished': matches_finished,
     })
+
+def api_teams(request):
+    teams = Team.objects.all()
+    data = []
+    for team in teams:
+        data.append({
+            'id': team.id,
+            'name': team.name,
+            'coach': team.coach,
+            'logo': team.logo.url if team.logo else None,
+        })
+    return JsonResponse({'teams': data})
+
+def standings_api(request):
+    teams = Team.objects.all()
+    standings = []
+
+    for team in teams:
+        matches_played = Match.objects.filter(
+            Q(home_team=team, status='finished') | Q(away_team=team, status='finished')
+        )
+        won = matches_played.filter(
+            Q(home_team=team, home_score__gt=F('away_score')) | Q(away_team=team, away_score__gt=F('home_score'))
+        ).count()
+        lost = matches_played.filter(
+            Q(home_team=team, home_score__lt=F('away_score')) | Q(away_team=team, away_score__lt=F('home_score'))
+        ).count()
+        drawn = matches_played.filter(home_score=F('away_score')).count()
+        goals_for = matches_played.filter(home_team=team).aggregate(Sum('home_score'))['home_score__sum'] or 0
+        goals_for += matches_played.filter(away_team=team).aggregate(Sum('away_score'))['away_score__sum'] or 0
+        goals_against = matches_played.filter(home_team=team).aggregate(Sum('away_score'))['away_score__sum'] or 0
+        goals_against += matches_played.filter(away_team=team).aggregate(Sum('home_score'))['home_score__sum'] or 0
+
+        standings.append({
+            'team': team.name,
+            'matches_played': matches_played.count(),
+            'won': won,
+            'drawn': drawn,
+            'lost': lost,
+            'goals_for': goals_for,
+            'goals_against': goals_against,
+            'goal_difference': goals_for - goals_against,
+            'points': won * 3 + drawn,
+        })
+
+    # Ordenar por puntos, diferencia de goles, goles a favor
+    standings = sorted(standings, key=lambda x: (-x['points'], -x['goal_difference'], -x['goals_for']))
+
+    return JsonResponse({'standings': standings})
+
+# Funcion que devuelve los equipos con los que no se ha jugado
+def get_opponents(team):
+    # Todos los equipos menos el propio
+    all_teams = set(Team.objects.exclude(pk=team.pk))
+    # Equipos con los que ya jugó
+    played_matches = Match.objects.filter(
+        Q(home_team=team) | Q(away_team=team),
+        status='finished'
+    )
+    already_played = set()
+    for match in played_matches:
+        if match.home_team == team:
+            already_played.add(match.away_team)
+        else:
+            already_played.add(match.home_team)
+    # Equipos con los que falta jugar
+    to_play = all_teams - already_played
+
+    # Calcula los puntos de cada equipo con los que falta jugar
+    opponents_data = []
+    for opp in to_play:
+        matches_played = Match.objects.filter(
+            Q(home_team=opp, status='finished') | Q(away_team=opp, status='finished')
+        )
+        won = matches_played.filter(
+            Q(home_team=opp, home_score__gt=F('away_score')) | Q(away_team=opp, away_score__gt=F('home_score'))
+        ).count()
+        drawn = matches_played.filter(home_score=F('away_score')).count()
+        points = won * 3 + drawn
+        opponents_data.append({
+            'team': opp,
+            'points': points,
+        })
+
+    # Ordena por puntos descendente
+    opponents_data = sorted(opponents_data, key=lambda x: -x['points'])
+
+    return opponents_data
+
+# Funcion que devuelva los partidos de un equipo
+def results_by_team(team):
+    matches = Match.objects.filter(
+        Q(home_team=team) | Q(away_team=team),
+        status='finished'
+    ).order_by('-date', '-time')
+    results = []
+    for match in matches:
+        is_home = match.home_team == team
+        opponent = match.away_team if is_home else match.home_team
+        goals_for = match.home_score if is_home else match.away_score
+        goals_against = match.away_score if is_home else match.home_score
+        # Resultado: G=Ganado, E=Empate, P=Perdido
+        if goals_for > goals_against:
+            result = 'G'
+        elif goals_for == goals_against:
+            result = 'E'
+        else:
+            result = 'P'
+        results.append({
+            'date': match.date,
+            'opponent': opponent.name,
+            'is_home': is_home,
+            'goals_for': goals_for,
+            'goals_against': goals_against,
+            'result': result,
+        })
+    return results
