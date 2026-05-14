@@ -7,6 +7,7 @@ urlpatterns = [
     path('team/<int:team_id>/', team, name='team'),
     path('standings/', standings_view, name='standings'),
     path('matches/', matches, name='matches'),
+        path('statistics/', statistics, name='statistics'),
     # MatchDay URLs
     path('matchday/create/', create_matchday, name='create_matchday'),
     path('matchday/<int:matchday_id>/', matchday_detail, name='matchday_detail'),

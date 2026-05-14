@@ -2,34 +2,71 @@
 
 {% load static %}
 
+{% block title %}Equipos - Panel del Campeonato{% endblock %}
+
+{% block header_title %}Equipos{% endblock %}
+
 {% block content %}
-<div class="card-header">
-    <h1 class="text-center">Equipos</h1>
+<!-- Header -->
+<div class="mb-8">
+  <h2 class="mb-2 text-4xl font-black">League Teams</h2>
+  <p class="text-[#9da6b9]">Browse and manage all participating teams</p>
 </div>
-<div class="card-body text-center">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-        {% for team in teams %}
-        <div class="col">
-            <div class="card shadow-sm">
-                <div class="d-flex align-items-center p-2">
-                    <div class="flex-shrink-0">
-                        {% if team.logo %}
-                        <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="img-fluid"
-                            style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
-                        {% else %}
-                        <img src="{% static 'tournament/img/default_logo.jpg' %}" alt="Logo por defecto"
-                            class="img-fluid"
-                            style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
-                        {% endif %}
-                    </div>
-                    <div class="ms-3 flex-grow-1 text-start">
-                        <h5 class="mb-1">{{ team.name }}</h5>
-                        <a href="{% url 'team' team.id %}" class="btn btn-primary btn-sm">Detalle</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+
+<!-- Teams Grid -->
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  {% for team in teams %}
+  <div
+    class="group flex flex-col overflow-hidden rounded-2xl border border-[#282e39] bg-[#1c1f27] transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/20"
+  >
+    <!-- Team Logo Section -->
+    <div class="flex h-32 items-center justify-center bg-gradient-to-br from-primary/10 to-transparent p-4">
+      {% if team.logo %}
+      <img
+        alt="{{ team.name }}"
+        class="h-full w-full object-contain"
+        src="{{ team.logo.url }}"
+      />
+      {% else %}
+      <div class="flex h-24 w-24 items-center justify-center rounded-lg bg-[#282e39]">
+        <span class="material-symbols-outlined text-4xl text-[#9da6b9]">shield</span>
+      </div>
+      {% endif %}
     </div>
+
+    <!-- Team Info Section -->
+    <div class="flex flex-1 flex-col gap-4 border-t border-[#282e39] p-4">
+      <div>
+        <h3 class="font-bold text-white">{{ team.name }}</h3>
+        <p class="text-xs text-[#9da6b9]">Team Details</p>
+      </div>
+
+      <!-- Stats or Quick Info -->
+      <div class="flex gap-2 text-center text-xs">
+        <div class="flex-1 rounded-lg bg-[#282e39] py-2">
+          <p class="font-black text-primary">Team</p>
+          <p class="text-[10px] text-[#9da6b9]">View</p>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <a
+        class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-2 px-4 font-bold text-white transition-all hover:bg-primary/90 group-hover:shadow-lg group-hover:shadow-primary/30"
+        href="{% url 'team' team.id %}"
+      >
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        <span>Details</span>
+      </a>
+    </div>
+  </div>
+  {% empty %}
+  <!-- Empty State -->
+  <div class="col-span-full rounded-2xl border border-[#282e39] bg-[#1c1f27] p-12 text-center">
+    <span class="material-symbols-outlined mb-4 inline-block text-5xl text-[#9da6b9]">
+      teams
+    </span>
+    <p class="text-[#9da6b9]">No teams registered yet.</p>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

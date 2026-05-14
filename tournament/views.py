@@ -93,7 +93,69 @@ def matchdays_list(request):
 
 # home
 def home(request):
-    return render(request, 'tournament/home.html')
+    latest_matchday = (
+        MatchDay.objects
+        .prefetch_related('matches__home_team', 'matches__away_team')
+        .first()
+    )
+
+    timeline_matches = []
+    timeline_title = 'Última Jornada'
+    featured_match = None
+
+    if latest_matchday and latest_matchday.matches.exists():
+        matches_qs = latest_matchday.matches.select_related('home_team', 'away_team').order_by('time')
+        timeline_title = latest_matchday.description or f"Jornada del {latest_matchday.date.strftime('%d/%m/%Y')}"
+    else:
+        latest_match_date = Match.objects.order_by('-date').values_list('date', flat=True).first()
+        matches_qs = Match.objects.none()
+        if latest_match_date:
+            matches_qs = Match.objects.filter(date=latest_match_date).select_related('home_team', 'away_team').order_by('time')
+            timeline_title = f"Jornada del {latest_match_date.strftime('%d/%m/%Y')}"
+
+    for match in matches_qs:
+        if match.status == 'finished':
+            status_label = 'Finalizado'
+        else:
+            status_label = 'Programado'
+
+        timeline_matches.append({
+            'home_team': match.home_team.name,
+            'away_team': match.away_team.name,
+            'home_short': match.home_team.name[:3].upper(),
+            'away_short': match.away_team.name[:3].upper(),
+            'home_score': match.home_score if match.status == 'finished' else '-',
+            'away_score': match.away_score if match.status == 'finished' else '-',
+            'status': status_label,
+            'time': match.time.strftime('%H:%M'),
+            'is_finished': match.status == 'finished',
+        })
+
+    if matches_qs.exists():
+        highlighted = matches_qs.filter(status='finished').order_by('-time').first()
+        if not highlighted:
+            highlighted = matches_qs.order_by('time').first()
+
+        featured_match = {
+            'home_team': highlighted.home_team.name,
+            'away_team': highlighted.away_team.name,
+            'home_logo': highlighted.home_team.logo.url if highlighted.home_team.logo else None,
+            'away_logo': highlighted.away_team.logo.url if highlighted.away_team.logo else None,
+            'home_score': highlighted.home_score if highlighted.status == 'finished' else '-',
+            'away_score': highlighted.away_score if highlighted.status == 'finished' else '-',
+            'status': 'FINALIZADO' if highlighted.status == 'finished' else 'PROGRAMADO',
+            'status_class': 'text-accent-green bg-accent-green/20' if highlighted.status == 'finished' else 'text-primary bg-primary/20',
+            'date': highlighted.date.strftime('%d/%m/%Y'),
+            'time': highlighted.time.strftime('%H:%M'),
+            'is_finished': highlighted.status == 'finished',
+        }
+
+    context = {
+        'timeline_title': timeline_title,
+        'timeline_matches': timeline_matches,
+        'featured_match': featured_match,
+    }
+    return render(request, 'tournament/dashboard.html', context)
 
 # teams
 def teams(request):
@@ -319,3 +381,8 @@ def results_by_team(team):
             'result': result,
         })
     return results
+
+
+def statistics(request):
+    """Vista de estadísticas del campeonato"""
+    return render(request, 'tournament/statistics.html')

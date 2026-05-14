@@ -1,143 +1,138 @@
 {% extends "tournament/base.html" %}
 
-{% block styles %}
-<style>
+{% block title %}Partidos - Panel del Campeonato{% endblock %}
 
-.vs-futurista-container {
-    min-width: 60px;      /* Puedes reducir más si quieres */
-    height: 30px;         /* Antes 10px, ahora 30px para mejor proporción */
-    position: relative;
-    z-index: 1;
-}
-
-.vs-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #32722e 0%, #58d61e 100%);
-    border-radius: 3px;
-    z-index: 1;
-    transform: translateY(-50%);
-    box-shadow: 0 0 12px #58d61e88;
-}
-
-.vs-pill {
-    position: relative;
-    z-index: 2;
-    background: linear-gradient(90deg, #222 0%, #58d61e 100%);
-    color: #fff;
-    border-radius: 30px;
-    padding: 0.2em 0.8em; /* Menos padding */
-    font-size: 1.1rem;    /* Más pequeño */
-    font-weight: bold;
-    letter-spacing: 2px;
-    box-shadow: 0 2px 12px #58d61e55, 0 0 0 4px #222;
-    border: 2px solid #58d61e;
-    text-shadow: 0 0 8px #58d61e;
-}
-
-.hex-date {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60%;
-    height: 30px;
-    background: linear-gradient(90deg, #32722e 0%, #58d61e 100%);
-    color: #fff;
-    font-weight: bold;
-    clip-path: polygon(
-        10% 0%, 90% 0%,
-        100% 50%,
-        90% 100%, 10% 100%,
-        0% 50%
-    );
-    box-shadow: 0 2px 8px #58d61e55;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-    letter-spacing: 1px;
-}
-</style>
-{% endblock %}
+{% block header_title %}Partidos{% endblock %}
 
 {% block content %}
-<div class="card-header">
-    <h1 class="text-center">Partidos</h1>
-</div>
-<div class="card-body text-center">
-    <h2>Próximos partidos</h2>
-    <div class="row justify-content-center">
-        {% for match in matches_pending %}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm p-3">
-                <div class="d-flex align-items-center justify-content-between">
-                    <!-- Equipo local -->
-                    <div class="text-center">
-                        <img src="{{ match.home_team_logo }}" alt="{{ match.home_team }}" class="rounded-circle" style="width:70px; height:70px; object-fit:cover; border:3px solid #32722e;">
-                        <div class="fw-bold mt-2 team-name-fixed">{{ match.home_team }}</div>
-                        <div>
-                            {% for res in match.home_team_last_results %}
-                                <span class="badge 
-                                    {% if res == 'G' %}bg-success
-                                    {% elif res == 'E' %}bg-secondary
-                                    {% elif res == 'P' %}bg-danger
-                                    {% endif %} mx-1">{{ res }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <!-- VS con línea futurista -->
-                    <div class="vs-futurista-container flex-grow-1 d-flex align-items-center justify-content-center position-relative mx-3">
-                        <div class="vs-line"></div>
-                        <span class="vs-pill">VS</span>
-                    </div>
-                    <!-- Equipo visitante -->
-                    <div class="text-center">
-                        <img src="{{ match.away_team_logo }}" alt="{{ match.away_team }}" class="rounded-circle" style="width:70px; height:70px; object-fit:cover; border:3px solid #32722e;">
-                        <div class="fw-bold mt-2 team-name-fixed">{{ match.away_team }}</div>
-                        <div>
-                            {% for res in match.away_team_last_results %}
-                                <span class="badge 
-                                    {% if res == 'G' %}bg-success
-                                    {% elif res == 'E' %}bg-secondary
-                                    {% elif res == 'P' %}bg-danger
-                                    {% endif %} mx-1">{{ res }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-center mt-3">
-                    <div class="hex-date">
-                        <small>{{ match.date }}</small>
-                    </div>
-                </div>
-            </div>
+<!-- Upcoming Matches Section -->
+<section>
+  <div class="mb-6 flex items-center justify-between">
+    <h3 class="text-2xl font-bold">Partidos Próximos</h3>
+  </div>
+  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
+    {% for match in matches_pending %}
+    <div
+      class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 transition-all hover:border-primary"
+    >
+      <div class="flex flex-col items-center gap-8 md:flex-row md:justify-between">
+        <!-- Home Team -->
+        <div class="flex flex-1 flex-col items-center gap-3 text-center">
+          {% if match.home_team_logo %}
+          <div
+            class="size-20 rounded-full border-4 border-primary bg-cover bg-center"
+            style="background-image: url('{{ match.home_team_logo }}');"
+          ></div>
+          {% else %}
+          <div
+            class="flex size-20 items-center justify-center rounded-full border-4 border-primary bg-[#282e39]"
+          >
+            <span class="material-symbols-outlined text-3xl">shield</span>
+          </div>
+          {% endif %}
+          <h4 class="text-lg font-bold">{{ match.home_team }}</h4>
+          <div class="flex gap-1">
+            {% for res in match.home_team_last_results %}
+            <span
+              class="inline-flex size-6 items-center justify-center rounded-full text-xs font-bold text-white
+              {% if res == 'G' %}bg-accent-green{% elif res == 'E' %}bg-[#9da6b9]{% elif res == 'P' %}bg-red-500{% endif %}"
+            >
+              {{ res }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- VS Divider -->
+        <div class="flex flex-col items-center gap-2">
+          <div class="text-xs font-bold uppercase text-[#9da6b9]">
+            {{ match.date|date:"d M" }}
+          </div>
+          <div class="rounded-full bg-primary px-4 py-2 font-bold text-white">
+            VS
+          </div>
+        </div>
+
+        <!-- Away Team -->
+        <div class="flex flex-1 flex-col items-center gap-3 text-center">
+          {% if match.away_team_logo %}
+          <div
+            class="size-20 rounded-full border-4 border-[#282e39] bg-cover bg-center"
+            style="background-image: url('{{ match.away_team_logo }}');"
+          ></div>
+          {% else %}
+          <div
+            class="flex size-20 items-center justify-center rounded-full border-4 border-[#282e39] bg-[#282e39]"
+          >
+            <span class="material-symbols-outlined text-3xl">security</span>
+          </div>
+          {% endif %}
+          <h4 class="text-lg font-bold">{{ match.away_team }}</h4>
+          <div class="flex gap-1">
+            {% for res in match.away_team_last_results %}
+            <span
+              class="inline-flex size-6 items-center justify-center rounded-full text-xs font-bold text-white
+              {% if res == 'G' %}bg-accent-green{% elif res == 'E' %}bg-[#9da6b9]{% elif res == 'P' %}bg-red-500{% endif %}"
+            >
+              {{ res }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="rounded-2xl border border-[#282e39] bg-[#1c1f27] p-8 text-center">
+      <p class="text-[#9da6b9]">No hay partidos próximos en este momento.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Finished Matches Section -->
+<section>
+  <div class="mb-6 flex items-center justify-between">
+    <h3 class="text-2xl font-bold">Resultados</h3>
+  </div>
+
+  {% regroup matches_finished by date as match_list %}
+  {% if match_list %}
+  <div class="flex flex-col gap-4">
+    {% for group in match_list %}
+    <div class="rounded-2xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
+      <div class="border-b border-[#282e39] bg-primary px-6 py-4">
+        <p class="font-bold text-white">{{ group.grouper|date:"d \\o\\f F, Y" }}</p>
+      </div>
+      <div class="divide-y divide-[#282e39]">
+        {% for match in group.list %}
+        <div class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-[#282e39] transition-colors">
+          <div class="flex flex-1 items-center gap-3">
+            <span class="text-sm font-bold text-[#9da6b9] min-w-fit">
+              {{ match.home_team }}
+            </span>
+            <span class="text-lg font-bold text-white">
+              {{ match.home_score }}
+            </span>
+          </div>
+          <span class="text-[#9da6b9]">-</span>
+          <div class="flex flex-1 items-center justify-end gap-3">
+            <span class="text-lg font-bold text-white">
+              {{ match.away_score }}
+            </span>
+            <span class="text-sm font-bold text-[#9da6b9] min-w-fit">
+              {{ match.away_team }}
+            </span>
+          </div>
         </div>
         {% endfor %}
+      </div>
     </div>
-
-    <br>
-    <h2>Partidos jugados</h2>
-    {% regroup matches_finished by date as match_list %}
-
-    <div class="accordion" id="accordionMatches">
-        {% for group in match_list %}
-        <div class="card mb-3 shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <strong>{{ group.grouper|date:"d M Y" }}</strong>
-            </div>
-            <ul class="list-group list-group-flush">
-                {% for match in group.list %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>{{ match.home_team }} <strong>({{ match.home_score }})</strong></span>
-                    <span>-</span>
-                    <span><strong>({{ match.away_score }})</strong> {{ match.away_team }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endfor %}
-    </div>
-
-</div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="rounded-2xl border border-[#282e39] bg-[#1c1f27] p-8 text-center">
+    <p class="text-[#9da6b9]">Sin resultados disponibles aún.</p>
+  </div>
+  {% endif %}
+</section>
 {% endblock %}
