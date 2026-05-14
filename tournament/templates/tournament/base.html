@@ -63,6 +63,7 @@
     class="bg-background-light dark:bg-background-dark text-white font-display"
   >
     <div class="flex h-screen overflow-hidden">
+      {% with current_url=request.resolver_match.url_name %}
       <!-- Side Navigation -->
       <aside
         class="hidden lg:flex w-64 flex-col justify-between bg-background-light dark:bg-background-dark border-r border-[#282e39] p-6"
@@ -87,35 +88,35 @@
           <!-- Nav Links -->
           <nav class="flex flex-col gap-2">
             <a
-              class="flex items-center gap-3 px-3 py-3 rounded-xl bg-primary text-white"
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'home' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
               href="{% url 'home' %}"
             >
               <span class="material-symbols-outlined">dashboard</span>
               <span class="text-sm font-medium">Dashboard</span>
             </a>
             <a
-              class="flex items-center gap-3 px-3 py-3 rounded-xl text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors"
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'matches' or current_url == 'matchdays_list' or current_url == 'matchday_detail' or current_url == 'create_matchday' or current_url == 'edit_matchday' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
               href="{% url 'matches' %}"
             >
               <span class="material-symbols-outlined">calendar_today</span>
               <span class="text-sm font-medium">Partidos</span>
             </a>
             <a
-              class="flex items-center gap-3 px-3 py-3 rounded-xl text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors"
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'standings' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
               href="{% url 'standings' %}"
             >
               <span class="material-symbols-outlined">leaderboard</span>
               <span class="text-sm font-medium">Posiciones</span>
             </a>
             <a
-              class="flex items-center gap-3 px-3 py-3 rounded-xl text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors"
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'statistics' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
               href="{% url 'statistics' %}"
             >
               <span class="material-symbols-outlined">analytics</span>
               <span class="text-sm font-medium">Estadísticas</span>
             </a>
             <a
-              class="flex items-center gap-3 px-3 py-3 rounded-xl text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors"
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'teams' or current_url == 'team' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
               href="{% url 'teams' %}"
             >
               <span class="material-symbols-outlined">groups</span>
@@ -181,35 +182,35 @@
           </div>
           <nav class="flex flex-col gap-2">
             <a
-              class="flex items-center gap-3 rounded-xl bg-primary px-3 py-3 text-white"
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'home' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
               href="{% url 'home' %}"
             >
               <span class="material-symbols-outlined">dashboard</span>
               <span class="text-sm font-medium">Dashboard</span>
             </a>
             <a
-              class="flex items-center gap-3 rounded-xl px-3 py-3 text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white"
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'matches' or current_url == 'matchdays_list' or current_url == 'matchday_detail' or current_url == 'create_matchday' or current_url == 'edit_matchday' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
               href="{% url 'matches' %}"
             >
               <span class="material-symbols-outlined">calendar_today</span>
               <span class="text-sm font-medium">Partidos</span>
             </a>
             <a
-              class="flex items-center gap-3 rounded-xl px-3 py-3 text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white"
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'standings' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
               href="{% url 'standings' %}"
             >
               <span class="material-symbols-outlined">leaderboard</span>
               <span class="text-sm font-medium">Posiciones</span>
             </a>
             <a
-              class="flex items-center gap-3 rounded-xl px-3 py-3 text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white"
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'statistics' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
               href="{% url 'statistics' %}"
             >
               <span class="material-symbols-outlined">analytics</span>
               <span class="text-sm font-medium">Estadísticas</span>
             </a>
             <a
-              class="flex items-center gap-3 rounded-xl px-3 py-3 text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white"
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'teams' or current_url == 'team' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
               href="{% url 'teams' %}"
             >
               <span class="material-symbols-outlined">groups</span>
@@ -234,6 +235,7 @@
           </a>
         </div>
       </aside>
+      {% endwith %}
       <!-- Main Content -->
       <main class="flex-1 overflow-y-auto hide-scrollbar">
         <!-- Top Header -->
