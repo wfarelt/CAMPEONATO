@@ -1,0 +1,59 @@
+{% extends "core/base.html" %}
+
+{% block title %}{% if is_edit %}Editar Equipo{% else %}Crear Equipo{% endif %}{% endblock %}
+
+{% block header_title %}{% if is_edit %}Editar Equipo{% else %}Crear Equipo{% endif %}{% endblock %}
+
+{% block content %}
+<div class="mx-auto w-full max-w-3xl rounded-3xl border border-[#282e39] bg-[#1c1f27] p-8">
+  <div class="mb-6">
+    <h2 class="text-2xl font-black text-white">
+      {% if is_edit %}Editar {{ team.name }}{% else %}Registrar nuevo equipo{% endif %}
+    </h2>
+    <p class="mt-2 text-sm text-[#9da6b9]">Campeonato: {{ championship_category_label }}</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-5">
+    {% csrf_token %}
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_name">Nombre</label>
+      {{ form.name }}
+      {% if form.name.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ form.name.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_coach">Entrenador</label>
+      {{ form.coach }}
+      {% if form.coach.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ form.coach.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_logo">Logo</label>
+      {{ form.logo }}
+      {% if form.logo.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ form.logo.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 pt-2">
+      <button
+        type="submit"
+        class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
+      >
+        {% if is_edit %}Guardar cambios{% else %}Crear equipo{% endif %}
+      </button>
+      <a
+        href="{% url 'teams' %}?{{ category_query }}"
+        class="rounded-xl bg-[#282e39] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#343b48]"
+      >
+        Cancelar
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

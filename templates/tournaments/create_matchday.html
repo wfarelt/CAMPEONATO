@@ -1,0 +1,299 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>{% if is_edit %}Editar Jornada{% else %}Crear Nueva Jornada{% endif %}</h1>
+    
+    <form method="post" id="matchday-form">
+        {% csrf_token %}
+        
+        <!-- Fecha de la jornada -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Información de la Jornada</h5>
+                <div class="form-group mb-3">
+                    <label for="{{ matchday_form.category.id_for_label }}">Campeonato</label>
+                    {{ matchday_form.category }}
+                    {% if matchday_form.category.errors %}
+                        <small class="text-danger">{{ matchday_form.category.errors }}</small>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ matchday_form.date.id_for_label }}">Fecha de la Jornada</label>
+                    {{ matchday_form.date }}
+                    {% if matchday_form.date.errors %}
+                        <small class="text-danger">{{ matchday_form.date.errors }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Partidos -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Partidos de la Jornada</h5>
+                
+                {{ formset.management_form }}
+                
+                <div id="formset-container">
+                    {% for form in formset %}
+                    <div class="row match-form mb-3 p-3 border rounded">
+                        <div class="col-md-4">
+                            <label for="{{ form.home_team.id_for_label }}">Equipo Local</label>
+                            {{ form.home_team }}
+                            {% if form.home_team.errors %}
+                                <small class="text-danger">{{ form.home_team.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.away_team.id_for_label }}">Equipo Visitante</label>
+                            {{ form.away_team }}
+                            {% if form.away_team.errors %}
+                                <small class="text-danger">{{ form.away_team.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label for="{{ form.time.id_for_label }}">Hora</label>
+                            {{ form.time }}
+                            {% if form.time.errors %}
+                                <small class="text-danger">{{ form.time.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <label class="form-check-label">
+                                {{ form.DELETE }}
+                                <span>Eliminar</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Errores generales del formulario -->
+                        {% if form.non_field_errors %}
+                            <div class="col-12">
+                                <small class="text-danger">{{ form.non_field_errors }}</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Botón para añadir más partidos -->
+                <button type="button" class="btn btn-secondary mt-3" id="add-match-btn">
+                    Añadir otro partido
+                </button>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                {% if is_edit %}Actualizar Jornada{% else %}Crear Jornada{% endif %}
+            </button>
+            <a href="{% url 'matchdays_list' %}?{{ category_query }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('add-match-btn').addEventListener('click', function() {
+    const formsetContainer = document.getElementById('formset-container');
+    const formCount = document.getElementById('id_matches-TOTAL_FORMS');
+    const currentFormCount = parseInt(formCount.value);
+    
+    // Clonar el último formulario
+    const lastForm = formsetContainer.lastElementChild;
+    const newForm = lastForm.cloneNode(true);
+    
+    // Actualizar los índices y nombres de los inputs
+    const inputs = newForm.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        const name = input.name;
+        if (name) {
+            input.name = name.replace(/-\d+-/, `-${currentFormCount}-`);
+            input.id = input.name; // Actualizar también el id
+        }
+        // Limpiar valores
+        if (input.type !== 'hidden') {
+            input.value = '';
+        }
+        // Desmarcar checkbox de DELETE
+        if (input.type === 'checkbox') {
+            input.checked = false;
+        }
+    });
+    
+    // Actualizar labels
+    const labels = newForm.querySelectorAll('label');
+    labels.forEach(label => {
+        const htmlFor = label.getAttribute('for');
+        if (htmlFor) {
+            label.setAttribute('for', htmlFor.replace(/-\d+-/, `-${currentFormCount}-`));
+        }
+    });
+    
+    formsetContainer.appendChild(newForm);
+    formCount.value = currentFormCount + 1;
+});
+</script>
+
+<style>
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+    --success-color: #27ae60;
+    --light-bg: #ecf0f1;
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Contenedor principal */
+.container {
+    max-width: 900px;
+}
+
+/* Títulos */
+h1 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 2rem;
+    border-bottom: 3px solid var(--secondary-color);
+    padding-bottom: 1rem;
+}
+
+/* Tarjetas */
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.card:hover {
+    box-shadow: var(--card-shadow-hover);
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* Títulos de las tarjetas */
+.card-body h5 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 0.75rem;
+    font-size: 1.1rem;
+}
+
+/* Formularios */
+form .form-control,
+form .form-select {
+    margin-top: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    transition: all 0.3s ease;
+}
+
+form .form-control:focus,
+form .form-select:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+}
+
+form label {
+    color: var(--primary-color);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Formularios de partidos */
+.match-form {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+    transition: all 0.3s ease;
+}
+
+.match-form:hover {
+    border-color: var(--secondary-color);
+    background: linear-gradient(135deg, #e8eef7 0%, #b8d7f0 100%);
+}
+
+/* Botones */
+.btn {
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 0.6rem 1.5rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+}
+
+#add-match-btn {
+    background-color: var(--success-color);
+    color: white;
+}
+
+#add-match-btn:hover {
+    background-color: #229954;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+}
+
+/* Checkbox de eliminar */
+.form-check-label {
+    color: var(--primary-color);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* Errores */
+.text-danger {
+    color: var(--accent-color) !important;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Sección de botones finales */
+.mt-4 {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn.btn-primary {
+    flex: 1;
+    max-width: 200px;
+}
+
+.btn.btn-secondary {
+    flex: 1;
+    max-width: 200px;
+}
+</style>
+{% endblock %}

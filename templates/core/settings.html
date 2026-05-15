@@ -1,0 +1,58 @@
+{% extends "core/base.html" %}
+
+{% block title %}Configuracion{% endblock %}
+
+{% block header_title %}Configuracion{% endblock %}
+
+{% block content %}
+<div class="mx-auto w-full max-w-4xl rounded-3xl border border-[#282e39] bg-[#1c1f27] p-8">
+  <div class="mb-6">
+    <h2 class="text-2xl font-black text-white">Configuraciones del sistema</h2>
+    <p class="mt-2 text-sm text-[#9da6b9]">
+      Solo el rol Organizador puede habilitar o deshabilitar estas opciones.
+    </p>
+  </div>
+
+  {% if messages %}
+  <div class="mb-5 space-y-2">
+    {% for message in messages %}
+    <div class="rounded-xl border border-accent-green/40 bg-accent-green/10 px-4 py-2 text-sm text-accent-green">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="space-y-4">
+    {% for setting in settings_list %}
+    <form
+      method="post"
+      action="{% url 'settings' %}?{{ category_query }}"
+      class="flex flex-col gap-4 rounded-2xl border border-[#282e39] bg-[#101622] p-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      {% csrf_token %}
+      <input type="hidden" name="key" value="{{ setting.key }}" />
+
+      <div>
+        <h3 class="text-base font-bold text-white">{{ setting.label }}</h3>
+        <p class="text-xs text-[#9da6b9]">{{ setting.description }}</p>
+      </div>
+
+      <label class="relative inline-flex cursor-pointer items-center">
+        <input
+          type="checkbox"
+          name="is_enabled"
+          class="peer sr-only"
+          {% if setting.is_enabled %}checked{% endif %}
+          onchange="this.form.submit()"
+        />
+        <div class="h-7 w-12 rounded-full bg-[#282e39] transition peer-checked:bg-primary"></div>
+        <span class="absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5"></span>
+      </label>
+    </form>
+    {% empty %}
+    <p class="text-sm text-[#9da6b9]">No hay configuraciones disponibles.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

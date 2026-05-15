@@ -1,0 +1,409 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Estadísticas - Panel del Campeonato{% endblock %}
+
+{% block header_title %}Estadísticas{% endblock %}
+
+{% block content %}
+<!-- Stats Hero Grid -->
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+  <!-- Total Matches -->
+  <div class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Partidos Totales</p>
+        <p class="text-4xl font-black text-primary mt-2">240</p>
+        <p class="text-xs text-[#9da6b9] mt-1">Temporada 2024/25</p>
+      </div>
+      <span class="material-symbols-outlined text-6xl text-primary/20">sports_soccer</span>
+    </div>
+  </div>
+
+  <!-- Total Goals -->
+  <div class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Goles Totales</p>
+        <p class="text-4xl font-black text-accent-green mt-2">687</p>
+        <p class="text-xs text-[#9da6b9] mt-1">Promedio 2.86 por partido</p>
+      </div>
+      <span class="material-symbols-outlined text-6xl text-accent-green/20">sports_basketball</span>
+    </div>
+  </div>
+
+  <!-- Avg Attendance -->
+  <div class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Asistencia Promedio</p>
+        <p class="text-4xl font-black text-white mt-2">3,245</p>
+        <p class="text-xs text-[#9da6b9] mt-1">Espectadores por partido</p>
+      </div>
+      <span class="material-symbols-outlined text-6xl text-white/20">groups</span>
+    </div>
+  </div>
+
+  <!-- Red Cards -->
+  <div class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Tarjetas Rojas</p>
+        <p class="text-4xl font-black text-red-500 mt-2">18</p>
+        <p class="text-xs text-[#9da6b9] mt-1">Expulsiones en toda la temporada</p>
+      </div>
+      <span class="material-symbols-outlined text-6xl text-red-500/20">card_membership</span>
+    </div>
+  </div>
+</div>
+
+<!-- Two Column Layout -->
+<div class="grid gap-8 lg:grid-cols-2">
+  <!-- Top Scorers -->
+  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
+    <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+      <h3 class="flex items-center gap-2 text-lg font-bold">
+        <span class="material-symbols-outlined text-primary">sports_basketball</span>
+        Máximos Goleadores
+      </h3>
+    </div>
+    <div class="p-6">
+      <div class="flex flex-col gap-4">
+        <!-- Player 1 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold text-sm">1</div>
+            <div>
+              <p class="font-bold text-white">Marcus Silva</p>
+              <p class="text-xs text-[#9da6b9]">Lions FC</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">18</span>
+        </div>
+
+        <!-- Player 2 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold text-sm">2</div>
+            <div>
+              <p class="font-bold text-white">Luca Modric</p>
+              <p class="text-xs text-[#9da6b9]\">Tigers United</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">15</span>
+        </div>
+
+        <!-- Player 3 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold text-sm">3</div>
+            <div>
+              <p class="font-bold text-white">Carlos Vinicius</p>
+              <p class="text-xs text-[#9da6b9]\">Eagles United</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">13</span>
+        </div>
+
+        <!-- Player 4 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold text-sm">4</div>
+            <div>
+              <p class="font-bold text-white">João Santos</p>
+              <p class="text-xs text-[#9da6b9]\">City Warriors</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">12</span>
+        </div>
+
+        <!-- Player 5 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold text-sm">5</div>
+            <div>
+              <p class="font-bold text-white">Diego Ramos</p>
+              <p class="text-xs text-[#9da6b9]\">Phoenix Squad</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">11</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Best Defenses -->
+  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
+    <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+      <h3 class="flex items-center gap-2 text-lg font-bold">
+        <span class="material-symbols-outlined text-primary">security</span>
+        Mejores Defensas
+      </h3>
+    </div>
+    <div class="p-6">
+      <div class="flex flex-col gap-4">
+        <!-- Defense 1 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">1</div>
+            <div>
+              <p class="font-bold text-white">Lions FC</p>
+              <p class="text-xs text-[#9da6b9]\">12 partidos sin recibir gol</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">12</span>
+        </div>
+
+        <!-- Defense 2 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">2</div>
+            <div>
+              <p class="font-bold text-white\">City Warriors</p>
+              <p class=\"text-xs text-[#9da6b9]\">10 partidos sin recibir gol</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">10</span>
+        </div>
+
+        <!-- Defense 3 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">3</div>
+            <div>
+              <p class="font-bold text-white">Tigers United</p>
+              <p class="text-xs text-[#9da6b9]\">8 partidos sin recibir gol</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">8</span>
+        </div>
+
+        <!-- Defense 4 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">4</div>
+            <div>
+              <p class="font-bold text-white">Eagles United</p>
+              <p class="text-xs text-[#9da6b9]\">7 partidos sin recibir gol</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">7</span>
+        </div>
+
+        <!-- Defense 5 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">5</div>
+            <div>
+              <p class="font-bold text-white">Phoenix Squad</p>
+              <p class="text-xs text-[#9da6b9]\">5 partidos sin recibir gol</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-accent-green">5</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Winning Streaks & Cards -->
+<div class="grid gap-8 lg:grid-cols-2">
+  <!-- Winning Streaks -->
+  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
+    <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+      <h3 class="flex items-center gap-2 text-lg font-bold">
+        <span class="material-symbols-outlined text-primary">trending_up</span>
+        Rachas de Victorias
+      </h3>
+    </div>
+    <div class="p-6">
+      <div class="flex flex-col gap-4">
+        <!-- Streak 1 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39]">
+          <div>
+            <p class="font-bold text-white">Lions FC</p>
+            <p class="text-xs text-accent-green">Racha actual</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-black text-accent-green">7</span>
+            <span class="text-xs font-bold text-[#9da6b9]\">VICTORIAS</span>
+          </div>
+        </div>
+
+        <!-- Streak 2 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39]">
+          <div>
+            <p class="font-bold text-white">City Warriors</p>
+            <p class="text-xs text-[#9da6b9]\">6 partidos sin perder</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-black text-accent-green">5</span>
+            <span class="text-xs font-bold text-[#9da6b9]\">VICTORIAS</span>
+          </div>
+        </div>
+
+        <!-- Streak 3 -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39]">
+          <div>
+            <p class="font-bold text-white">Tigers United</p>
+            <p class="text-xs text-[#9da6b9]\">4 partidos sin perder</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-black text-accent-green">4</span>
+            <span class="text-xs font-bold text-[#9da6b9]\">VICTORIAS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Yellow & Red Cards -->
+  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
+    <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+      <h3 class="flex items-center gap-2 text-lg font-bold">
+        <span class="material-symbols-outlined text-primary">card_membership</span>
+        Tarjetas por Equipo
+      </h3>
+    </div>
+    <div class="p-6">
+      <div class="flex flex-col gap-4">
+        <!-- Team 1 Cards -->
+        <div class="p-3 rounded-lg bg-[#282e39]">
+          <div class="flex items-center justify-between mb-2">
+            <p class="font-bold text-white">Lions FC</p>
+          </div>
+          <div class="flex gap-2">
+            <div class="flex items-center gap-1 flex-1">
+              <div class="h-6 w-6 rounded bg-yellow-400"></div>
+              <span class="text-sm font-bold text-white">42</span>
+            </div>
+            <div class="flex items-center gap-1 flex-1">
+              <div class="h-6 w-6 rounded bg-red-500"></div>
+              <span class="text-sm font-bold text-white">2</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team 2 Cards -->
+        <div class="p-3 rounded-lg bg-[#282e39]">
+          <div class="flex items-center justify-between mb-2">
+            <p class="font-bold text-white">City Warriors</p>
+          </div>
+          <div class="flex gap-2">
+            <div class="flex items-center gap-1 flex-1">
+              <div class="h-6 w-6 rounded bg-yellow-400"></div>
+              <span class="text-sm font-bold text-white">38</span>
+            </div>
+            <div class="flex items-center gap-1 flex-1">
+              <div class="h-6 w-6 rounded bg-red-500"></div>
+              <span class="text-sm font-bold text-white">1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team 3 Cards -->
+        <div class="p-3 rounded-lg bg-[#282e39]">
+          <div class="flex items-center justify-between mb-2">
+            <p class="font-bold text-white">Tigers United</p>
+          </div>
+          <div class="flex gap-2">
+            <div class="flex items-center gap-1 flex-1">
+              <div class="h-6 w-6 rounded bg-yellow-400"></div>
+              <span class="text-sm font-bold text-white">51</span>
+            </div>
+            <div class="flex items-center gap-1 flex-1">
+              <div class="h-6 w-6 rounded bg-red-500"></div>
+              <span class="text-sm font-bold text-white">3</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team 4 Cards -->
+        <div class="p-3 rounded-lg bg-[#282e39]">
+          <div class="flex items-center justify-between mb-2">
+            <p class="font-bold text-white">Eagles United</p>
+          </div>
+          <div class="flex gap-2">
+            <div class="flex items-center gap-1 flex-1">
+              <div class="h-6 w-6 rounded bg-yellow-400"></div>
+              <span class="text-sm font-bold text-white">45</span>
+            </div>
+            <div class="flex items-center gap-1 flex-1">
+              <div class="h-6 w-6 rounded bg-red-500"></div>
+              <span class="text-sm font-bold text-white">2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Ball Possession & Match Stats -->
+<section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
+  <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+    <h3 class="flex items-center gap-2 text-lg font-bold">
+      <span class="material-symbols-outlined text-primary">show_chart</span>
+      Posesión de Balón (Promedio)
+    </h3>
+  </div>
+  <div class="p-6">
+    <div class="flex flex-col gap-6">
+      <!-- Team Possession 1 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <p class="font-bold text-white">Lions FC</p>
+          <span class="text-sm font-bold text-primary">58%</span>
+        </div>
+        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 58%"></div>
+        </div>
+      </div>
+
+      <!-- Team Possession 2 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <p class="font-bold text-white">City Warriors</p>
+          <span class="text-sm font-bold text-primary">55%</span>
+        </div>
+        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 55%"></div>
+        </div>
+      </div>
+
+      <!-- Team Possession 3 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <p class="font-bold text-white">Tigers United</p>
+          <span class="text-sm font-bold text-primary">52%</span>
+        </div>
+        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 52%"></div>
+        </div>
+      </div>
+
+      <!-- Team Possession 4 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <p class="font-bold text-white">Eagles United</p>
+          <span class="text-sm font-bold text-primary">49%</span>
+        </div>
+        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 49%"></div>
+        </div>
+      </div>
+
+      <!-- Team Possession 5 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <p class="font-bold text-white">Phoenix Squad</p>
+          <span class="text-sm font-bold text-primary">48%</span>
+        </div>
+        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 48%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

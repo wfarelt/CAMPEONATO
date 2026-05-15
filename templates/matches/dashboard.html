@@ -1,0 +1,319 @@
+{% extends "core/base.html" %}
+
+{% block title %}Panel del Campeonato{% endblock %}
+
+{% block header_title %}Panel{% endblock %}
+
+{% block content %}
+<p class="text-sm text-[#9da6b9]">Campeonato activo: {{ championship_category_label }}</p>
+<!-- Dashboard Header -->
+<section>
+  <div
+    class="relative overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27] shadow-2xl"
+  >
+    <div
+      class="pointer-events-none absolute inset-0 opacity-10"
+      style="
+        background-image:
+          radial-gradient(circle at 20% 50%, #135bec 0%, transparent 50%),
+          radial-gradient(circle at 80% 50%, #22c55e 0%, transparent 50%);
+      "
+    ></div>
+    {% if featured_match %}
+    <div class="relative flex flex-col items-center justify-between gap-12 p-10 md:flex-row">
+      <div class="flex flex-1 flex-col items-center gap-4">
+        {% if featured_match.home_logo %}
+        <img
+          alt="{{ featured_match.home_team }}"
+          class="size-24 rounded-full border-4 border-primary object-cover"
+          src="{{ featured_match.home_logo }}"
+        />
+        {% else %}
+        <div class="flex size-24 items-center justify-center rounded-full border-4 border-primary bg-[#282e39] p-4">
+          <span class="material-symbols-outlined text-5xl">shield</span>
+        </div>
+        {% endif %}
+        <h3 class="text-center text-2xl font-bold">{{ featured_match.home_team }}</h3>
+        <p class="text-sm text-[#9da6b9]">Local</p>
+      </div>
+      <div class="flex flex-1 flex-col items-center gap-4 text-center">
+        <div class="flex items-center gap-2 rounded-full px-4 py-1 text-xs font-bold {{ featured_match.status_class }}">
+          <span class="flex h-2 w-2 rounded-full {% if featured_match.is_finished %}bg-accent-green{% else %}bg-primary{% endif %}"></span>
+          {{ featured_match.status }}
+        </div>
+        <div class="flex items-center gap-6 text-6xl font-black">
+          <span>{{ featured_match.home_score }}</span>
+          <span class="text-2xl font-normal text-[#9da6b9]">:</span>
+          <span>{{ featured_match.away_score }}</span>
+        </div>
+        <p class="text-sm text-[#9da6b9]">{{ featured_match.date }} • {{ featured_match.time }} hs</p>
+        <a
+          class="mt-4 flex items-center gap-2 rounded-full bg-primary px-8 py-3 font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
+          href="{% url 'matches' %}?{{ category_query }}"
+        >
+          <span class="material-symbols-outlined">play_circle</span>
+          Ver Partidos
+        </a>
+      </div>
+      <div class="flex flex-1 flex-col items-center gap-4">
+        {% if featured_match.away_logo %}
+        <img
+          alt="{{ featured_match.away_team }}"
+          class="size-24 rounded-full border-4 border-transparent object-cover"
+          src="{{ featured_match.away_logo }}"
+        />
+        {% else %}
+        <div class="flex size-24 items-center justify-center rounded-full border-4 border-transparent bg-[#282e39] p-4">
+          <span class="material-symbols-outlined text-5xl">security</span>
+        </div>
+        {% endif %}
+        <h3 class="text-center text-2xl font-bold">{{ featured_match.away_team }}</h3>
+        <p class="text-sm text-[#9da6b9]">Visitante</p>
+      </div>
+    </div>
+    {% else %}
+    <div class="relative flex flex-col items-center justify-center gap-3 p-10 text-center">
+      <span class="material-symbols-outlined text-5xl text-[#9da6b9]">sports_soccer</span>
+      <p class="text-lg font-bold">No hay partidos para mostrar</p>
+      <p class="text-sm text-[#9da6b9]">Carga partidos o jornadas para ver estadísticas reales en el panel.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+  <div class="flex flex-col gap-8 lg:col-span-2">
+    <!-- Match Timeline -->
+    <section>
+      <div class="mb-4 flex items-center justify-between">
+        <h4 class="text-lg font-bold">{{ timeline_title }}</h4>
+        <a class="text-sm font-medium text-primary hover:underline" href="{% url 'matches' %}?{{ category_query }}">
+          Ver Calendario Completo
+        </a>
+      </div>
+      <div class="hide-scrollbar flex gap-4 overflow-x-auto pb-2">
+        {% for item in timeline_matches %}
+        <div
+          class="group flex min-w-[200px] cursor-pointer flex-col gap-3 rounded-2xl border bg-[#1c1f27] p-4 transition-colors
+          {% if item.is_finished %}border-[#282e39] hover:border-primary{% else %}border-primary{% endif %}"
+        >
+          <div
+            class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider
+            {% if item.is_finished %}text-[#9da6b9]{% else %}text-primary{% endif %}"
+          >
+            <span>{{ item.status }}</span>
+            <span>{{ item.time }}</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xs">shield</span>
+                <span class="text-sm font-medium">{{ item.home_team }}</span>
+              </div>
+              <span class="text-sm font-bold{% if not item.is_finished %} text-[#9da6b9]{% endif %}">{{ item.home_score }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xs">security</span>
+                <span class="text-sm font-medium">{{ item.away_team }}</span>
+              </div>
+              <span class="text-sm font-bold{% if not item.is_finished %} text-[#9da6b9]{% endif %}">{{ item.away_score }}</span>
+            </div>
+          </div>
+          <p class="text-[10px] text-[#9da6b9] truncate">{{ item.home_team }} vs {{ item.away_team }}</p>
+        </div>
+        {% empty %}
+        <div class="w-full rounded-2xl border border-[#282e39] bg-[#1c1f27] p-6 text-center text-sm text-[#9da6b9]">
+          No hay partidos cargados para la última jornada.
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    <!-- Standings Table -->
+    <section>
+      <div
+        class="rounded-3xl border border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent p-6"
+      >
+        <h4 class="mb-6 flex items-center gap-2 text-lg font-bold">
+          <span class="material-symbols-outlined text-primary">schedule</span>
+          Next Match Countdown
+        </h4>
+        <div class="flex gap-4">
+          <div
+            class="flex-1 rounded-2xl border border-[#282e39] bg-[#1c1f27] p-4 text-center"
+          >
+            <p class="text-3xl font-black text-white">02</p>
+            <p class="mt-1 text-[10px] font-bold uppercase text-[#9da6b9]">Days</p>
+          </div>
+          <div
+            class="flex-1 rounded-2xl border border-[#282e39] bg-[#1c1f27] p-4 text-center"
+          >
+            <p class="text-3xl font-black text-white">14</p>
+            <p class="mt-1 text-[10px] font-bold uppercase text-[#9da6b9]">Hours</p>
+          </div>
+          <div
+            class="flex-1 rounded-2xl border border-[#282e39] bg-[#1c1f27] p-4 text-center"
+          >
+            <p class="text-3xl font-black text-white">35</p>
+            <p class="mt-1 text-[10px] font-bold uppercase text-[#9da6b9]">Mins</p>
+          </div>
+          <div
+            class="flex-1 rounded-2xl bg-primary p-4 text-center shadow-lg shadow-primary/30"
+          >
+            <p class="text-3xl font-black text-white">12</p>
+            <p class="mt-1 text-[10px] font-bold uppercase text-white/70">Secs</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="flex flex-col gap-6">
+    <section class="overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27]">
+      <div class="flex items-center justify-between border-b border-[#282e39] p-6">
+        <h4 class="text-lg font-bold">Top Scorers</h4>
+        <span class="material-symbols-outlined text-[#9da6b9]">more_horiz</span>
+      </div>
+      <div class="flex flex-col gap-4 p-4">
+        <div
+          class="group flex cursor-pointer items-center justify-between rounded-2xl p-2 transition-colors hover:bg-[#282e39]"
+        >
+          <div class="flex items-center gap-4">
+            <span class="w-4 text-sm font-bold text-[#9da6b9]">1</span>
+            <div
+              class="size-10 rounded-full border-2 border-primary bg-cover bg-center"
+              data-alt="Top scorer player avatar"
+              style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDiywhq0ZsaPmerZb-rr97z3staRkEMV8Sphri71SLTln3Obu87lTI0qcXUiLT51wTxH9b0DHGp_sCtZunzYfvbXps0kJzIaP4ptVYaEqUXipRPfVCRli7L8HLnnr-YoxswuTuswiDnR6miURTXxdMr3TGWyWO_9jUYeYyA9P-R1gLbkOxBo6_Ipmu473cIeW-SzblPhANRc3EJmJJhAGGRlGrHjS4iqdD7oHtPtmEPP9QiyPaE6lknKSgu9G52NdErHaC1ISbqHOA&quot;);"
+            ></div>
+            <div>
+              <p class="text-sm font-bold">Marcus Silva</p>
+              <p class="text-[10px] text-[#9da6b9]">Lions FC</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-black text-primary">18</p>
+            <p class="text-[8px] uppercase text-[#9da6b9]">Goals</p>
+          </div>
+        </div>
+        <div
+          class="group flex cursor-pointer items-center justify-between rounded-2xl p-2 transition-colors hover:bg-[#282e39]"
+        >
+          <div class="flex items-center gap-4">
+            <span class="w-4 text-sm font-bold text-[#9da6b9]">2</span>
+            <div
+              class="size-10 rounded-full bg-cover bg-center"
+              data-alt="Football player avatar"
+              style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDH-VLrDgAjlLa2mTtuEO67zp4CtAYw7UZBd4f-VgUf8qy2aibv7d80gn29257ntdZ7m9c-Xcj3LxJzr8wTenHgv35-G88o1Fcag4X-UNnKB4QUhVCq7_D5VuxonQZVK6btJx7anrieHf5E2B5Bx_9IEEqrFtuYkPgmOyC9o1DQ088DcT3QGHOOAtsNM-Oi4njzbpTaQpzdN0QmVoCI5-fddXCNcvdA9QniOGtPvzB_q6JUjKThoGax61EZB5AygeWZa4IGPegUo6g&quot;);"
+            ></div>
+            <div>
+              <p class="text-sm font-bold">Luca Modric</p>
+              <p class="text-[10px] text-[#9da6b9]">Real Madrid</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-black text-white">15</p>
+            <p class="text-[8px] uppercase text-[#9da6b9]">Goals</p>
+          </div>
+        </div>
+        <div
+          class="group flex cursor-pointer items-center justify-between rounded-2xl p-2 transition-colors hover:bg-[#282e39]"
+        >
+          <div class="flex items-center gap-4">
+            <span class="w-4 text-sm font-bold text-[#9da6b9]">3</span>
+            <div
+              class="size-10 rounded-full bg-cover bg-center"
+              data-alt="Football player avatar"
+              style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDqn9iMrIONx3TGsGcZr29y-Ld3LzCirXkvsPm_KD0LsoEMDYJ_2osNMaSMGgT_-FYd6c7s2niC9O0l0bWKG887Ww3jmVbnOa847ys2Z4K-4iukbl7BtHLUfLo77qr6UQdcH5yJTiR_yJw_0Ri31qysIoyrNm3dxx_Dk3VaG2W8oWmm45D9QLFBwplTvEKYJhhSfUEWIIJrVlNZbn0pbdPQHSiCH34DFmAPchec6fp3gKUw6yiB-ixcSpK6z7OgE4eW1tGgFEVLEZw&quot;);"
+            ></div>
+            <div>
+              <p class="text-sm font-bold">Kevin De Bruyne</p>
+              <p class="text-[10px] text-[#9da6b9]">Man City</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-black text-white">12</p>
+            <p class="text-[8px] uppercase text-[#9da6b9]">Goals</p>
+          </div>
+        </div>
+        <div
+          class="group flex cursor-pointer items-center justify-between rounded-2xl p-2 transition-colors hover:bg-[#282e39]"
+        >
+          <div class="flex items-center gap-4">
+            <span class="w-4 text-sm font-bold text-[#9da6b9]">4</span>
+            <div
+              class="size-10 rounded-full bg-cover bg-center"
+              data-alt="Football player avatar"
+              style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDEPGSKhnSy9mQqYmzL3-oycpmRlSkPoYhrOyMt9OGrjPCNhnIjsXpfyGf2UbcoP62mZTRMQXi8Zs0_I1368S7lyxyxwbb3imh0R58OERpEiS31B0kyzYrK48Nw9cH_vbvQlVU-5V0-q880eCHp_BwpDW9QZLb1ORs0bCCMc_LWp513WGGsd8zPyn7keYjkkiC-95jFlvvfQrXgeF9LjSIbdhjzwUZcxBkjDVHM5GlxG1M0YWfPWhSszwR2_UhY8mibuVfji6iSYiE&quot;);"
+            ></div>
+            <div>
+              <p class="text-sm font-bold">Harry Kane</p>
+              <p class="text-[10px] text-[#9da6b9]">Bayern Munich</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-black text-white">11</p>
+            <p class="text-[8px] uppercase text-[#9da6b9]">Goals</p>
+          </div>
+        </div>
+        <div
+          class="group flex cursor-pointer items-center justify-between rounded-2xl p-2 transition-colors hover:bg-[#282e39]"
+        >
+          <div class="flex items-center gap-4">
+            <span class="w-4 text-sm font-bold text-[#9da6b9]">5</span>
+            <div
+              class="size-10 rounded-full bg-cover bg-center"
+              data-alt="Football player avatar"
+              style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuDABm-FyWQIcBWFDUQDgwqVE-6aMBLYLbQv6i5N5y7bC5SajqSjHPzt8UJUqbZ8a-DqX9YJb7wNDn_Q-__rkbwsRAnw96s4Ch27TgHHVOp6Drb2tuQFwxEtFBHocaBzDaXT1tkOZ0HHgLyKZYYxtASfEepmG-e3Gt0HOCYA1SYN_Im-n1EF-nWmAZIcFU-A4KQaD_2SyPkLKfdoxtVqGU-Jdkz44CzOqE7qOjo0fT_vSPS7SNet5TddnUy2QVekxISi679Gio1g05U&quot;);"
+            ></div>
+            <div>
+              <p class="text-sm font-bold">Kylian Mbappe</p>
+              <p class="text-[10px] text-[#9da6b9]">PSG</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-black text-white">10</p>
+            <p class="text-[8px] uppercase text-[#9da6b9]">Goals</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-4">
+        <button
+          class="w-full rounded-2xl bg-[#282e39] py-3 text-sm font-bold transition-colors hover:bg-[#343b48]"
+          type="button"
+        >
+          View All Scorers
+        </button>
+      </div>
+    </section>
+    <section class="rounded-3xl bg-primary p-6 shadow-xl shadow-primary/20">
+      <h4 class="mb-4 text-lg font-bold">Quick Standings</h4>
+      <div class="flex flex-col gap-3">
+        <div
+          class="mb-1 flex items-center justify-between border-b border-white/20 pb-2 text-xs font-bold"
+        >
+          <span>Team</span>
+          <div class="flex gap-4">
+            <span>W</span>
+            <span>D</span>
+            <span>P</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="font-medium">1. Lions FC</span>
+          <div class="flex gap-4 font-bold">
+            <span>18</span>
+            <span>4</span>
+            <span>58</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-sm text-white/80">
+          <span class="font-medium">2. Gunners</span>
+          <div class="flex gap-4 font-bold">
+            <span>17</span>
+            <span>5</span>
+            <span>56</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

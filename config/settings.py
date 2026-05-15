@@ -44,7 +44,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tournament',
+    'apps.core.apps.CoreConfig',
+    'apps.users.apps.UsersConfig',
+    'apps.teams.apps.TeamsConfig',
+    'apps.tournaments.apps.TournamentsConfig',
+    'apps.matches.apps.MatchesConfig',
+    'apps.standings.apps.StandingsConfig',
+    'apps.referees.apps.RefereesConfig',
+    'apps.fields.apps.FieldsConfig',
+    'apps.payments.apps.PaymentsConfig',
+    'apps.notifications.apps.NotificationsConfig',
     'corsheaders',
 ]
 
@@ -74,6 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.championship_context',
             ],
         },
     },
@@ -143,3 +153,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom user model
+AUTH_USER_MODEL = 'users.User'
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'

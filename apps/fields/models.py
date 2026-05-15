@@ -1,0 +1,1 @@
+"""Field/stadium domain models."""
