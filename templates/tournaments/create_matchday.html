@@ -1,140 +1,6 @@
 {% extends "core/base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>{% if is_edit %}Editar Jornada{% else %}Crear Nueva Jornada{% endif %}</h1>
-    
-    <form method="post" id="matchday-form">
-        {% csrf_token %}
-        
-        <!-- Fecha de la jornada -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Información de la Jornada</h5>
-                <div class="form-group mb-3">
-                    <label for="{{ matchday_form.category.id_for_label }}">Campeonato</label>
-                    {{ matchday_form.category }}
-                    {% if matchday_form.category.errors %}
-                        <small class="text-danger">{{ matchday_form.category.errors }}</small>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="{{ matchday_form.date.id_for_label }}">Fecha de la Jornada</label>
-                    {{ matchday_form.date }}
-                    {% if matchday_form.date.errors %}
-                        <small class="text-danger">{{ matchday_form.date.errors }}</small>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Partidos -->
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Partidos de la Jornada</h5>
-                
-                {{ formset.management_form }}
-                
-                <div id="formset-container">
-                    {% for form in formset %}
-                    <div class="row match-form mb-3 p-3 border rounded">
-                        <div class="col-md-4">
-                            <label for="{{ form.home_team.id_for_label }}">Equipo Local</label>
-                            {{ form.home_team }}
-                            {% if form.home_team.errors %}
-                                <small class="text-danger">{{ form.home_team.errors }}</small>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-4">
-                            <label for="{{ form.away_team.id_for_label }}">Equipo Visitante</label>
-                            {{ form.away_team }}
-                            {% if form.away_team.errors %}
-                                <small class="text-danger">{{ form.away_team.errors }}</small>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-2">
-                            <label for="{{ form.time.id_for_label }}">Hora</label>
-                            {{ form.time }}
-                            {% if form.time.errors %}
-                                <small class="text-danger">{{ form.time.errors }}</small>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <label class="form-check-label">
-                                {{ form.DELETE }}
-                                <span>Eliminar</span>
-                            </label>
-                        </div>
-                        
-                        <!-- Errores generales del formulario -->
-                        {% if form.non_field_errors %}
-                            <div class="col-12">
-                                <small class="text-danger">{{ form.non_field_errors }}</small>
-                            </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Botón para añadir más partidos -->
-                <button type="button" class="btn btn-secondary mt-3" id="add-match-btn">
-                    Añadir otro partido
-                </button>
-            </div>
-        </div>
-
-        <!-- Botones de acción -->
-        <div class="mt-4">
-            <button type="submit" class="btn btn-primary">
-                {% if is_edit %}Actualizar Jornada{% else %}Crear Jornada{% endif %}
-            </button>
-            <a href="{% url 'matchdays_list' %}?{{ category_query }}" class="btn btn-secondary">Cancelar</a>
-        </div>
-    </form>
-</div>
-
-<script>
-document.getElementById('add-match-btn').addEventListener('click', function() {
-    const formsetContainer = document.getElementById('formset-container');
-    const formCount = document.getElementById('id_matches-TOTAL_FORMS');
-    const currentFormCount = parseInt(formCount.value);
-    
-    // Clonar el último formulario
-    const lastForm = formsetContainer.lastElementChild;
-    const newForm = lastForm.cloneNode(true);
-    
-    // Actualizar los índices y nombres de los inputs
-    const inputs = newForm.querySelectorAll('input, select');
-    inputs.forEach(input => {
-        const name = input.name;
-        if (name) {
-            input.name = name.replace(/-\d+-/, `-${currentFormCount}-`);
-            input.id = input.name; // Actualizar también el id
-        }
-        // Limpiar valores
-        if (input.type !== 'hidden') {
-            input.value = '';
-        }
-        // Desmarcar checkbox de DELETE
-        if (input.type === 'checkbox') {
-            input.checked = false;
-        }
-    });
-    
-    // Actualizar labels
-    const labels = newForm.querySelectorAll('label');
-    labels.forEach(label => {
-        const htmlFor = label.getAttribute('for');
-        if (htmlFor) {
-            label.setAttribute('for', htmlFor.replace(/-\d+-/, `-${currentFormCount}-`));
-        }
-    });
-    
-    formsetContainer.appendChild(newForm);
-    formCount.value = currentFormCount + 1;
-});
-</script>
-
 <style>
 :root {
     --primary-color: #2c3e50;
@@ -149,6 +15,35 @@ document.getElementById('add-match-btn').addEventListener('click', function() {
 /* Contenedor principal */
 .container {
     max-width: 900px;
+}
+
+.wizard-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.wizard-step {
+    border: 1px solid #d4dde7;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 0.75rem;
+    text-align: center;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+.wizard-step.active {
+    border-color: var(--secondary-color);
+    background: #eaf4fd;
+    color: #1f5d8f;
+}
+
+.wizard-step.done {
+    border-color: #9ed8b6;
+    background: #e9f7ef;
+    color: #1e8449;
 }
 
 /* Títulos */
@@ -296,4 +191,234 @@ form label {
     max-width: 200px;
 }
 </style>
+
+<div class="container mt-5">
+    <h1>Crear Jornada por Pasos</h1>
+
+    <div class="wizard-steps">
+        <div class="wizard-step {% if step == '1' %}active{% elif step == '2' or step == '3' %}done{% endif %}">
+            Paso 1: Jornada
+        </div>
+        <div class="wizard-step {% if step == '2' %}active{% elif step == '3' %}done{% endif %}">
+            Paso 2: Partidos
+        </div>
+        <div class="wizard-step {% if step == '3' %}active{% endif %}">
+            Paso 3: Confirmar
+        </div>
+    </div>
+
+    {% if step == '1' %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="1">
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Paso 1: Registrar la jornada</h5>
+
+                {% if matchday_form.non_field_errors %}
+                    <div class="mb-3 text-danger">{{ matchday_form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="form-group mb-3">
+                    <label for="{{ matchday_form.category.id_for_label }}">Campeonato</label>
+                    {{ matchday_form.category }}
+                    {% if matchday_form.category.errors %}
+                        <small class="text-danger">{{ matchday_form.category.errors }}</small>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ matchday_form.date.id_for_label }}">Fecha de la Jornada</label>
+                    {{ matchday_form.date }}
+                    {% if matchday_form.date.errors %}
+                        <small class="text-danger">{{ matchday_form.date.errors }}</small>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ matchday_form.description.id_for_label }}">Descripción</label>
+                    {{ matchday_form.description }}
+                    {% if matchday_form.description.errors %}
+                        <small class="text-danger">{{ matchday_form.description.errors }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" name="action" value="next" class="btn btn-primary">Siguiente: Partidos</button>
+            <button type="submit" name="action" value="cancel" class="btn btn-secondary">Cancelar</button>
+        </div>
+    </form>
+    {% endif %}
+
+    {% if step == '2' %}
+    <form method="post" id="matchday-form">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="2">
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Resumen de jornada</h5>
+                <p class="mb-1"><strong>Campeonato:</strong> {{ matchday_data.category }}</p>
+                <p class="mb-1"><strong>Fecha:</strong> {{ matchday_data.date }}</p>
+                <p class="mb-0"><strong>Descripción:</strong> {{ matchday_data.description|default:"Sin descripción" }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Paso 2: Registrar los partidos</h5>
+
+                {% if formset.non_form_errors %}
+                    <div class="mb-3 text-danger">{{ formset.non_form_errors }}</div>
+                {% endif %}
+
+                {{ formset.management_form }}
+
+                <div id="formset-container">
+                    {% for form in formset %}
+                    <div class="row match-form mb-3 p-3 border rounded">
+                        <div class="col-md-4">
+                            <label for="{{ form.home_team.id_for_label }}">Equipo Local</label>
+                            {{ form.home_team }}
+                            {% if form.home_team.errors %}
+                                <small class="text-danger">{{ form.home_team.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.away_team.id_for_label }}">Equipo Visitante</label>
+                            {{ form.away_team }}
+                            {% if form.away_team.errors %}
+                                <small class="text-danger">{{ form.away_team.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label for="{{ form.time.id_for_label }}">Hora</label>
+                            {{ form.time }}
+                            {% if form.time.errors %}
+                                <small class="text-danger">{{ form.time.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <label class="form-check-label">
+                                {{ form.DELETE }}
+                                <span>Eliminar</span>
+                            </label>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                            <div class="col-12">
+                                <small class="text-danger">{{ form.non_field_errors }}</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" class="btn btn-secondary mt-3" id="add-match-btn">
+                    Añadir otro partido
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" name="action" value="back" class="btn btn-secondary">Volver</button>
+            <button type="submit" name="action" value="next" class="btn btn-primary">Siguiente: Confirmar</button>
+            <button type="submit" name="action" value="cancel" class="btn btn-secondary">Cancelar</button>
+        </div>
+    </form>
+    {% endif %}
+
+    {% if step == '3' %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="3">
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Paso 3: Confirmar y guardar</h5>
+
+                <p class="mb-1"><strong>Campeonato:</strong> {{ matchday_data.category }}</p>
+                <p class="mb-1"><strong>Fecha:</strong> {{ matchday_data.date }}</p>
+                <p class="mb-3"><strong>Descripción:</strong> {{ matchday_data.description|default:"Sin descripción" }}</p>
+
+                <h6 class="mb-3">Partidos</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Local</th>
+                                <th>Visitante</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in matches_preview %}
+                            <tr>
+                                <td>{{ match.home_team.name }}</td>
+                                <td>{{ match.away_team.name }}</td>
+                                <td>{{ match.time }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" name="action" value="back" class="btn btn-secondary">Volver</button>
+            <button type="submit" name="action" value="confirm" class="btn btn-primary">Confirmar y guardar</button>
+            <button type="submit" name="action" value="cancel" class="btn btn-secondary">Cancelar</button>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+{% if step == '2' %}
+<script>
+document.getElementById('add-match-btn').addEventListener('click', function() {
+    const formsetContainer = document.getElementById('formset-container');
+    const formCount = document.getElementById('id_matches-TOTAL_FORMS');
+    const currentFormCount = parseInt(formCount.value, 10);
+
+    const lastForm = formsetContainer.lastElementChild;
+    const newForm = lastForm.cloneNode(true);
+
+    const inputs = newForm.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.name) {
+            input.name = input.name.replace(/-\d+-/, `-${currentFormCount}-`);
+            input.id = input.id.replace(/-\d+-/, `-${currentFormCount}-`);
+        }
+
+        if (input.tagName === 'SELECT') {
+            input.selectedIndex = 0;
+        } else if (input.type === 'checkbox') {
+            input.checked = false;
+        } else if (input.type !== 'hidden') {
+            input.value = '';
+        }
+    });
+
+    const labels = newForm.querySelectorAll('label');
+    labels.forEach(label => {
+        const htmlFor = label.getAttribute('for');
+        if (htmlFor) {
+            label.setAttribute('for', htmlFor.replace(/-\d+-/, `-${currentFormCount}-`));
+        }
+    });
+
+    const errorNodes = newForm.querySelectorAll('.text-danger');
+    errorNodes.forEach(node => {
+        if (node.closest('small')) {
+            node.innerHTML = '';
+        }
+    });
+
+    formsetContainer.appendChild(newForm);
+    formCount.value = currentFormCount + 1;
+});
+</script>
+{% endif %}
 {% endblock %}

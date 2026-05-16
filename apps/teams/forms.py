@@ -17,9 +17,11 @@ class TeamForm(forms.ModelForm):
 class PlayerForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ["name", "number", "position"]
+        fields = ["name", "ci", "graduation_year", "number", "position"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del jugador"}),
+            "ci": forms.TextInput(attrs={"class": "form-control", "placeholder": "Carnet de identidad"}),
+            "graduation_year": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Año de egreso"}),
             "number": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Numero de camiseta"}),
             "position": forms.Select(attrs={"class": "form-control"}),
         }

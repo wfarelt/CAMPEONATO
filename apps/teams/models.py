@@ -28,6 +28,8 @@ class Team(models.Model):
 
 class Player(models.Model):
 	name = models.CharField(max_length=100, verbose_name="Player Name")
+	ci = models.CharField(max_length=20, blank=True, null=True, verbose_name="CI")
+	graduation_year = models.PositiveIntegerField(blank=True, null=True, verbose_name="Año de egreso")
 	number = models.PositiveIntegerField(verbose_name="Jersey Number")
 	position = models.CharField(max_length=2, choices=PLAYER_POSITION_CHOICES, verbose_name="Position")
 	team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="players", verbose_name="Team")

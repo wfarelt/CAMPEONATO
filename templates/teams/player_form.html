@@ -25,20 +25,46 @@
     </div>
 
     <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_number">Numero</label>
-      {{ form.number }}
-      {% if form.number.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.number.errors|join:", " }}</p>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_ci">CI</label>
+      {{ form.ci }}
+      {% if form.ci.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ form.ci.errors|join:", " }}</p>
       {% endif %}
     </div>
 
     <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_position">Posicion</label>
-      {{ form.position }}
-      {% if form.position.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.position.errors|join:", " }}</p>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_graduation_year">Año de egreso</label>
+      {{ form.graduation_year }}
+      {% if form.graduation_year.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ form.graduation_year.errors|join:", " }}</p>
       {% endif %}
     </div>
+
+    <div class="grid gap-5 md:grid-cols-2">
+      <div>
+        <label class="mb-1 block text-sm font-semibold text-white" for="id_number">Numero</label>
+        {{ form.number }}
+        {% if form.number.errors %}
+        <p class="mt-1 text-xs text-red-400">{{ form.number.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm font-semibold text-white" for="id_position">Posicion</label>
+        {{ form.position }}
+        {% if form.position.errors %}
+        <p class="mt-1 text-xs text-red-400">{{ form.position.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div>
+      {% for error in form.non_field_errors %}
+      <p class="text-xs text-red-400">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="flex flex-wrap items-center gap-3 pt-2">
       <button
