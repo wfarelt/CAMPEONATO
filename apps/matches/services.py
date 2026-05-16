@@ -1,11 +1,46 @@
 """Business logic for matches app."""
 
+from django.db.models import Sum
+
 from apps.matches.models import Match
 from apps.standings.selectors import get_last_results
 from apps.tournaments.models import MatchDay
 
 
 DEFAULT_TEAM_LOGO = "/static/tournament/img/default_logo.jpg"
+
+
+def get_best_goalkeepers(category, limit=5):
+	"""Retorna equipos con menos goles recibidos (mejores arqueros)."""
+	finished_matches = Match.objects.filter(
+		home_team__category=category,
+		away_team__category=category,
+		status="finished"
+	).select_related("home_team", "away_team")
+	
+	teams_data = {}
+	
+	for match in finished_matches:
+		home_team = match.home_team
+		away_team = match.away_team
+		
+		if home_team.id not in teams_data:
+			teams_data[home_team.id] = {"team": home_team, "goals_against": 0, "matches": 0}
+		if away_team.id not in teams_data:
+			teams_data[away_team.id] = {"team": away_team, "goals_against": 0, "matches": 0}
+		
+		teams_data[home_team.id]["goals_against"] += match.away_score
+		teams_data[home_team.id]["matches"] += 1
+		
+		teams_data[away_team.id]["goals_against"] += match.home_score
+		teams_data[away_team.id]["matches"] += 1
+	
+	sorted_teams = sorted(
+		teams_data.values(),
+		key=lambda x: x["goals_against"]
+	)[:limit]
+	
+	return sorted_teams
 
 
 def build_home_context(category):
@@ -88,4 +123,26 @@ def build_matches_context(category):
 	return {
 		"matches_pending": matches_pending_list,
 		"matches_finished": matches_finished,
+	}
+
+
+def build_statistics_context(category):
+	matches_scope = Match.objects.filter(home_team__category=category, away_team__category=category)
+	finished_matches = matches_scope.filter(status="finished")
+	finished_count = finished_matches.count()
+	goals_data = finished_matches.aggregate(home_goals=Sum("home_score"), away_goals=Sum("away_score"))
+	total_goals = (goals_data["home_goals"] or 0) + (goals_data["away_goals"] or 0)
+	avg_goals_per_match = (total_goals / finished_count) if finished_count else 0
+	
+	best_gk = get_best_goalkeepers(category, limit=5)
+
+	return {
+		"total_matches": matches_scope.count(),
+		"total_goals": total_goals,
+		"avg_goals_per_match": avg_goals_per_match,
+		"total_yellow_cards": 0,
+		"avg_yellow_cards_per_match": 0,
+		"total_red_cards": 0,
+		"avg_red_cards_per_match": 0,
+		"best_goalkeepers": best_gk,
 	}

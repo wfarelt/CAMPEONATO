@@ -13,8 +13,8 @@
     <div class="flex items-center justify-between">
       <div>
         <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Partidos Totales</p>
-        <p class="text-4xl font-black text-primary mt-2">240</p>
-        <p class="text-xs text-[#9da6b9] mt-1">Temporada 2024/25</p>
+        <p class="text-4xl font-black text-primary mt-2">{{ total_matches }}</p>
+        <p class="text-xs text-[#9da6b9] mt-1">Temporada 2026</p>
       </div>
       <span class="material-symbols-outlined text-6xl text-primary/20">sports_soccer</span>
     </div>
@@ -25,22 +25,22 @@
     <div class="flex items-center justify-between">
       <div>
         <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Goles Totales</p>
-        <p class="text-4xl font-black text-accent-green mt-2">687</p>
-        <p class="text-xs text-[#9da6b9] mt-1">Promedio 2.86 por partido</p>
+        <p class="text-4xl font-black text-accent-green mt-2">{{ total_goals }}</p>
+        <p class="text-xs text-[#9da6b9] mt-1">Promedio {{ avg_goals_per_match|floatformat:2 }} por partido</p>
       </div>
       <span class="material-symbols-outlined text-6xl text-accent-green/20">sports_basketball</span>
     </div>
   </div>
 
-  <!-- Avg Attendance -->
+  <!-- Yellow Cards -->
   <div class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6">
     <div class="flex items-center justify-between">
       <div>
-        <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Asistencia Promedio</p>
-        <p class="text-4xl font-black text-white mt-2">3,245</p>
-        <p class="text-xs text-[#9da6b9] mt-1">Espectadores por partido</p>
+        <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Tarjetas Amarillas</p>
+        <p class="text-4xl font-black text-yellow-400 mt-2">{{ total_yellow_cards }}</p>
+        <p class="text-xs text-[#9da6b9] mt-1">Promedio {{ avg_yellow_cards_per_match|floatformat:2 }} por partido</p>
       </div>
-      <span class="material-symbols-outlined text-6xl text-white/20">groups</span>
+      <span class="material-symbols-outlined text-6xl text-yellow-400/20">style</span>
     </div>
   </div>
 
@@ -49,10 +49,10 @@
     <div class="flex items-center justify-between">
       <div>
         <p class="text-sm text-[#9da6b9] font-bold uppercase tracking-wider">Tarjetas Rojas</p>
-        <p class="text-4xl font-black text-red-500 mt-2">18</p>
-        <p class="text-xs text-[#9da6b9] mt-1">Expulsiones en toda la temporada</p>
+        <p class="text-4xl font-black text-red-500 mt-2">{{ total_red_cards }}</p>
+        <p class="text-xs text-[#9da6b9] mt-1">Promedio {{ avg_red_cards_per_match|floatformat:2 }} por partido</p>
       </div>
-      <span class="material-symbols-outlined text-6xl text-red-500/20">card_membership</span>
+      <span class="material-symbols-outlined text-6xl text-red-500/20">style</span>
     </div>
   </div>
 </div>
@@ -132,75 +132,33 @@
     </div>
   </section>
 
-  <!-- Best Defenses -->
+  <!-- Top Goalkeepers -->
   <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
     <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
       <h3 class="flex items-center gap-2 text-lg font-bold">
         <span class="material-symbols-outlined text-primary">security</span>
-        Mejores Defensas
+        Mejores Arqueros
       </h3>
     </div>
     <div class="p-6">
       <div class="flex flex-col gap-4">
-        <!-- Defense 1 -->
+        {% for gk in best_goalkeepers %}
+        <!-- Goalkeeper {{ forloop.counter }} -->
         <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
           <div class="flex items-center gap-3 flex-1">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">1</div>
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">{{ forloop.counter }}</div>
             <div>
-              <p class="font-bold text-white">Lions FC</p>
-              <p class="text-xs text-[#9da6b9]\">12 partidos sin recibir gol</p>
+              <p class="font-bold text-white">{{ gk.team.name }}</p>
+              <p class="text-xs text-[#9da6b9]">{{ gk.goals_against }} goles recibidos</p>
             </div>
           </div>
-          <span class="text-2xl font-black text-accent-green">12</span>
+          <span class="text-2xl font-black text-accent-green">{{ gk.goals_against }}</span>
         </div>
-
-        <!-- Defense 2 -->
-        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
-          <div class="flex items-center gap-3 flex-1">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">2</div>
-            <div>
-              <p class="font-bold text-white\">City Warriors</p>
-              <p class=\"text-xs text-[#9da6b9]\">10 partidos sin recibir gol</p>
-            </div>
-          </div>
-          <span class="text-2xl font-black text-accent-green">10</span>
+        {% empty %}
+        <div class="p-3 rounded-lg bg-[#282e39] text-center">
+          <p class="text-xs text-[#9da6b9]">Sin datos disponibles</p>
         </div>
-
-        <!-- Defense 3 -->
-        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
-          <div class="flex items-center gap-3 flex-1">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">3</div>
-            <div>
-              <p class="font-bold text-white">Tigers United</p>
-              <p class="text-xs text-[#9da6b9]\">8 partidos sin recibir gol</p>
-            </div>
-          </div>
-          <span class="text-2xl font-black text-accent-green">8</span>
-        </div>
-
-        <!-- Defense 4 -->
-        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
-          <div class="flex items-center gap-3 flex-1">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">4</div>
-            <div>
-              <p class="font-bold text-white">Eagles United</p>
-              <p class="text-xs text-[#9da6b9]\">7 partidos sin recibir gol</p>
-            </div>
-          </div>
-          <span class="text-2xl font-black text-accent-green">7</span>
-        </div>
-
-        <!-- Defense 5 -->
-        <div class="flex items-center justify-between p-3 rounded-lg bg-[#282e39] hover:bg-primary/5 transition-colors">
-          <div class="flex items-center gap-3 flex-1">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-green text-[#101622] font-bold text-sm">5</div>
-            <div>
-              <p class="font-bold text-white">Phoenix Squad</p>
-              <p class="text-xs text-[#9da6b9]\">5 partidos sin recibir gol</p>
-            </div>
-          </div>
-          <span class="text-2xl font-black text-accent-green">5</span>
-        </div>
+        {% endfor %}
       </div>
     </div>
   </section>
@@ -339,71 +297,4 @@
   </section>
 </div>
 
-<!-- Ball Possession & Match Stats -->
-<section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
-  <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
-    <h3 class="flex items-center gap-2 text-lg font-bold">
-      <span class="material-symbols-outlined text-primary">show_chart</span>
-      Posesión de Balón (Promedio)
-    </h3>
-  </div>
-  <div class="p-6">
-    <div class="flex flex-col gap-6">
-      <!-- Team Possession 1 -->
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <p class="font-bold text-white">Lions FC</p>
-          <span class="text-sm font-bold text-primary">58%</span>
-        </div>
-        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 58%"></div>
-        </div>
-      </div>
-
-      <!-- Team Possession 2 -->
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <p class="font-bold text-white">City Warriors</p>
-          <span class="text-sm font-bold text-primary">55%</span>
-        </div>
-        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 55%"></div>
-        </div>
-      </div>
-
-      <!-- Team Possession 3 -->
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <p class="font-bold text-white">Tigers United</p>
-          <span class="text-sm font-bold text-primary">52%</span>
-        </div>
-        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 52%"></div>
-        </div>
-      </div>
-
-      <!-- Team Possession 4 -->
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <p class="font-bold text-white">Eagles United</p>
-          <span class="text-sm font-bold text-primary">49%</span>
-        </div>
-        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 49%"></div>
-        </div>
-      </div>
-
-      <!-- Team Possession 5 -->
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <p class="font-bold text-white">Phoenix Squad</p>
-          <span class="text-sm font-bold text-primary">48%</span>
-        </div>
-        <div class="h-3 rounded-full bg-[#282e39] overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-primary to-primary/60" style="width: 48%"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 {% endblock %}
