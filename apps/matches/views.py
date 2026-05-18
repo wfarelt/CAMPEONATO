@@ -14,7 +14,12 @@ def home(request):
 @login_required
 def matches_view(request):
     category = get_request_championship_category(request)
-    return render(request, "matches/matches.html", build_matches_context(category=category))
+    selected_matchday_id = request.GET.get("matchday")
+    return render(
+        request,
+        "matches/matches.html",
+        build_matches_context(category=category, selected_matchday_id=selected_matchday_id),
+    )
 
 
 @login_required

@@ -1,0 +1,71 @@
+{% extends "core/base.html" %}
+
+{% block title %}Crear Notificacion{% endblock %}
+{% block header_title %}Nueva Notificacion{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-4 w-full max-w-3xl rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 md:mt-6 md:p-8">
+  <div class="mb-6">
+    <h1 class="m-0 text-2xl font-black text-white">Enviar notificacion</h1>
+    <p class="mt-2 text-sm text-[#9da6b9]">Puedes enviarla para todos, por equipo, por usuario o por rol.</p>
+  </div>
+
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_title">Titulo</label>
+      {{ form.title }}
+      {% if form.title.errors %}<p class="mt-1 text-xs text-red-400">{{ form.title.errors|join:", " }}</p>{% endif %}
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_message">Mensaje</label>
+      {{ form.message }}
+      {% if form.message.errors %}<p class="mt-1 text-xs text-red-400">{{ form.message.errors|join:", " }}</p>{% endif %}
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <label class="mb-1 block text-sm font-semibold text-white" for="id_category">Categoria</label>
+        {{ form.category }}
+        {% if form.category.errors %}<p class="mt-1 text-xs text-red-400">{{ form.category.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-1 block text-sm font-semibold text-white" for="id_audience_type">Audiencia</label>
+        {{ form.audience_type }}
+        {% if form.audience_type.errors %}<p class="mt-1 text-xs text-red-400">{{ form.audience_type.errors|join:", " }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_role">Rol (solo para audiencia por rol)</label>
+      {{ form.role }}
+      {% if form.role.errors %}<p class="mt-1 text-xs text-red-400">{{ form.role.errors|join:", " }}</p>{% endif %}
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_target_teams">Equipos objetivo (solo para audiencia por equipo)</label>
+      {{ form.target_teams }}
+      {% if form.target_teams.errors %}<p class="mt-1 text-xs text-red-400">{{ form.target_teams.errors|join:", " }}</p>{% endif %}
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_target_users">Usuarios objetivo (solo para audiencia por usuario)</label>
+      {{ form.target_users }}
+      {% if form.target_users.errors %}<p class="mt-1 text-xs text-red-400">{{ form.target_users.errors|join:", " }}</p>{% endif %}
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_expires_at">Expira en (opcional)</label>
+      {{ form.expires_at }}
+      {% if form.expires_at.errors %}<p class="mt-1 text-xs text-red-400">{{ form.expires_at.errors|join:", " }}</p>{% endif %}
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 pt-2">
+      <button type="submit" class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90">Enviar</button>
+      <a href="{% url 'notifications_inbox' %}?{{ category_query }}" class="rounded-xl bg-[#282e39] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#343b48]">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

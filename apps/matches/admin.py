@@ -5,8 +5,8 @@ from apps.matches.models import Match, PointsAdjustment
 
 @admin.register(Match)
 class MatchAdmin(admin.ModelAdmin):
-    list_display = ("id", "home_team", "away_team", "home_score", "away_score", "status", "date", "match_day")
-    list_filter = ("status", "date", "match_day")
+    list_display = ("id", "home_team", "away_team", "court", "home_score", "away_score", "status", "date", "match_day")
+    list_filter = ("status", "date", "match_day", "court")
 
 
 @admin.register(PointsAdjustment)

@@ -8,6 +8,7 @@ from apps.core.categories import get_request_championship_category, normalize_ch
 from apps.matches.models import Match
 from apps.teams.models import Team
 from apps.tournaments.forms import MatchDayForm, MatchFormSet
+from apps.users.permissions import organizer_required
 from apps.tournaments.models import MatchDay
 from apps.tournaments.services import save_matchday_with_matches
 
@@ -43,12 +44,14 @@ def _build_matches_preview(matches_data):
             {
                 "home_team": teams_by_id.get(match["home_team"]),
                 "away_team": teams_by_id.get(match["away_team"]),
+                "court": match["court"],
                 "time": match["time"],
             }
         )
     return preview
 
 
+@organizer_required
 @login_required
 def create_matchday(request):
     category = get_request_championship_category(request)
@@ -110,12 +113,14 @@ def create_matchday(request):
 
                     home_team = cleaned_data.get("home_team")
                     away_team = cleaned_data.get("away_team")
+                    court = cleaned_data.get("court")
                     time_value = cleaned_data.get("time")
-                    if home_team and away_team and time_value:
+                    if home_team and away_team and court and time_value:
                         matches.append(
                             {
                                 "home_team": home_team.id,
                                 "away_team": away_team.id,
+                                "court": court,
                                 "time": time_value.isoformat(),
                             }
                         )
@@ -162,6 +167,7 @@ def create_matchday(request):
                             match_day=matchday,
                             home_team_id=match["home_team"],
                             away_team_id=match["away_team"],
+                            court=match["court"],
                             time=parse_time(match["time"]),
                             date=matchday.date,
                         )
@@ -219,6 +225,7 @@ def create_matchday(request):
     )
 
 
+@organizer_required
 @login_required
 def edit_matchday(request, matchday_id):
     category = get_request_championship_category(request)

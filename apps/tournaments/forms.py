@@ -30,10 +30,11 @@ class MatchForm(forms.ModelForm):
 
     class Meta:
         model = Match
-        fields = ["home_team", "away_team", "time"]
+        fields = ["home_team", "away_team", "court", "time"]
         widgets = {
             "home_team": forms.Select(attrs={"class": "form-control"}),
             "away_team": forms.Select(attrs={"class": "form-control"}),
+            "court": forms.Select(attrs={"class": "form-control"}),
             "time": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
         }
 

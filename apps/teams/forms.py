@@ -1,12 +1,23 @@
 from django import forms
+from django.contrib.auth import get_user_model
 
 from apps.teams.models import Player, Team
 
+User = get_user_model()
+
 
 class TeamForm(forms.ModelForm):
+    manager = forms.ModelChoiceField(
+        queryset=User.objects.filter(role="TEAM_MANAGER").order_by("username"),
+        required=False,
+        empty_label="Sin manager asignado",
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Manager",
+    )
+
     class Meta:
         model = Team
-        fields = ["name", "coach", "logo"]
+        fields = ["name", "coach", "logo", "manager"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del equipo"}),
             "coach": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del entrenador"}),

@@ -47,7 +47,9 @@
     <div class="flex flex-1 flex-col gap-4 border-t border-[#282e39] p-4">
       <div>
         <h3 class="font-bold text-white">{{ team.name }}</h3>
-        <p class="text-xs text-[#9da6b9]">Detalle del equipo</p>
+        <p class="text-xs text-[#9da6b9]">
+          {% if team.manager %}Manager: {{ team.manager.username }}{% else %}Sin manager asignado{% endif %}
+        </p>
       </div>
 
       

@@ -1,5 +1,6 @@
 """Teams domain models."""
 
+from django.conf import settings
 from django.db import models
 
 from apps.core.choices import PLAYER_POSITION_CHOICES
@@ -16,6 +17,15 @@ class Team(models.Model):
 		verbose_name="Championship Category",
 	)
 	logo = models.ImageField(upload_to="team_logos/", blank=True, null=True, verbose_name="Team Logo")
+	manager = models.ForeignKey(
+		settings.AUTH_USER_MODEL,
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		limit_choices_to={"role": "TEAM_MANAGER"},
+		related_name="managed_teams",
+		verbose_name="Manager",
+	)
 
 	def __str__(self):
 		return f"{self.name} ({get_championship_label(self.category)})"

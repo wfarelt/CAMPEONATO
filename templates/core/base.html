@@ -122,6 +122,13 @@
               <span class="material-symbols-outlined">analytics</span>
               <span class="text-sm font-medium">Estadísticas</span>
             </a>
+            <a
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'notifications_inbox' or current_url == 'notifications_create' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
+              href="{% url 'notifications_inbox' %}?{{ category_query }}"
+            >
+              <span class="material-symbols-outlined">notifications</span>
+              <span class="text-sm font-medium">Notificaciones</span>
+            </a>
           </nav>
         </div>
         <!-- Bottom Nav -->
@@ -218,6 +225,13 @@
               <span class="material-symbols-outlined">analytics</span>
               <span class="text-sm font-medium">Estadísticas</span>
             </a>
+            <a
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'notifications_inbox' or current_url == 'notifications_create' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
+              href="{% url 'notifications_inbox' %}?{{ category_query }}"
+            >
+              <span class="material-symbols-outlined">notifications</span>
+              <span class="text-sm font-medium">Notificaciones</span>
+            </a>
           </nav>
         </div>
         <div class="flex flex-col gap-2">
@@ -277,25 +291,36 @@
                 {% endfor %}
               </select>
             </form>
-            <div class="relative hidden md:block md:w-64">
+            <form action="{% url 'search' %}" class="relative hidden md:block md:w-64" method="get">
+              <input type="hidden" name="category" value="{{ championship_category }}" />
+              {% for key, value in request.GET.items %}
+              {% if key != 'q' and key != 'category' %}
+              <input type="hidden" name="{{ key }}" value="{{ value }}" />
+              {% endif %}
+              {% endfor %}
               <span
                 class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9da6b9] text-xl"
                 >search</span
               >
               <input
                 class="w-full bg-[#1c1f27] border-none rounded-full py-2 pl-10 text-sm focus:ring-1 focus:ring-primary placeholder:text-[#9da6b9]"
+                name="q"
                 placeholder="Buscar jugadores, equipos..."
                 type="text"
               />
-            </div>
+            </form>
             <div class="flex items-center gap-3">
-              <button
-                class="size-10 flex items-center justify-center rounded-full bg-[#1c1f27] hover:bg-[#282e39] transition-colors"
+              <a
+                href="{% url 'notifications_inbox' %}?{{ category_query }}"
+                class="relative size-10 flex items-center justify-center rounded-full bg-[#1c1f27] hover:bg-[#282e39] transition-colors"
               >
-                <span class="material-symbols-outlined text-white"
-                  >notifications</span
-                >
-              </button>
+                <span class="material-symbols-outlined text-white">notifications</span>
+                {% if unread_notifications_count > 0 %}
+                <span class="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-primary px-1 text-center text-[10px] font-bold text-white">
+                  {{ unread_notifications_count }}
+                </span>
+                {% endif %}
+              </a>
               <div class="hidden h-10 w-[1px] bg-[#282e39] sm:block"></div>
               <div class="flex items-center gap-3">
                 {% if user.is_authenticated %}
@@ -329,6 +354,41 @@
             </div>
           </div>
         </header>
+        <div class="border-b border-[#282e39] bg-background-light/80 px-4 py-3 backdrop-blur-md dark:bg-background-dark/80 sm:hidden">
+          <form action="{{ request.path }}" class="mb-3" method="get">
+            <label class="sr-only" for="championship-category-mobile">Categoria</label>
+            <select
+              class="w-full rounded-full border border-[#282e39] bg-[#1c1f27] px-4 py-2 text-sm text-white focus:border-primary focus:outline-none"
+              id="championship-category-mobile"
+              name="category"
+              onchange="this.form.submit()"
+            >
+              {% for item in championship_categories %}
+              <option value="{{ item.value }}" {% if championship_category == item.value %}selected{% endif %}>
+                {{ item.label }}
+              </option>
+              {% endfor %}
+            </select>
+          </form>
+          <form action="{% url 'search' %}" class="relative" method="get">
+            <input type="hidden" name="category" value="{{ championship_category }}" />
+            {% for key, value in request.GET.items %}
+            {% if key != 'q' and key != 'category' %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}" />
+            {% endif %}
+            {% endfor %}
+            <span
+              class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9da6b9] text-xl"
+              >search</span
+            >
+            <input
+              class="w-full bg-[#1c1f27] border border-[#282e39] rounded-full py-2 pl-10 text-sm text-white focus:ring-1 focus:ring-primary placeholder:text-[#9da6b9]"
+              name="q"
+              placeholder="Buscar jugadores, equipos..."
+              type="text"
+            />
+          </form>
+        </div>
         <div class="mx-auto flex max-w-[1400px] flex-col gap-8 p-4 sm:p-6 lg:p-10">
           {% block content %}{% endblock %}
         </div>

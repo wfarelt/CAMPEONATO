@@ -40,6 +40,14 @@
       {% endif %}
     </div>
 
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_manager">Manager</label>
+      {{ form.manager }}
+      {% if form.manager.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ form.manager.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
     <div class="flex flex-wrap items-center gap-3 pt-2">
       <button
         type="submit"

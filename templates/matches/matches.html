@@ -10,13 +10,24 @@
 <section>
   <div class="mb-6 flex items-center justify-between">
     <h3 class="text-2xl font-bold">Partidos Próximos</h3>
-    <a
-      href="{% url 'create_matchday' %}?{{ category_query }}"
-      class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90"
-    >
-      <span class="material-symbols-outlined text-base">add</span>
-      <span>Crear</span>
-    </a>
+    <div class="flex items-center gap-2">
+      {% if user.is_organizer %}
+      <a
+        href="{% url 'matchdays_list' %}?{{ category_query }}"
+        class="inline-flex items-center gap-2 rounded-xl border border-[#282e39] bg-[#1c1f27] px-4 py-2 text-sm font-bold text-[#9da6b9] transition hover:border-primary hover:text-white"
+      >
+        <span class="material-symbols-outlined text-base">list</span>
+        <span>Listar Jornadas</span>
+      </a>
+      <a
+        href="{% url 'create_matchday' %}?{{ category_query }}"
+        class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90"
+      >
+        <span class="material-symbols-outlined text-base">add</span>
+        <span>Registrar Jornada</span>
+      </a>
+      {% endif %}
+    </div>
   </div>
   <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
     {% for match in matches_pending %}
@@ -53,8 +64,14 @@
 
         <!-- VS Divider -->
         <div class="flex flex-col items-center gap-2">
+          <div class="text-center text-xs font-bold uppercase text-[#9da6b9]">
+            {{ match.matchday_label }}
+          </div>
+          <div class="rounded-full border border-[#282e39] px-3 py-1 text-[11px] font-bold text-[#9da6b9]">
+            {{ match.court }}
+          </div>
           <div class="text-xs font-bold uppercase text-[#9da6b9]">
-            {{ match.date|date:"d M" }}
+            {{ match.date|date:"d M" }} · {{ match.time }}
           </div>
           <div class="rounded-full bg-primary px-4 py-2 font-bold text-white">
             VS
@@ -101,6 +118,27 @@
 <section>
   <div class="mb-6 flex items-center justify-between">
     <h3 class="text-2xl font-bold">Resultados</h3>
+    <form method="get" action="{% url 'matches' %}" class="flex items-center gap-2">
+      <input type="hidden" name="category" value="{{ championship_category }}">
+      <label for="matchday-filter" class="text-sm font-medium text-[#9da6b9]">Jornada:</label>
+      <select
+        id="matchday-filter"
+        name="matchday"
+        class="rounded-lg border border-[#282e39] bg-[#1c1f27] px-3 py-2 text-sm text-white focus:border-primary focus:outline-none"
+        onchange="this.form.submit()"
+      >
+        <option value="">Todas</option>
+        {% for matchday in matchdays %}
+        <option value="{{ matchday.id }}" {% if selected_matchday_id == matchday.id|stringformat:"s" %}selected{% endif %}>
+          {% if matchday.description %}
+            {{ matchday.description }}
+          {% else %}
+            Jornada {{ matchday.date|date:"d/m/Y" }}
+          {% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </form>
   </div>
 
   {% regroup matches_finished by date as match_list %}

@@ -2,200 +2,230 @@
 
 {% block content %}
 <style>
-:root {
-    --primary-color: #2c3e50;
-    --secondary-color: #3498db;
-    --accent-color: #e74c3c;
-    --success-color: #27ae60;
-    --light-bg: #ecf0f1;
-    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    --card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+.wizard-shell {
+    max-width: 980px;
 }
 
-/* Contenedor principal */
-.container {
-    max-width: 900px;
-}
-
-.wizard-steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
+.wizard-card {
+    border: 1px solid #282e39;
+    border-radius: 1.5rem;
+    background: #1c1f27;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
 }
 
 .wizard-step {
-    border: 1px solid #d4dde7;
-    border-radius: 8px;
-    background: #ffffff;
-    padding: 0.75rem;
+    border: 1px solid #282e39;
+    border-radius: 0.9rem;
+    background: #161a22;
+    color: #9da6b9;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.85rem;
     text-align: center;
-    color: #7f8c8d;
-    font-weight: 600;
+    text-transform: uppercase;
 }
 
 .wizard-step.active {
-    border-color: var(--secondary-color);
-    background: #eaf4fd;
-    color: #1f5d8f;
+    background: #135bec;
+    border-color: #135bec;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(19, 91, 236, 0.28);
 }
 
 .wizard-step.done {
-    border-color: #9ed8b6;
-    background: #e9f7ef;
-    color: #1e8449;
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.45);
+    color: #8ef0b0;
 }
 
-/* Títulos */
-h1 {
-    color: var(--primary-color);
-    font-weight: 600;
-    margin-bottom: 2rem;
-    border-bottom: 3px solid var(--secondary-color);
-    padding-bottom: 1rem;
-}
-
-/* Tarjetas */
-.card {
-    border: none;
-    border-radius: 8px;
-    box-shadow: var(--card-shadow);
-    transition: all 0.3s ease;
-    background: #fff;
-}
-
-.card:hover {
-    box-shadow: var(--card-shadow-hover);
-}
-
-.card-body {
-    padding: 2rem;
-}
-
-/* Títulos de las tarjetas */
-.card-body h5 {
-    color: var(--primary-color);
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid var(--secondary-color);
-    padding-bottom: 0.75rem;
+.wizard-section-title {
+    color: #ffffff;
     font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
 }
 
-/* Formularios */
+.wizard-label {
+    color: #c6cddb;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.45rem;
+}
+
 form .form-control,
 form .form-select {
-    margin-top: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 0.6rem 0.8rem;
-    transition: all 0.3s ease;
+    background-color: #101622;
+    border: 1px solid #282e39;
+    border-radius: 0.85rem;
+    color: #ffffff;
+    margin-top: 0;
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+}
+
+form textarea.form-control {
+    min-height: 112px;
 }
 
 form .form-control:focus,
 form .form-select:focus {
-    border-color: var(--secondary-color);
-    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+    background-color: #101622;
+    border-color: #135bec;
+    box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.2);
+    color: #ffffff;
 }
 
-form label {
-    color: var(--primary-color);
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    font-size: 0.95rem;
+form .form-control::placeholder {
+    color: #72809a;
 }
 
-/* Formularios de partidos */
 .match-form {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 1.5rem !important;
-    margin-bottom: 1rem !important;
-    transition: all 0.3s ease;
+    background: linear-gradient(160deg, #171d2b 0%, #111723 100%);
+    border: 1px solid #282e39;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
 }
 
-.match-form:hover {
-    border-color: var(--secondary-color);
-    background: linear-gradient(135deg, #e8eef7 0%, #b8d7f0 100%);
+.summary-item {
+    color: #9da6b9;
+    font-size: 0.92rem;
+    margin-bottom: 0.45rem;
 }
 
-/* Botones */
+.summary-item strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
 .btn {
-    font-weight: 500;
-    border-radius: 6px;
-    padding: 0.6rem 1.5rem;
-    transition: all 0.3s ease;
-    border: none;
+    border: 1px solid transparent;
+    border-radius: 9999px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    padding: 0.62rem 1.15rem;
+    transition: all 0.2s ease;
 }
 
 .btn-primary {
-    background-color: var(--secondary-color);
-    color: white;
+    background: #135bec;
+    border-color: #135bec;
+    color: #ffffff;
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+    background: #0f4dc7;
+    border-color: #0f4dc7;
+    color: #ffffff;
 }
 
 .btn-secondary {
-    background-color: #95a5a6;
-    color: white;
+    background: #1c1f27;
+    border-color: #282e39;
+    color: #d3d8e4;
 }
 
 .btn-secondary:hover {
-    background-color: #7f8c8d;
-    transform: translateY(-2px);
+    background: #242a36;
+    border-color: #394152;
+    color: #ffffff;
 }
 
 #add-match-btn {
-    background-color: var(--success-color);
-    color: white;
+    background: rgba(34, 197, 94, 0.14);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #8ef0b0;
 }
 
 #add-match-btn:hover {
-    background-color: #229954;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+    background: rgba(34, 197, 94, 0.22);
+    border-color: rgba(34, 197, 94, 0.75);
+    color: #b0f8ca;
 }
 
-/* Checkbox de eliminar */
-.form-check-label {
-    color: var(--primary-color);
-    cursor: pointer;
-    font-weight: 500;
-}
-
-/* Errores */
-.text-danger {
-    color: var(--accent-color) !important;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-/* Sección de botones finales */
-.mt-4 {
+.wizard-actions {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
 }
 
-.btn.btn-primary {
-    flex: 1;
-    max-width: 200px;
+.wizard-actions .btn {
+    min-width: 150px;
 }
 
-.btn.btn-secondary {
-    flex: 1;
-    max-width: 200px;
+.form-check-label {
+    align-items: center;
+    color: #9da6b9;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.82rem;
+    font-weight: 600;
+    gap: 0.45rem;
+}
+
+.form-check-label input {
+    accent-color: #ef4444;
+}
+
+.text-danger {
+    color: #fb7185 !important;
+    font-size: 0.8rem;
+}
+
+.table {
+    color: #d9e0ef;
+    margin-bottom: 0;
+}
+
+.table thead tr {
+    border-bottom: 1px solid #282e39;
+}
+
+.table th {
+    border: none;
+    color: #9da6b9;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.75rem;
+    text-transform: uppercase;
+}
+
+.table td {
+    border: none;
+    border-top: 1px solid #282e39;
+    padding: 0.75rem;
+}
+
+.table tbody tr:hover {
+    background: #202532;
+}
+
+@media (max-width: 768px) {
+    .wizard-shell {
+        margin-top: 0.75rem;
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+
+    .wizard-actions .btn {
+        width: 100%;
+    }
 }
 </style>
 
-<div class="container mt-5">
-    <h1>Crear Jornada por Pasos</h1>
+<div class="wizard-shell mt-4 md:mt-6">
+    <div class="mb-6 flex flex-col gap-2">
+        <p class="text-sm text-[#9da6b9]">Campeonato activo: {{ championship_category_label }}</p>
+        <h1 class="m-0 text-3xl font-black text-white">{% if is_edit %}Editar Jornada{% else %}Registrar Jornada{% endif %}</h1>
+        <p class="text-sm text-[#9da6b9]">{% if is_edit %}Modifica los datos de la jornada y sus partidos.{% else %}Crea la fecha, carga los partidos y confirma en un solo flujo.{% endif %}</p>
+    </div>
 
-    <div class="wizard-steps">
+    {% if not is_edit %}
+    <div class="mb-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
         <div class="wizard-step {% if step == '1' %}active{% elif step == '2' or step == '3' %}done{% endif %}">
             Paso 1: Jornada
         </div>
@@ -206,45 +236,147 @@ form label {
             Paso 3: Confirmar
         </div>
     </div>
+    {% endif %}
+
+    {% if is_edit %}
+    <form method="post" id="matchday-form">
+        {% csrf_token %}
+
+        <div class="wizard-card mb-4 p-4 md:p-6">
+            <h5 class="wizard-section-title">Datos de la Jornada</h5>
+
+            {% if matchday_form.non_field_errors %}
+                <div class="mb-3 text-danger">{{ matchday_form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="form-group mb-3">
+                <label class="wizard-label" for="{{ matchday_form.category.id_for_label }}">Campeonato</label>
+                {{ matchday_form.category }}
+                {% if matchday_form.category.errors %}
+                    <small class="text-danger">{{ matchday_form.category.errors }}</small>
+                {% endif %}
+            </div>
+            <div class="form-group mb-3">
+                <label class="wizard-label" for="{{ matchday_form.date.id_for_label }}">Fecha de la Jornada</label>
+                {{ matchday_form.date }}
+                {% if matchday_form.date.errors %}
+                    <small class="text-danger">{{ matchday_form.date.errors }}</small>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label class="wizard-label" for="{{ matchday_form.description.id_for_label }}">Descripción</label>
+                {{ matchday_form.description }}
+                {% if matchday_form.description.errors %}
+                    <small class="text-danger">{{ matchday_form.description.errors }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="wizard-card p-4 md:p-6">
+            <h5 class="wizard-section-title">Partidos</h5>
+
+            {% if formset.non_form_errors %}
+                <div class="mb-3 text-danger">{{ formset.non_form_errors }}</div>
+            {% endif %}
+
+            {{ formset.management_form }}
+
+            <div id="formset-container">
+                {% for form in formset %}
+                <div class="row match-form">
+                    {{ form.id }}
+                    <div class="col-md-3">
+                        <label class="wizard-label" for="{{ form.home_team.id_for_label }}">Equipo Local</label>
+                        {{ form.home_team }}
+                        {% if form.home_team.errors %}
+                            <small class="text-danger">{{ form.home_team.errors }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="wizard-label" for="{{ form.away_team.id_for_label }}">Equipo Visitante</label>
+                        {{ form.away_team }}
+                        {% if form.away_team.errors %}
+                            <small class="text-danger">{{ form.away_team.errors }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-2">
+                        <label class="wizard-label" for="{{ form.court.id_for_label }}">Cancha</label>
+                        {{ form.court }}
+                        {% if form.court.errors %}
+                            <small class="text-danger">{{ form.court.errors }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-2">
+                        <label class="wizard-label" for="{{ form.time.id_for_label }}">Hora</label>
+                        {{ form.time }}
+                        {% if form.time.errors %}
+                            <small class="text-danger">{{ form.time.errors }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <label class="form-check-label">
+                            {{ form.DELETE }}
+                            <span>Eliminar</span>
+                        </label>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="col-12">
+                            <small class="text-danger">{{ form.non_field_errors }}</small>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="button" class="btn btn-secondary mt-3" id="add-match-btn">
+                Añadir otro partido
+            </button>
+        </div>
+
+        <div class="wizard-actions">
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            <a href="{% url 'matchday_detail' matchday.id %}?category={{ matchday.category }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+    {% endif %}
 
     {% if step == '1' %}
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="step" value="1">
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Paso 1: Registrar la jornada</h5>
+        <div class="wizard-card mb-4 p-4 md:p-6">
+                <h5 class="wizard-section-title">Paso 1: Datos de la jornada</h5>
 
                 {% if matchday_form.non_field_errors %}
                     <div class="mb-3 text-danger">{{ matchday_form.non_field_errors }}</div>
                 {% endif %}
 
                 <div class="form-group mb-3">
-                    <label for="{{ matchday_form.category.id_for_label }}">Campeonato</label>
+                    <label class="wizard-label" for="{{ matchday_form.category.id_for_label }}">Campeonato</label>
                     {{ matchday_form.category }}
                     {% if matchday_form.category.errors %}
                         <small class="text-danger">{{ matchday_form.category.errors }}</small>
                     {% endif %}
                 </div>
                 <div class="form-group mb-3">
-                    <label for="{{ matchday_form.date.id_for_label }}">Fecha de la Jornada</label>
+                    <label class="wizard-label" for="{{ matchday_form.date.id_for_label }}">Fecha de la Jornada</label>
                     {{ matchday_form.date }}
                     {% if matchday_form.date.errors %}
                         <small class="text-danger">{{ matchday_form.date.errors }}</small>
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    <label for="{{ matchday_form.description.id_for_label }}">Descripción</label>
+                    <label class="wizard-label" for="{{ matchday_form.description.id_for_label }}">Descripción</label>
                     {{ matchday_form.description }}
                     {% if matchday_form.description.errors %}
                         <small class="text-danger">{{ matchday_form.description.errors }}</small>
                     {% endif %}
                 </div>
-            </div>
         </div>
 
-        <div class="mt-4">
+        <div class="wizard-actions">
             <button type="submit" name="action" value="next" class="btn btn-primary">Siguiente: Partidos</button>
             <button type="submit" name="action" value="cancel" class="btn btn-secondary">Cancelar</button>
         </div>
@@ -256,18 +388,15 @@ form label {
         {% csrf_token %}
         <input type="hidden" name="step" value="2">
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Resumen de jornada</h5>
-                <p class="mb-1"><strong>Campeonato:</strong> {{ matchday_data.category }}</p>
-                <p class="mb-1"><strong>Fecha:</strong> {{ matchday_data.date }}</p>
-                <p class="mb-0"><strong>Descripción:</strong> {{ matchday_data.description|default:"Sin descripción" }}</p>
-            </div>
+        <div class="wizard-card mb-4 p-4 md:p-6">
+                <h5 class="wizard-section-title">Resumen de jornada</h5>
+                <p class="summary-item"><strong>Campeonato:</strong> {{ matchday_data.category }}</p>
+                <p class="summary-item"><strong>Fecha:</strong> {{ matchday_data.date }}</p>
+                <p class="summary-item mb-0"><strong>Descripción:</strong> {{ matchday_data.description|default:"Sin descripción" }}</p>
         </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Paso 2: Registrar los partidos</h5>
+        <div class="wizard-card p-4 md:p-6">
+                <h5 class="wizard-section-title">Paso 2: Registrar los partidos</h5>
 
                 {% if formset.non_form_errors %}
                     <div class="mb-3 text-danger">{{ formset.non_form_errors }}</div>
@@ -277,23 +406,30 @@ form label {
 
                 <div id="formset-container">
                     {% for form in formset %}
-                    <div class="row match-form mb-3 p-3 border rounded">
-                        <div class="col-md-4">
-                            <label for="{{ form.home_team.id_for_label }}">Equipo Local</label>
+                    <div class="row match-form">
+                        <div class="col-md-3">
+                            <label class="wizard-label" for="{{ form.home_team.id_for_label }}">Equipo Local</label>
                             {{ form.home_team }}
                             {% if form.home_team.errors %}
                                 <small class="text-danger">{{ form.home_team.errors }}</small>
                             {% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <label for="{{ form.away_team.id_for_label }}">Equipo Visitante</label>
+                        <div class="col-md-3">
+                            <label class="wizard-label" for="{{ form.away_team.id_for_label }}">Equipo Visitante</label>
                             {{ form.away_team }}
                             {% if form.away_team.errors %}
                                 <small class="text-danger">{{ form.away_team.errors }}</small>
                             {% endif %}
                         </div>
                         <div class="col-md-2">
-                            <label for="{{ form.time.id_for_label }}">Hora</label>
+                            <label class="wizard-label" for="{{ form.court.id_for_label }}">Cancha</label>
+                            {{ form.court }}
+                            {% if form.court.errors %}
+                                <small class="text-danger">{{ form.court.errors }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="wizard-label" for="{{ form.time.id_for_label }}">Hora</label>
                             {{ form.time }}
                             {% if form.time.errors %}
                                 <small class="text-danger">{{ form.time.errors }}</small>
@@ -318,10 +454,9 @@ form label {
                 <button type="button" class="btn btn-secondary mt-3" id="add-match-btn">
                     Añadir otro partido
                 </button>
-            </div>
         </div>
 
-        <div class="mt-4">
+        <div class="wizard-actions">
             <button type="submit" name="action" value="back" class="btn btn-secondary">Volver</button>
             <button type="submit" name="action" value="next" class="btn btn-primary">Siguiente: Confirmar</button>
             <button type="submit" name="action" value="cancel" class="btn btn-secondary">Cancelar</button>
@@ -334,21 +469,21 @@ form label {
         {% csrf_token %}
         <input type="hidden" name="step" value="3">
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Paso 3: Confirmar y guardar</h5>
+        <div class="wizard-card mb-4 p-4 md:p-6">
+                <h5 class="wizard-section-title">Paso 3: Confirmar y guardar</h5>
 
-                <p class="mb-1"><strong>Campeonato:</strong> {{ matchday_data.category }}</p>
-                <p class="mb-1"><strong>Fecha:</strong> {{ matchday_data.date }}</p>
-                <p class="mb-3"><strong>Descripción:</strong> {{ matchday_data.description|default:"Sin descripción" }}</p>
+                <p class="summary-item"><strong>Campeonato:</strong> {{ matchday_data.category }}</p>
+                <p class="summary-item"><strong>Fecha:</strong> {{ matchday_data.date }}</p>
+                <p class="summary-item mb-3"><strong>Descripción:</strong> {{ matchday_data.description|default:"Sin descripción" }}</p>
 
-                <h6 class="mb-3">Partidos</h6>
+                <h6 class="wizard-section-title text-base">Partidos</h6>
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
                                 <th>Local</th>
                                 <th>Visitante</th>
+                                <th>Cancha</th>
                                 <th>Hora</th>
                             </tr>
                         </thead>
@@ -357,16 +492,16 @@ form label {
                             <tr>
                                 <td>{{ match.home_team.name }}</td>
                                 <td>{{ match.away_team.name }}</td>
+                                <td>Cancha {{ match.court }}</td>
                                 <td>{{ match.time }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-            </div>
         </div>
 
-        <div class="mt-4">
+        <div class="wizard-actions">
             <button type="submit" name="action" value="back" class="btn btn-secondary">Volver</button>
             <button type="submit" name="action" value="confirm" class="btn btn-primary">Confirmar y guardar</button>
             <button type="submit" name="action" value="cancel" class="btn btn-secondary">Cancelar</button>
@@ -375,7 +510,7 @@ form label {
     {% endif %}
 </div>
 
-{% if step == '2' %}
+{% if step == '2' or is_edit %}
 <script>
 document.getElementById('add-match-btn').addEventListener('click', function() {
     const formsetContainer = document.getElementById('formset-container');

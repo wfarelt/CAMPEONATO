@@ -7,7 +7,7 @@ from apps.tournaments.models import MatchDay
 class MatchInline(admin.TabularInline):
     model = Match
     extra = 1
-    fields = ("home_team", "away_team", "time", "home_score", "away_score", "status")
+    fields = ("home_team", "away_team", "court", "time", "home_score", "away_score", "status")
 
 
 @admin.register(MatchDay)

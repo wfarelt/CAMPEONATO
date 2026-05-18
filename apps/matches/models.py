@@ -4,6 +4,15 @@ from django.db import models
 
 
 class Match(models.Model):
+	COURT_1 = 1
+	COURT_2 = 2
+	COURT_3 = 3
+	COURT_CHOICES = [
+		(COURT_1, "Cancha 1"),
+		(COURT_2, "Cancha 2"),
+		(COURT_3, "Cancha 3"),
+	]
+
 	match_day = models.ForeignKey(
 		"tournaments.MatchDay",
 		on_delete=models.CASCADE,
@@ -16,6 +25,7 @@ class Match(models.Model):
 	away_team = models.ForeignKey("teams.Team", on_delete=models.CASCADE, related_name="away_matches")
 	home_score = models.PositiveIntegerField(default=0, verbose_name="Home Team Score")
 	away_score = models.PositiveIntegerField(default=0, verbose_name="Away Team Score")
+	court = models.PositiveSmallIntegerField(choices=COURT_CHOICES, default=COURT_1, verbose_name="Cancha")
 	date = models.DateField()
 	time = models.TimeField()
 	status = models.CharField(
