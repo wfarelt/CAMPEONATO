@@ -63,6 +63,17 @@
             <span class="font-bold text-white">Entrenador:</span> {{ team.coach }}
           </p>
         </div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg text-primary">event_available</span>
+          <p class="text-sm text-[#9da6b9]">
+            <span class="font-bold text-white">Jornada:</span>
+            {% if team.is_available_for_matchday %}
+            <span class="text-green-300">Disponible</span>
+            {% else %}
+            <span class="text-red-300">No disponible</span>
+            {% endif %}
+          </p>
+        </div>
       </div>
     </div>
   </div>

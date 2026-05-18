@@ -10,6 +10,11 @@ from apps.core.categories import CHAMPIONSHIP_CATEGORY_CHOICES, get_championship
 class Team(models.Model):
 	name = models.CharField(max_length=100, unique=True, verbose_name="Team Name")
 	coach = models.CharField(max_length=100, verbose_name="Coach Name")
+	is_available_for_matchday = models.BooleanField(
+		default=True,
+		verbose_name="Disponible para jornada",
+		help_text="Determina si el equipo puede ser considerado para recomendaciones de partidos.",
+	)
 	category = models.CharField(
 		max_length=20,
 		choices=CHAMPIONSHIP_CATEGORY_CHOICES,

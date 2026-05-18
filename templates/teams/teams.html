@@ -50,6 +50,13 @@
         <p class="text-xs text-[#9da6b9]">
           {% if team.manager %}Manager: {{ team.manager.username }}{% else %}Sin manager asignado{% endif %}
         </p>
+        <p class="mt-1 text-xs">
+          {% if team.is_available_for_matchday %}
+          <span class="rounded-full border border-green-400/60 bg-green-400/15 px-2 py-1 text-green-300">Disponible para jornada</span>
+          {% else %}
+          <span class="rounded-full border border-red-400/60 bg-red-400/15 px-2 py-1 text-red-300">No disponible para jornada</span>
+          {% endif %}
+        </p>
       </div>
 
       

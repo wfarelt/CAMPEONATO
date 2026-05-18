@@ -5,8 +5,8 @@ from apps.teams.models import Player, Team
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "category", "coach", "manager")
-    list_filter = ("category",)
+    list_display = ("id", "name", "category", "coach", "manager", "is_available_for_matchday")
+    list_filter = ("category", "is_available_for_matchday")
     search_fields = ("name", "coach", "manager__username")
     raw_id_fields = ("manager",)
 

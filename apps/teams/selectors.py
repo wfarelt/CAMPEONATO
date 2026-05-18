@@ -23,5 +23,6 @@ def build_team_api_data(team):
         "name": team.name,
         "coach": team.coach,
         "category": team.category,
+        "is_available_for_matchday": team.is_available_for_matchday,
         "logo": team.logo.url if team.logo else None,
     }

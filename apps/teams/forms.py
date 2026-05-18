@@ -17,11 +17,12 @@ class TeamForm(forms.ModelForm):
 
     class Meta:
         model = Team
-        fields = ["name", "coach", "logo", "manager"]
+        fields = ["name", "coach", "logo", "manager", "is_available_for_matchday"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del equipo"}),
             "coach": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del entrenador"}),
             "logo": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "is_available_for_matchday": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
 

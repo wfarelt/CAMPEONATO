@@ -103,3 +103,20 @@ class TeamCrudPermissionsTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Player.objects.filter(team=self.team, name="Mario").exists())
+
+    def test_team_default_is_available_for_matchday(self):
+        self.assertTrue(self.team.is_available_for_matchday)
+
+    def test_organizer_can_toggle_team_availability(self):
+        self.client.force_login(self.organizer)
+        response = self.client.post(
+            f"{reverse('team_edit', kwargs={'team_id': self.team.id})}?category=seniors",
+            {
+                "name": self.team.name,
+                "coach": self.team.coach,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.team.refresh_from_db()
+        self.assertFalse(self.team.is_available_for_matchday)

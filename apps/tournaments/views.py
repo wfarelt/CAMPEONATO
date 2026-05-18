@@ -7,13 +7,31 @@ from django.utils.dateparse import parse_date, parse_time
 from apps.core.categories import get_request_championship_category, normalize_championship_category
 from apps.matches.models import Match
 from apps.teams.models import Team
-from apps.tournaments.forms import MatchDayForm, MatchFormSet
+from apps.tournaments.forms import MatchDayForm, MatchFormSet, get_match_formset_class
 from apps.users.permissions import organizer_required
 from apps.tournaments.models import MatchDay
-from apps.tournaments.services import save_matchday_with_matches
+from apps.tournaments.services import recommend_matches_for_matchday, save_matchday_with_matches
 
 
 WIZARD_SESSION_KEY = "create_matchday_wizard"
+
+
+def _safe_match_count(value, default=1):
+    try:
+        return max(int(value), 1)
+    except (TypeError, ValueError):
+        return default
+
+
+def _default_recommended_match_count(category):
+    available_teams_count = Team.objects.filter(category=category, is_available_for_matchday=True).count()
+    return max(available_teams_count // 2, 1)
+
+
+def _formset_for_initial(initial_matches, selected_category):
+    initial_matches = initial_matches or []
+    formset_class = get_match_formset_class(extra=max(1, len(initial_matches)))
+    return formset_class(initial=initial_matches, form_kwargs={"category": selected_category})
 
 
 def _wizard_state(request):
@@ -84,6 +102,7 @@ def create_matchday(request):
                 # If category changes, clear matches to avoid mixed-team categories.
                 if previous_category and previous_category != normalized_category:
                     state.pop("matches", None)
+                    state.pop("recommended_matches", None)
                 _save_wizard_state(request, state)
                 return redirect(f"{reverse('create_matchday')}?step=2&category={normalized_category}")
 
@@ -102,6 +121,41 @@ def create_matchday(request):
                 return redirect(f"{reverse('create_matchday')}?step=1&category={category}")
 
             selected_category = state["matchday"]["category"]
+
+            if action == "recommend":
+                requested_count = _safe_match_count(
+                    request.POST.get("recommended_match_count"),
+                    default=_default_recommended_match_count(selected_category),
+                )
+                recommended_matches = recommend_matches_for_matchday(selected_category, requested_count)
+                initial_matches = [
+                    {
+                        "home_team": item["home_team"],
+                        "away_team": item["away_team"],
+                    }
+                    for item in recommended_matches
+                ]
+                state["recommended_matches"] = initial_matches
+                state["recommended_match_count"] = requested_count
+                _save_wizard_state(request, state)
+
+                formset = _formset_for_initial(initial_matches, selected_category)
+                if not recommended_matches:
+                    formset.non_form_errors()
+                    formset._non_form_errors = formset.error_class(
+                        ["No hay suficientes equipos disponibles para recomendar partidos."]
+                    )
+                return render(
+                    request,
+                    "tournaments/create_matchday.html",
+                    {
+                        "step": "2",
+                        "formset": formset,
+                        "matchday_data": state.get("matchday"),
+                        "recommended_match_count": requested_count,
+                    },
+                )
+
             formset = MatchFormSet(request.POST, form_kwargs={"category": selected_category})
 
             if formset.is_valid():
@@ -132,6 +186,14 @@ def create_matchday(request):
                     )
                 else:
                     state["matches"] = matches
+                    state["recommended_matches"] = matches
+                    state["recommended_match_count"] = _safe_match_count(
+                        request.POST.get("recommended_match_count"),
+                        default=state.get(
+                            "recommended_match_count",
+                            _default_recommended_match_count(selected_category),
+                        ),
+                    )
                     _save_wizard_state(request, state)
                     return redirect(f"{reverse('create_matchday')}?step=3&category={selected_category}")
 
@@ -142,6 +204,13 @@ def create_matchday(request):
                     "step": "2",
                     "formset": formset,
                     "matchday_data": state.get("matchday"),
+                    "recommended_match_count": _safe_match_count(
+                        request.POST.get("recommended_match_count"),
+                        default=state.get(
+                            "recommended_match_count",
+                            _default_recommended_match_count(selected_category),
+                        ),
+                    ),
                 },
             )
 
@@ -181,8 +250,8 @@ def create_matchday(request):
             return redirect(f"{reverse('create_matchday')}?step=1&category={category}")
 
         selected_category = state["matchday"]["category"]
-        matches_initial = state.get("matches")
-        formset = MatchFormSet(initial=matches_initial, form_kwargs={"category": selected_category})
+        matches_initial = state.get("matches") or state.get("recommended_matches")
+        formset = _formset_for_initial(matches_initial, selected_category)
         return render(
             request,
             "tournaments/create_matchday.html",
@@ -190,6 +259,10 @@ def create_matchday(request):
                 "step": "2",
                 "formset": formset,
                 "matchday_data": state.get("matchday"),
+                "recommended_match_count": state.get(
+                    "recommended_match_count",
+                    _default_recommended_match_count(selected_category),
+                ),
             },
         )
 

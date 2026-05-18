@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from django.forms import inlineformset_factory
 
 from apps.core.categories import DEFAULT_CHAMPIONSHIP_CATEGORY, normalize_championship_category
@@ -24,7 +25,13 @@ class MatchForm(forms.ModelForm):
     def __init__(self, *args, category=None, **kwargs):
         super().__init__(*args, **kwargs)
         selected_category = normalize_championship_category(category or DEFAULT_CHAMPIONSHIP_CATEGORY)
-        teams_qs = Team.objects.filter(category=selected_category).order_by("name")
+        teams_qs = Team.objects.filter(category=selected_category, is_available_for_matchday=True)
+        if self.instance and self.instance.pk:
+            teams_qs = Team.objects.filter(
+                Q(category=selected_category, is_available_for_matchday=True)
+                | Q(pk__in=[self.instance.home_team_id, self.instance.away_team_id])
+            )
+        teams_qs = teams_qs.order_by("name")
         self.fields["home_team"].queryset = teams_qs
         self.fields["away_team"].queryset = teams_qs
 
@@ -47,10 +54,14 @@ class MatchForm(forms.ModelForm):
         return cleaned_data
 
 
-MatchFormSet = inlineformset_factory(
-    MatchDay,
-    Match,
-    form=MatchForm,
-    extra=1,
-    can_delete=True,
-)
+def get_match_formset_class(extra=1):
+    return inlineformset_factory(
+        MatchDay,
+        Match,
+        form=MatchForm,
+        extra=extra,
+        can_delete=True,
+    )
+
+
+MatchFormSet = get_match_formset_class(extra=1)
