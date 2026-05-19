@@ -2,6 +2,7 @@
 /venv
 /staticfiles
 /media
+.env
 
 # Created by https://www.toptal.com/developers/gitignore/api/pythonvanilla,django
 # Edit at https://www.toptal.com/developers/gitignore?templates=pythonvanilla,django
