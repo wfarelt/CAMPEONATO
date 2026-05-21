@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+
+{% block title %}{% if is_edit %}Editar{% else %}Nuevo{% endif %} auspiciador{% endblock %}
+{% block header_title %}{% if is_edit %}Editar{% else %}Registrar{% endif %} auspiciador{% endblock %}
+
+{% block content %}
+<div class="mx-auto w-full max-w-2xl rounded-2xl border border-[#282e39] bg-[#1c1f27] p-6">
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
+    {% csrf_token %}
+    {% for field in form %}
+    <div>
+      <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-[#9da6b9]" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+      <p class="mt-1 text-xs text-red-300">{{ field.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="flex gap-2 pt-2">
+      <button type="submit" class="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90">
+        Guardar
+      </button>
+      <a href="{% url 'sponsors' %}?{{ category_query }}" class="inline-flex items-center rounded-xl bg-[#282e39] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#343b48]">
+        Cancelar
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

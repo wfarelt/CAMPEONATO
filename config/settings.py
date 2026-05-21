@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.fields.apps.FieldsConfig',
     'apps.payments.apps.PaymentsConfig',
     'apps.notifications.apps.NotificationsConfig',
+    'apps.sponsors.apps.SponsorsConfig',
     'corsheaders',
 ]
 

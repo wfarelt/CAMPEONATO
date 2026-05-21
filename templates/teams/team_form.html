@@ -25,7 +25,7 @@
     </div>
 
     <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_coach">Entrenador</label>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_coach">Entrenador/Delegado</label>
       {{ form.coach }}
       {% if form.coach.errors %}
       <p class="mt-1 text-xs text-red-400">{{ form.coach.errors|join:", " }}</p>
@@ -33,7 +33,7 @@
     </div>
 
     <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_logo">Logo</label>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_logo">Logo/Escudo del equipo</label>
       {{ form.logo }}
       {% if form.logo.errors %}
       <p class="mt-1 text-xs text-red-400">{{ form.logo.errors|join:", " }}</p>

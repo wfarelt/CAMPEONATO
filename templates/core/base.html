@@ -134,6 +134,15 @@
               <span class="material-symbols-outlined">notifications</span>
               <span class="text-sm font-medium">Notificaciones</span>
             </a>
+            {% if user.role == 'ORGANIZER' %}
+            <a
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'sponsors' or current_url == 'sponsor_create' or current_url == 'sponsor_edit' or current_url == 'sponsor_delete' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
+              href="{% url 'sponsors' %}?{{ category_query }}"
+            >
+              <span class="material-symbols-outlined">handshake</span>
+              <span class="text-sm font-medium">Auspiciadores</span>
+            </a>
+            {% endif %}
             {% endif %}
           </nav>
         </div>
@@ -234,6 +243,15 @@
               <span class="material-symbols-outlined">notifications</span>
               <span class="text-sm font-medium">Notificaciones</span>
             </a>
+            {% if user.role == 'ORGANIZER' %}
+            <a
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'sponsors' or current_url == 'sponsor_create' or current_url == 'sponsor_edit' or current_url == 'sponsor_delete' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
+              href="{% url 'sponsors' %}?{{ category_query }}"
+            >
+              <span class="material-symbols-outlined">handshake</span>
+              <span class="text-sm font-medium">Auspiciadores</span>
+            </a>
+            {% endif %}
             {% endif %}
           </nav>
         </div>

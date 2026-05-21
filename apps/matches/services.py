@@ -3,6 +3,7 @@
 from django.db.models import Sum
 
 from apps.matches.models import Match
+from apps.sponsors.models import Sponsor
 from apps.standings.services import build_standings
 from apps.standings.selectors import get_last_results
 from apps.teams.models import Player
@@ -176,6 +177,7 @@ def build_home_context(category):
 
 	quick_standings = build_standings(category=category, include_adjustments=True)[:5]
 	top_scoring_teams = get_top_scoring_teams(category=category, limit=5)
+	sponsors = list(Sponsor.objects.filter(is_active=True).only("name", "image").order_by("name"))
 
 	return {
 		"timeline_title": timeline_title,
@@ -196,6 +198,7 @@ def build_home_context(category):
 		} if next_match else None,
 		"top_scoring_teams": top_scoring_teams,
 		"quick_standings": quick_standings,
+		"sponsors": sponsors,
 	}
 
 

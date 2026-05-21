@@ -1,0 +1,21 @@
+{% extends "core/base.html" %}
+
+{% block title %}Eliminar auspiciador{% endblock %}
+{% block header_title %}Eliminar auspiciador{% endblock %}
+
+{% block content %}
+<div class="mx-auto w-full max-w-lg rounded-2xl border border-[#282e39] bg-[#1c1f27] p-6">
+  <h2 class="text-xl font-black text-white">Eliminar auspiciador</h2>
+  <p class="mt-2 text-sm text-[#9da6b9]">Estas seguro de eliminar <span class="font-bold text-white">{{ sponsor.name }}</span>?</p>
+
+  <form method="post" class="mt-5 flex gap-2">
+    {% csrf_token %}
+    <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-500">
+      Confirmar eliminacion
+    </button>
+    <a href="{% url 'sponsors' %}?{{ category_query }}" class="rounded-xl bg-[#282e39] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#343b48]">
+      Cancelar
+    </a>
+  </form>
+</div>
+{% endblock %}

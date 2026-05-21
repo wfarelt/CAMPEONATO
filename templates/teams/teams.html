@@ -48,7 +48,7 @@
       <div>
         <h3 class="font-bold text-white">{{ team.name }}</h3>
         <p class="text-xs text-[#9da6b9]">
-          {% if team.manager %}Manager: {{ team.manager.username }}{% else %}Sin manager asignado{% endif %}
+          Delegado: {{ team.coach }}          
         </p>
         <p class="mt-1 text-xs">
           {% if team.is_available_for_matchday %}
