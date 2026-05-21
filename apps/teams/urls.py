@@ -9,6 +9,7 @@ from apps.teams.views import (
     team_delete_view,
     team_detail_view,
     team_edit_view,
+    team_manager_settings_view,
     teams_view,
 )
 
@@ -17,6 +18,7 @@ urlpatterns = [
     path("team/create/", team_create_view, name="team_create"),
     path("team/<int:team_id>/", team_detail_view, name="team"),
     path("team/<int:team_id>/edit/", team_edit_view, name="team_edit"),
+    path("team/<int:team_id>/settings/", team_manager_settings_view, name="team_manager_settings"),
     path("team/<int:team_id>/delete/", team_delete_view, name="team_delete"),
     path("team/<int:team_id>/players/create/", player_create_view, name="player_create"),
     path("team/<int:team_id>/players/<int:player_id>/edit/", player_edit_view, name="player_edit"),

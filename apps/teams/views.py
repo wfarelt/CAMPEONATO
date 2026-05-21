@@ -1,14 +1,20 @@
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
+from django.db.models import Case, IntegerField, Value, When
 from django.urls import reverse
 
 from apps.core.categories import get_request_championship_category
 from apps.standings.selectors import get_opponents_with_points, get_results_by_team
-from apps.teams.forms import PlayerForm, TeamForm
+from apps.teams.forms import PlayerForm, TeamForm, TeamManagerSettingsForm
 from apps.teams.models import Player
 from apps.teams.selectors import build_team_api_data, get_all_teams, get_team_or_404
-from apps.users.permissions import can_manage_players, organizer_required, player_management_required
+from apps.users.permissions import (
+    can_add_players_to_team,
+    can_manage_team_profile_for_team,
+    can_manage_players_for_team,
+    organizer_required,
+)
 
 
 @login_required
@@ -21,11 +27,24 @@ def teams_view(request):
 def team_detail_view(request, team_id):
     category = get_request_championship_category(request)
     team = get_team_or_404(team_id, category=category)
+    team_players = team.players.annotate(
+        position_order=Case(
+            When(position="GK", then=Value(0)),
+            When(position="DF", then=Value(1)),
+            When(position="MF", then=Value(2)),
+            When(position="FW", then=Value(3)),
+            default=Value(99),
+            output_field=IntegerField(),
+        )
+    ).order_by("position_order", "number", "name")
     context = {
         "team": team,
+        "team_players": team_players,
         "next_opponents": get_opponents_with_points(team),
         "results": get_results_by_team(team),
-        "can_manage_players": can_manage_players(request.user),
+        "can_add_players": can_add_players_to_team(request.user, team),
+        "can_edit_team_profile": can_manage_team_profile_for_team(request.user, team),
+        "can_edit_players": can_manage_players_for_team(request.user, team),
     }
     return render(request, "teams/team.html", context)
 
@@ -94,10 +113,35 @@ def team_delete_view(request, team_id):
 
 
 @login_required
-@player_management_required
+def team_manager_settings_view(request, team_id):
+    category = get_request_championship_category(request)
+    team = get_team_or_404(team_id, category=category)
+
+    if not can_manage_team_profile_for_team(request.user, team):
+        return HttpResponseForbidden("No tienes permisos para editar la configuracion de este equipo.")
+
+    if request.method == "POST":
+        form = TeamManagerSettingsForm(request.POST, request.FILES, instance=team)
+        if form.is_valid():
+            form.save()
+            return redirect(f"{reverse('team', kwargs={'team_id': team.id})}?category={category}")
+    else:
+        form = TeamManagerSettingsForm(instance=team)
+
+    return render(
+        request,
+        "teams/team_manager_settings_form.html",
+        {"form": form, "team": team, "selected_category": category},
+    )
+
+
+@login_required
 def player_create_view(request, team_id):
     category = get_request_championship_category(request)
     team = get_team_or_404(team_id, category=category)
+
+    if not can_add_players_to_team(request.user, team):
+        return HttpResponseForbidden("No tienes permisos para anadir jugadores a este equipo.")
 
     if request.method == "POST":
         form = PlayerForm(request.POST)
@@ -117,10 +161,13 @@ def player_create_view(request, team_id):
 
 
 @login_required
-@player_management_required
 def player_edit_view(request, team_id, player_id):
     category = get_request_championship_category(request)
     team = get_team_or_404(team_id, category=category)
+
+    if not can_manage_players_for_team(request.user, team):
+        return HttpResponseForbidden("No tienes permisos para editar jugadores de este equipo.")
+
     player = get_object_or_404(Player, pk=player_id, team=team)
 
     if request.method == "POST":
@@ -139,10 +186,13 @@ def player_edit_view(request, team_id, player_id):
 
 
 @login_required
-@player_management_required
 def player_delete_view(request, team_id, player_id):
     category = get_request_championship_category(request)
     team = get_team_or_404(team_id, category=category)
+
+    if not can_manage_players_for_team(request.user, team):
+        return HttpResponseForbidden("No tienes permisos para eliminar jugadores de este equipo.")
+
     player = get_object_or_404(Player, pk=player_id, team=team)
 
     if request.method == "POST":

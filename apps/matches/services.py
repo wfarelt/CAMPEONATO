@@ -5,6 +5,7 @@ from django.db.models import Sum
 from apps.matches.models import Match
 from apps.standings.services import build_standings
 from apps.standings.selectors import get_last_results
+from apps.teams.models import Player
 from apps.tournaments.models import MatchDay
 
 
@@ -84,6 +85,28 @@ def get_best_goalkeepers(category, limit=5):
 	)[:limit]
 	
 	return sorted_teams
+
+
+def get_top_scorers(category, limit=5):
+	"""Return top goal scorers from players in the selected category."""
+	top_players = (
+		Player.objects.filter(team__category=category)
+		.select_related("team")
+		.order_by("-goals_scored", "name")[:limit]
+	)
+
+	ranking = []
+	for position, player in enumerate(top_players, start=1):
+		ranking.append(
+			{
+				"position": position,
+				"player_name": player.name,
+				"team_name": player.team.name,
+				"goals": player.goals_scored,
+			}
+		)
+
+	return ranking
 
 
 def build_home_context(category):
@@ -229,6 +252,7 @@ def build_statistics_context(category):
 	avg_goals_per_match = (total_goals / finished_count) if finished_count else 0
 	
 	best_gk = get_best_goalkeepers(category, limit=5)
+	top_scorers = get_top_scorers(category, limit=5)
 
 	return {
 		"total_matches": matches_scope.count(),
@@ -239,4 +263,5 @@ def build_statistics_context(category):
 		"total_red_cards": 0,
 		"avg_red_cards_per_match": 0,
 		"best_goalkeepers": best_gk,
+		"top_scorers": top_scorers,
 	}

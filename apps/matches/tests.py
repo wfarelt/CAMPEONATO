@@ -3,8 +3,8 @@ from datetime import date, time
 from django.test import TestCase
 
 from apps.matches.models import Match
-from apps.matches.services import build_home_context, build_matches_context
-from apps.teams.models import Team
+from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
+from apps.teams.models import Player, Team
 from apps.tournaments.models import MatchDay
 
 
@@ -73,3 +73,16 @@ class MatchServicesTests(TestCase):
         self.assertEqual(len(context["matches_pending"]), 0)
         self.assertEqual(len(list(context["matches_finished"])), 1)
         self.assertEqual(list(context["matches_finished"])[0].home_team.name, "Master FC")
+
+    def test_build_statistics_context_returns_top_scorers(self):
+        Player.objects.create(team=self.team_a, name="Striker A", number=9, position="FW", goals_scored=6)
+        Player.objects.create(team=self.team_b, name="Striker B", number=10, position="FW", goals_scored=8)
+        Player.objects.create(team=self.team_c, name="Striker C", number=11, position="FW", goals_scored=3)
+
+        context = build_statistics_context(category="seniors")
+
+        self.assertEqual(len(context["top_scorers"]), 3)
+        self.assertEqual(context["top_scorers"][0]["player_name"], "Striker B")
+        self.assertEqual(context["top_scorers"][0]["goals"], 8)
+        self.assertEqual(context["top_scorers"][1]["player_name"], "Striker A")
+        self.assertEqual(context["top_scorers"][2]["team_name"], "Gamma FC")

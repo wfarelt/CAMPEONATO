@@ -74,17 +74,22 @@
       <div class="grid grid-cols-2 gap-2">
         <a
           href="{% url 'team_edit' team.id %}?{{ category_query }}"
-          class="inline-flex items-center justify-center rounded-lg bg-[#282e39] py-2 px-3 text-xs font-bold text-white transition hover:bg-[#343b48]"
+          class="inline-flex items-center justify-center rounded-lg bg-[#282e39] py-2 px-3 text-white transition hover:bg-[#343b48]"
+          title="Editar equipo"
+          aria-label="Editar equipo"
         >
-          Editar
+          <span class="material-symbols-outlined text-base">edit</span>
         </a>
         <a
           href="{% url 'team_delete' team.id %}?{{ category_query }}"
-          class="inline-flex items-center justify-center rounded-lg bg-red-600/90 py-2 px-3 text-xs font-bold text-white transition hover:bg-red-500"
+          class="inline-flex items-center justify-center rounded-lg bg-red-600/90 py-2 px-3 text-white transition hover:bg-red-500"
+          title="Eliminar equipo"
+          aria-label="Eliminar equipo"
         >
-          Eliminar
+          <span class="material-symbols-outlined text-base">delete</span>
         </a>
       </div>
+      
       {% endif %}
     </div>
   </div>

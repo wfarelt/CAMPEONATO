@@ -58,6 +58,29 @@
       </div>
     </div>
 
+    <div>
+      <label class="mb-1 block text-sm font-semibold text-white" for="id_goals_scored">Goles</label>
+      {{ form.goals_scored }}
+      {% if form.goals_scored.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ form.goals_scored.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <div class="rounded-xl border border-[#282e39] bg-[#282e39]/60 p-4">
+      <label for="id_is_reinforcement" class="flex cursor-pointer items-center justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold text-white">Jugador refuerzo</p>
+          <p class="text-xs text-[#9da6b9]">Marcar si este jugador participa como refuerzo.</p>
+        </div>
+        <span class="relative inline-flex items-center">
+          {{ form.is_reinforcement }}
+        </span>
+      </label>
+      {% if form.is_reinforcement.errors %}
+      <p class="mt-1 text-xs text-red-400">{{ form.is_reinforcement.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
     {% if form.non_field_errors %}
     <div>
       {% for error in form.non_field_errors %}
