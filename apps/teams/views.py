@@ -24,9 +24,9 @@ def teams_view(request):
 
 
 @login_required
-def team_detail_view(request, team_id):
+def team_detail_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_id, category=category)
+    team = get_team_or_404(team_slug, category=category)
     team_players = team.players.annotate(
         position_order=Case(
             When(position="GK", then=Value(0)),
@@ -67,7 +67,7 @@ def team_create_view(request):
             team = form.save(commit=False)
             team.category = category
             team.save()
-            return redirect(f"{reverse('team', kwargs={'team_id': team.id})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
     else:
         form = TeamForm()
 
@@ -80,15 +80,15 @@ def team_create_view(request):
 
 @login_required
 @organizer_required
-def team_edit_view(request, team_id):
+def team_edit_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_id, category=category)
+    team = get_team_or_404(team_slug, category=category)
 
     if request.method == "POST":
         form = TeamForm(request.POST, request.FILES, instance=team)
         if form.is_valid():
             team = form.save()
-            return redirect(f"{reverse('team', kwargs={'team_id': team.id})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
     else:
         form = TeamForm(instance=team)
 
@@ -101,9 +101,9 @@ def team_edit_view(request, team_id):
 
 @login_required
 @organizer_required
-def team_delete_view(request, team_id):
+def team_delete_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_id, category=category)
+    team = get_team_or_404(team_slug, category=category)
 
     if request.method == "POST":
         team.delete()
@@ -113,9 +113,9 @@ def team_delete_view(request, team_id):
 
 
 @login_required
-def team_manager_settings_view(request, team_id):
+def team_manager_settings_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_id, category=category)
+    team = get_team_or_404(team_slug, category=category)
 
     if not can_manage_team_profile_for_team(request.user, team):
         return HttpResponseForbidden("No tienes permisos para editar la configuracion de este equipo.")
@@ -124,7 +124,7 @@ def team_manager_settings_view(request, team_id):
         form = TeamManagerSettingsForm(request.POST, request.FILES, instance=team)
         if form.is_valid():
             form.save()
-            return redirect(f"{reverse('team', kwargs={'team_id': team.id})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
     else:
         form = TeamManagerSettingsForm(instance=team)
 
@@ -136,9 +136,9 @@ def team_manager_settings_view(request, team_id):
 
 
 @login_required
-def player_create_view(request, team_id):
+def player_create_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_id, category=category)
+    team = get_team_or_404(team_slug, category=category)
 
     if not can_add_players_to_team(request.user, team):
         return HttpResponseForbidden("No tienes permisos para anadir jugadores a este equipo.")
@@ -149,7 +149,7 @@ def player_create_view(request, team_id):
             player = form.save(commit=False)
             player.team = team
             player.save()
-            return redirect(f"{reverse('team', kwargs={'team_id': team.id})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
     else:
         form = PlayerForm()
 
@@ -161,9 +161,9 @@ def player_create_view(request, team_id):
 
 
 @login_required
-def player_edit_view(request, team_id, player_id):
+def player_edit_view(request, team_slug, player_id):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_id, category=category)
+    team = get_team_or_404(team_slug, category=category)
 
     if not can_manage_players_for_team(request.user, team):
         return HttpResponseForbidden("No tienes permisos para editar jugadores de este equipo.")
@@ -174,7 +174,7 @@ def player_edit_view(request, team_id, player_id):
         form = PlayerForm(request.POST, instance=player)
         if form.is_valid():
             form.save()
-            return redirect(f"{reverse('team', kwargs={'team_id': team.id})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
     else:
         form = PlayerForm(instance=player)
 
@@ -186,9 +186,9 @@ def player_edit_view(request, team_id, player_id):
 
 
 @login_required
-def player_delete_view(request, team_id, player_id):
+def player_delete_view(request, team_slug, player_id):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_id, category=category)
+    team = get_team_or_404(team_slug, category=category)
 
     if not can_manage_players_for_team(request.user, team):
         return HttpResponseForbidden("No tienes permisos para eliminar jugadores de este equipo.")
@@ -197,7 +197,7 @@ def player_delete_view(request, team_id, player_id):
 
     if request.method == "POST":
         player.delete()
-        return redirect(f"{reverse('team', kwargs={'team_id': team.id})}?category={category}")
+        return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
 
     return render(
         request,

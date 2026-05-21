@@ -1,0 +1,58 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ match.home_team.name }} vs {{ match.away_team.name }}{% endblock %}
+{% block header_title %}Detalle de Partido{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-4 w-full max-w-4xl space-y-6 md:mt-6">
+  <p class="text-sm text-[#9da6b9]">Campeonato activo: {{ championship_category_label }}</p>
+
+  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 md:p-8">
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <a
+        href="{% url 'matches' %}?{{ category_query }}"
+        class="inline-flex items-center gap-2 rounded-xl border border-[#282e39] bg-[#101622] px-4 py-2 text-sm font-bold text-[#9da6b9] transition hover:border-primary hover:text-white"
+      >
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        <span>Volver a partidos</span>
+      </a>
+      <span class="rounded-full border border-[#282e39] px-3 py-1 text-xs font-bold uppercase text-[#9da6b9]">
+        {{ match.status }}
+      </span>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-3 md:items-center">
+      <div class="text-center">
+        <h2 class="text-2xl font-black text-white">{{ match.home_team.name }}</h2>
+      </div>
+
+      <div class="rounded-2xl border border-primary/30 bg-primary/10 p-5 text-center">
+        <p class="text-xs font-bold uppercase tracking-wider text-[#9da6b9]">Marcador</p>
+        <p class="mt-2 text-4xl font-black text-white">{{ match.home_score }} - {{ match.away_score }}</p>
+      </div>
+
+      <div class="text-center">
+        <h2 class="text-2xl font-black text-white">{{ match.away_team.name }}</h2>
+      </div>
+    </div>
+
+    <div class="mt-6 grid gap-3 rounded-2xl border border-[#282e39] bg-[#101622] p-4 text-sm text-[#cfd6e6] md:grid-cols-3">
+      <p><span class="font-bold text-white">Fecha:</span> {{ match.date|date:"d/m/Y" }}</p>
+      <p><span class="font-bold text-white">Hora:</span> {{ match.time|time:"H:i" }}</p>
+      <p><span class="font-bold text-white">Cancha:</span> {{ match.get_court_display }}</p>
+    </div>
+
+    {% if match.match_day %}
+    <div class="mt-4">
+      <a
+        href="{% url 'matchday_detail' match.match_day.slug %}?{{ category_query }}"
+        class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+      >
+        <span class="material-symbols-outlined text-base">calendar_month</span>
+        <span>Ver jornada completa</span>
+      </a>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ news_title }}{% endblock %}
+{% block header_title %}Noticias{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-4 w-full max-w-3xl space-y-6 md:mt-6">
+  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 md:p-8">
+    <p class="text-xs font-bold uppercase tracking-wider text-primary">Noticia</p>
+    <h1 class="mt-2 text-3xl font-black text-white">{{ news_title }}</h1>
+    <p class="mt-4 text-sm text-[#9da6b9]">
+      Esta ruta usa slug amigable: <span class="font-bold text-white">/noticias/{{ news_slug }}</span>.
+    </p>
+    <p class="mt-2 text-sm text-[#9da6b9]">
+      Si deseas, puedo conectar esta vista a un modelo real de noticias para publicar contenido dinámico.
+    </p>
+  </section>
+</div>
+{% endblock %}

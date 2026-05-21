@@ -336,7 +336,7 @@ form .form-control::placeholder {
 
         <div class="wizard-actions">
             <button type="submit" class="btn btn-primary">Guardar cambios</button>
-            <a href="{% url 'matchday_detail' matchday.id %}?category={{ matchday.category }}" class="btn btn-secondary">Cancelar</a>
+            <a href="{% url 'matchday_detail' matchday.slug %}?category={{ matchday.category }}" class="btn btn-secondary">Cancelar</a>
         </div>
     </form>
     {% endif %}

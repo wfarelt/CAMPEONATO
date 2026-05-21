@@ -49,7 +49,7 @@
         <p class="text-sm text-[#9da6b9]">{{ featured_match.date }} • {{ featured_match.time }} hs</p>
         <a
           class="mt-4 flex items-center gap-2 rounded-full bg-primary px-8 py-3 font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
-          href="{% url 'matches' %}?{{ category_query }}"
+          href="{% url 'match_detail' featured_match.slug %}?{{ category_query }}"
         >
           <span class="material-symbols-outlined">play_circle</span>
           Ver Partidos
@@ -92,9 +92,10 @@
       </div>
       <div class="hide-scrollbar flex gap-4 overflow-x-auto pb-2">
         {% for item in timeline_matches %}
-        <div
+        <a
           class="group flex min-w-[280px] cursor-pointer flex-col gap-3 rounded-2xl border bg-[#1c1f27] p-4 transition-colors
           {% if item.is_finished %}border-[#282e39] hover:border-primary{% else %}border-primary{% endif %}"
+          href="{% url 'match_detail' item.slug %}?{{ category_query }}"
         >
           <div
             class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider
@@ -123,7 +124,7 @@
             <span>{{ item.court }}</span>
             <span>{{ item.date }} · {{ item.time }}</span>
           </div>
-        </div>
+        </a>
         {% empty %}
         <div class="w-full rounded-2xl border border-[#282e39] bg-[#1c1f27] p-6 text-center text-sm text-[#9da6b9]">
           No hay partidos cargados para la última jornada.

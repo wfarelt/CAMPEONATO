@@ -36,7 +36,7 @@
       <h2 class="mb-4 text-lg font-bold text-white">Equipos</h2>
       <div class="space-y-3">
         {% for team in teams %}
-        <a href="{% url 'team' team.id %}?{{ category_query }}" class="flex items-center justify-between rounded-xl border border-[#282e39] bg-[#101622] p-3 transition hover:border-primary">
+        <a href="{% url 'team' team.slug %}?{{ category_query }}" class="flex items-center justify-between rounded-xl border border-[#282e39] bg-[#101622] p-3 transition hover:border-primary">
           <div>
             <p class="m-0 font-bold text-white">{{ team.name }}</p>
             <p class="m-0 text-xs text-[#9da6b9]">DT: {{ team.coach }}</p>
@@ -53,7 +53,7 @@
       <h2 class="mb-4 text-lg font-bold text-white">Jugadores</h2>
       <div class="space-y-3">
         {% for player in players %}
-        <a href="{% url 'team' player.team.id %}?{{ category_query }}" class="flex items-center justify-between rounded-xl border border-[#282e39] bg-[#101622] p-3 transition hover:border-primary">
+        <a href="{% url 'team' player.team.slug %}?{{ category_query }}" class="flex items-center justify-between rounded-xl border border-[#282e39] bg-[#101622] p-3 transition hover:border-primary">
           <div>
             <p class="m-0 font-bold text-white">{{ player.name }}</p>
             <p class="m-0 text-xs text-[#9da6b9]">{{ player.team.name }} • Nro {{ player.number }}{% if player.ci %} • CI {{ player.ci }}{% endif %}</p>

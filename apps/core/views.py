@@ -61,3 +61,16 @@ def search_view(request):
             "results_count": teams.count() + players.count() if query else 0,
         },
     )
+
+
+@login_required
+def news_detail_view(request, news_slug):
+    news_title = (news_slug or "").replace("-", " ").strip().title() or "Noticia"
+    return render(
+        request,
+        "core/news_detail.html",
+        {
+            "news_slug": news_slug,
+            "news_title": news_title,
+        },
+    )

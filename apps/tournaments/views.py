@@ -242,7 +242,7 @@ def create_matchday(request):
                         )
 
                 _clear_wizard_state(request)
-                detail_url = reverse("matchday_detail", kwargs={"matchday_id": matchday.id})
+                detail_url = reverse("matchday_detail", kwargs={"matchday_slug": matchday.slug})
                 return redirect(f"{detail_url}?category={matchday.category}")
 
     if step == "2":
@@ -300,9 +300,9 @@ def create_matchday(request):
 
 @organizer_required
 @login_required
-def edit_matchday(request, matchday_id):
+def edit_matchday(request, matchday_slug):
     category = get_request_championship_category(request)
-    matchday = get_object_or_404(MatchDay, pk=matchday_id, category=category)
+    matchday = get_object_or_404(MatchDay, slug=matchday_slug, category=category)
 
     if request.method == "POST":
         form = MatchDayForm(request.POST, instance=matchday)
@@ -310,7 +310,7 @@ def edit_matchday(request, matchday_id):
         formset = MatchFormSet(request.POST, instance=matchday, form_kwargs={"category": posted_category})
         if form.is_valid() and formset.is_valid():
             matchday = save_matchday_with_matches(form, formset)
-            detail_url = reverse("matchday_detail", kwargs={"matchday_id": matchday.id})
+            detail_url = reverse("matchday_detail", kwargs={"matchday_slug": matchday.slug})
             return redirect(f"{detail_url}?category={matchday.category}")
     else:
         form = MatchDayForm(instance=matchday)
@@ -324,9 +324,9 @@ def edit_matchday(request, matchday_id):
 
 
 @login_required
-def matchday_detail(request, matchday_id):
+def matchday_detail(request, matchday_slug):
     category = get_request_championship_category(request)
-    matchday = get_object_or_404(MatchDay, pk=matchday_id, category=category)
+    matchday = get_object_or_404(MatchDay, slug=matchday_slug, category=category)
     return render(
         request,
         "tournaments/matchday_detail.html",

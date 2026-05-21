@@ -206,7 +206,7 @@
             {% endif %}
         </div>
         <div class="mobile-actions mt-1">
-            <a href="{% url 'edit_matchday' matchday.id %}?{{ category_query }}" class="btn-chip btn-chip-warning">
+            <a href="{% url 'edit_matchday' matchday.slug %}?{{ category_query }}" class="btn-chip btn-chip-warning">
                 <span class="material-symbols-outlined text-base">edit</span>
                 <span>Editar Jornada</span>
             </a>

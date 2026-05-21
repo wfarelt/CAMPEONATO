@@ -31,8 +31,9 @@
   </div>
   <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
     {% for match in matches_pending %}
-    <div
+    <a
       class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 transition-all hover:border-primary"
+      href="{% url 'match_detail' match.slug %}?{{ category_query }}"
     >
       <div class="flex flex-col items-center gap-8 md:flex-row md:justify-between">
         <!-- Home Team -->
@@ -105,7 +106,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </a>
     {% empty %}
     <div class="rounded-2xl border border-[#282e39] bg-[#1c1f27] p-8 text-center">
       <p class="text-[#9da6b9]">No hay partidos próximos en este momento.</p>
@@ -129,7 +130,7 @@
       >
         <option value="">Todas</option>
         {% for matchday in matchdays %}
-        <option value="{{ matchday.id }}" {% if selected_matchday_id == matchday.id|stringformat:"s" %}selected{% endif %}>
+        <option value="{{ matchday.slug }}" {% if selected_matchday_slug == matchday.slug %}selected{% endif %}>
           {% if matchday.description %}
             {{ matchday.description }}
           {% else %}
@@ -151,7 +152,7 @@
       </div>
       <div class="divide-y divide-[#282e39]">
         {% for match in group.list %}
-        <div class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-[#282e39] transition-colors">
+        <a href="{% url 'match_detail' match.slug %}?{{ category_query }}" class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-[#282e39] transition-colors">
           <div class="flex flex-1 items-center gap-3">
             <span class="text-sm font-bold text-[#9da6b9] min-w-fit">
               {{ match.home_team }}
@@ -169,7 +170,7 @@
               {{ match.away_team }}
             </span>
           </div>
-        </div>
+        </a>
         {% endfor %}
       </div>
     </div>

@@ -1,6 +1,7 @@
 """Matches domain models."""
 
 from django.db import models
+from django.utils.text import slugify
 
 
 class Match(models.Model):
@@ -23,6 +24,7 @@ class Match(models.Model):
 	)
 	home_team = models.ForeignKey("teams.Team", on_delete=models.CASCADE, related_name="home_matches")
 	away_team = models.ForeignKey("teams.Team", on_delete=models.CASCADE, related_name="away_matches")
+	slug = models.SlugField(max_length=220, unique=True, blank=True, null=True)
 	home_score = models.PositiveIntegerField(default=0, verbose_name="Home Team Score")
 	away_score = models.PositiveIntegerField(default=0, verbose_name="Away Team Score")
 	court = models.PositiveSmallIntegerField(choices=COURT_CHOICES, default=COURT_1, verbose_name="Cancha")
@@ -41,9 +43,28 @@ class Match(models.Model):
 	def is_finished(self):
 		return self.status == "finished"
 
+	def _build_unique_slug(self):
+		if self.match_day and self.match_day.description:
+			matchday_ref = self.match_day.description
+		elif self.match_day:
+			matchday_ref = f"jornada-{self.match_day.date.strftime('%d-%m-%Y')}"
+		else:
+			matchday_ref = f"jornada-{self.date.strftime('%d-%m-%Y')}"
+
+		base_text = f"{self.home_team.name}-vs-{self.away_team.name}-{matchday_ref}"
+		base_slug = slugify(base_text)[:200] or "partido"
+		slug_candidate = base_slug
+		counter = 2
+		while Match.objects.exclude(pk=self.pk).filter(slug=slug_candidate).exists():
+			slug_candidate = f"{base_slug}-{counter}"[:220]
+			counter += 1
+		return slug_candidate
+
 	def save(self, *args, **kwargs):
 		if self.match_day and not self.date:
 			self.date = self.match_day.date
+		if not self.slug and self.home_team_id and self.away_team_id and self.date:
+			self.slug = self._build_unique_slug()
 		super().save(*args, **kwargs)
 
 

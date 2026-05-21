@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.db import models
+from django.utils.text import slugify
 
 from apps.core.choices import PLAYER_POSITION_CHOICES
 from apps.core.categories import CHAMPIONSHIP_CATEGORY_CHOICES, get_championship_label
@@ -9,6 +10,7 @@ from apps.core.categories import CHAMPIONSHIP_CATEGORY_CHOICES, get_championship
 
 class Team(models.Model):
 	name = models.CharField(max_length=100, unique=True, verbose_name="Team Name")
+	slug = models.SlugField(max_length=160, unique=True, blank=True, null=True)
 	coach = models.CharField(max_length=100, verbose_name="Coach Name")
 	is_available_for_matchday = models.BooleanField(
 		default=True,
@@ -34,6 +36,20 @@ class Team(models.Model):
 
 	def __str__(self):
 		return f"{self.name} ({get_championship_label(self.category)})"
+
+	def _build_unique_slug(self):
+		base_slug = slugify(self.name)[:140] or "equipo"
+		slug_candidate = base_slug
+		counter = 2
+		while Team.objects.exclude(pk=self.pk).filter(slug=slug_candidate).exists():
+			slug_candidate = f"{base_slug}-{counter}"[:160]
+			counter += 1
+		return slug_candidate
+
+	def save(self, *args, **kwargs):
+		if not self.slug:
+			self.slug = self._build_unique_slug()
+		super().save(*args, **kwargs)
 
 	class Meta:
 		ordering = ["name"]

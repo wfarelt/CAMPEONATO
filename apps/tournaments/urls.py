@@ -8,8 +8,8 @@ from apps.tournaments.views import (
 )
 
 urlpatterns = [
-    path("matchday/create/", create_matchday, name="create_matchday"),
-    path("matchday/<int:matchday_id>/", matchday_detail, name="matchday_detail"),
-    path("matchday/<int:matchday_id>/edit/", edit_matchday, name="edit_matchday"),
-    path("matchdays/", matchdays_list, name="matchdays_list"),
+    path("jornadas/crear/", create_matchday, name="create_matchday"),
+    path("jornadas/<slug:matchday_slug>/", matchday_detail, name="matchday_detail"),
+    path("jornadas/<slug:matchday_slug>/editar/", edit_matchday, name="edit_matchday"),
+    path("jornadas/", matchdays_list, name="matchdays_list"),
 ]

@@ -140,6 +140,7 @@ def build_home_context(category):
 			matchday_label = f"Jornada {match.date.strftime('%d/%m/%Y')}"
 		timeline_matches.append(
 			{
+				"slug": match.slug,
 				"home_team": match.home_team.name,
 				"away_team": match.away_team.name,
 				"home_logo": match.home_team.logo.url if match.home_team.logo else DEFAULT_TEAM_LOGO,
@@ -159,6 +160,7 @@ def build_home_context(category):
 		highlighted = matches_qs.filter(status="finished").order_by("-time").first() or matches_qs.order_by("time").first()
 		is_finished = highlighted.status == "finished"
 		featured_match = {
+			"slug": highlighted.slug,
 			"home_team": highlighted.home_team.name,
 			"away_team": highlighted.away_team.name,
 			"home_logo": highlighted.home_team.logo.url if highlighted.home_team.logo else None,
@@ -197,18 +199,15 @@ def build_home_context(category):
 	}
 
 
-def build_matches_context(category, selected_matchday_id=None):
+def build_matches_context(category, selected_matchday_slug=None):
 	matches_scope = Match.objects.filter(home_team__category=category, away_team__category=category)
 	matches_pending = matches_scope.filter(status="scheduled").order_by("date", "time")
 	matches_finished = matches_scope.filter(status="finished").order_by("date", "time")
 	matchdays = MatchDay.objects.filter(category=category)
 
 	selected_matchday = None
-	if selected_matchday_id:
-		try:
-			selected_matchday = matchdays.filter(id=int(selected_matchday_id)).first()
-		except (TypeError, ValueError):
-			selected_matchday = None
+	if selected_matchday_slug:
+		selected_matchday = matchdays.filter(slug=selected_matchday_slug).first()
 
 	if selected_matchday:
 		matches_finished = matches_finished.filter(match_day=selected_matchday)
@@ -222,6 +221,7 @@ def build_matches_context(category, selected_matchday_id=None):
 
 		matches_pending_list.append(
 			{
+				"slug": match.slug,
 				"home_team": match.home_team.name,
 				"home_team_logo": match.home_team.logo.url if match.home_team.logo else DEFAULT_TEAM_LOGO,
 				"home_team_last_results": get_last_results(match.home_team, exclude_match=match, category=category),
@@ -239,7 +239,7 @@ def build_matches_context(category, selected_matchday_id=None):
 		"matches_pending": matches_pending_list,
 		"matches_finished": matches_finished,
 		"matchdays": matchdays,
-		"selected_matchday_id": str(selected_matchday.id) if selected_matchday else "",
+		"selected_matchday_slug": selected_matchday.slug if selected_matchday else "",
 	}
 
 

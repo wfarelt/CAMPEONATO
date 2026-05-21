@@ -28,7 +28,7 @@ def standings_sitemap(request):
     
     # Add standings page for each category
     for category_code, category_label in CHAMPIONSHIP_CATEGORY_CHOICES:
-        url = request.build_absolute_uri(f'/standings/?category={category_code}')
+        url = request.build_absolute_uri(f'/tabla-posiciones/?category={category_code}')
         last_mod = datetime.now().strftime('%Y-%m-%d')
         xml_content += f'  <url>\n'
         xml_content += f'    <loc>{url}</loc>\n'

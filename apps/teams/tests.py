@@ -59,7 +59,7 @@ class TeamCrudPermissionsTests(TestCase):
     def test_organizer_can_edit_team(self):
         self.client.force_login(self.organizer)
         response = self.client.post(
-            f"{reverse('team_edit', kwargs={'team_id': self.team.id})}?category=seniors",
+            f"{reverse('team_edit', kwargs={'team_slug': self.team.slug})}?category=seniors",
             {"name": "Alpha Updated", "coach": "Coach Z"},
         )
 
@@ -70,7 +70,7 @@ class TeamCrudPermissionsTests(TestCase):
     def test_non_organizer_cannot_delete_team(self):
         self.client.force_login(self.player)
         response = self.client.post(
-            f"{reverse('team_delete', kwargs={'team_id': self.team.id})}?category=seniors"
+            f"{reverse('team_delete', kwargs={'team_slug': self.team.slug})}?category=seniors"
         )
 
         self.assertEqual(response.status_code, 403)
@@ -79,7 +79,7 @@ class TeamCrudPermissionsTests(TestCase):
     def test_organizer_can_create_player(self):
         self.client.force_login(self.organizer)
         response = self.client.post(
-            f"{reverse('player_create', kwargs={'team_id': self.team.id})}?category=seniors",
+            f"{reverse('player_create', kwargs={'team_slug': self.team.slug})}?category=seniors",
             {"name": "Carlos", "number": 9, "position": "FW"},
         )
 
@@ -89,7 +89,7 @@ class TeamCrudPermissionsTests(TestCase):
     def test_organizer_can_create_reinforcement_player(self):
         self.client.force_login(self.organizer)
         response = self.client.post(
-            f"{reverse('player_create', kwargs={'team_id': self.team.id})}?category=seniors",
+            f"{reverse('player_create', kwargs={'team_slug': self.team.slug})}?category=seniors",
             {"name": "Carlos Refuerzo", "number": 19, "position": "FW", "is_reinforcement": "on"},
         )
 
@@ -101,7 +101,7 @@ class TeamCrudPermissionsTests(TestCase):
     def test_team_manager_cannot_create_player_when_setting_disabled(self):
         self.client.force_login(self.team_manager)
         response = self.client.post(
-            f"{reverse('player_create', kwargs={'team_id': self.team.id})}?category=seniors",
+            f"{reverse('player_create', kwargs={'team_slug': self.team.slug})}?category=seniors",
             {"name": "Pedro", "number": 10, "position": "MF"},
         )
 
@@ -115,7 +115,7 @@ class TeamCrudPermissionsTests(TestCase):
         )
         self.client.force_login(self.team_manager)
         response = self.client.post(
-            f"{reverse('player_create', kwargs={'team_id': self.team.id})}?category=seniors",
+            f"{reverse('player_create', kwargs={'team_slug': self.team.slug})}?category=seniors",
             {"name": "Mario", "number": 7, "position": "DF"},
         )
 
@@ -129,7 +129,7 @@ class TeamCrudPermissionsTests(TestCase):
         )
         self.client.force_login(self.team_manager)
         response = self.client.post(
-            f"{reverse('player_create', kwargs={'team_id': self.other_team.id})}?category=seniors",
+            f"{reverse('player_create', kwargs={'team_slug': self.other_team.slug})}?category=seniors",
             {"name": "Rival", "number": 8, "position": "MF"},
         )
 
@@ -140,7 +140,7 @@ class TeamCrudPermissionsTests(TestCase):
         player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")
         self.client.force_login(self.team_manager)
         response = self.client.post(
-            f"{reverse('player_edit', kwargs={'team_id': self.team.id, 'player_id': player.id})}?category=seniors",
+            f"{reverse('player_edit', kwargs={'team_slug': self.team.slug, 'player_id': player.id})}?category=seniors",
             {"name": "Mario Editado", "number": 7, "position": "DF"},
         )
 
@@ -156,7 +156,7 @@ class TeamCrudPermissionsTests(TestCase):
         player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")
         self.client.force_login(self.team_manager)
         response = self.client.post(
-            f"{reverse('player_edit', kwargs={'team_id': self.team.id, 'player_id': player.id})}?category=seniors",
+            f"{reverse('player_edit', kwargs={'team_slug': self.team.slug, 'player_id': player.id})}?category=seniors",
             {"name": "Mario Editado", "number": 7, "position": "DF"},
         )
 
@@ -172,7 +172,7 @@ class TeamCrudPermissionsTests(TestCase):
         player = Player.objects.create(team=self.other_team, name="Rival", number=8, position="MF")
         self.client.force_login(self.team_manager)
         response = self.client.post(
-            f"{reverse('player_delete', kwargs={'team_id': self.other_team.id, 'player_id': player.id})}?category=seniors"
+            f"{reverse('player_delete', kwargs={'team_slug': self.other_team.slug, 'player_id': player.id})}?category=seniors"
         )
 
         self.assertEqual(response.status_code, 403)
@@ -186,7 +186,7 @@ class TeamCrudPermissionsTests(TestCase):
         player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")
         self.client.force_login(self.team_manager)
         response = self.client.post(
-            f"{reverse('player_delete', kwargs={'team_id': self.team.id, 'player_id': player.id})}?category=seniors"
+            f"{reverse('player_delete', kwargs={'team_slug': self.team.slug, 'player_id': player.id})}?category=seniors"
         )
 
         self.assertEqual(response.status_code, 302)
@@ -199,7 +199,7 @@ class TeamCrudPermissionsTests(TestCase):
         Player.objects.create(team=self.team, name="Defensa", number=4, position="DF")
         Player.objects.create(team=self.team, name="Mediocampo", number=6, position="MF")
 
-        response = self.client.get(f"{reverse('team', kwargs={'team_id': self.team.id})}?category=seniors")
+        response = self.client.get(f"{reverse('team', kwargs={'team_slug': self.team.slug})}?category=seniors")
 
         self.assertEqual(response.status_code, 200)
         positions = [player.position for player in response.context["team_players"]]
@@ -211,7 +211,7 @@ class TeamCrudPermissionsTests(TestCase):
     def test_organizer_can_toggle_team_availability(self):
         self.client.force_login(self.organizer)
         response = self.client.post(
-            f"{reverse('team_edit', kwargs={'team_id': self.team.id})}?category=seniors",
+            f"{reverse('team_edit', kwargs={'team_slug': self.team.slug})}?category=seniors",
             {
                 "name": self.team.name,
                 "coach": self.team.coach,

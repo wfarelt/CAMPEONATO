@@ -19,7 +19,7 @@
     {% if user.role == 'ORGANIZER' %}
     <a
       class="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-white transition-all hover:bg-primary/90"
-      href="{% url 'team_edit' team.id %}?{{ category_query }}"
+      href="{% url 'team_edit' team.slug %}?{{ category_query }}"
       title="Editar equipo"
       aria-label="Editar equipo"
     >
@@ -27,7 +27,7 @@
     </a>
     <a
       class="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-white transition-all hover:bg-red-500"
-      href="{% url 'team_delete' team.id %}?{{ category_query }}"
+      href="{% url 'team_delete' team.slug %}?{{ category_query }}"
       title="Eliminar equipo"
       aria-label="Eliminar equipo"
     >
@@ -36,7 +36,7 @@
     {% elif can_edit_team_profile %}
     <a
       class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-all hover:bg-primary/90"
-      href="{% url 'team_manager_settings' team.id %}?{{ category_query }}"
+      href="{% url 'team_manager_settings' team.slug %}?{{ category_query }}"
       title="Editar configuracion del equipo"
       aria-label="Editar configuracion del equipo"
     >
@@ -103,7 +103,7 @@
         </h3>
         {% if can_add_players %}
         <a
-          href="{% url 'player_create' team.id %}?{{ category_query }}"
+          href="{% url 'player_create' team.slug %}?{{ category_query }}"
           class="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white transition hover:bg-primary/90"
         >
           <span class="material-symbols-outlined text-sm">person_add</span>
@@ -138,7 +138,7 @@
           {% if can_edit_players %}
           <div class="flex items-center gap-2">
             <a
-              href="{% url 'player_edit' team.id player.id %}?{{ category_query }}"
+              href="{% url 'player_edit' team.slug player.id %}?{{ category_query }}"
               class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[#1c1f27] text-white transition hover:bg-[#101622]"
               title="Editar jugador"
               aria-label="Editar jugador"
@@ -146,7 +146,7 @@
               <span class="material-symbols-outlined text-sm">edit</span>
             </a>
             <a
-              href="{% url 'player_delete' team.id player.id %}?{{ category_query }}"
+              href="{% url 'player_delete' team.slug player.id %}?{{ category_query }}"
               class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-red-600 text-white transition hover:bg-red-500"
               title="Eliminar jugador"
               aria-label="Eliminar jugador"
