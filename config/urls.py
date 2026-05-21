@@ -19,11 +19,17 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
+from django.http import HttpResponse
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def google_verification_view(request):
+    """Serve Google Search Console verification file."""
+    return HttpResponse("google-site-verification: google1b34ef3873b51c94.html", content_type="text/html")
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('google1b34ef3873b51c94.html', google_verification_view, name='google_verification'),
     path('', include('apps.urls')),
 ]
 if settings.DEBUG:
