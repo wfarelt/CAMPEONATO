@@ -1,10 +1,39 @@
 {% extends "core/base.html" %}
+{% load static %}
 
 {% block title %}Notificaciones{% endblock %}
 {% block header_title %}Notificaciones{% endblock %}
 
 {% block content %}
 <div class="mx-auto mt-4 w-full max-w-5xl space-y-5 px-2 md:mt-6">
+  <section class="rounded-2xl border border-[#282e39] bg-[#1c1f27] p-4 md:p-5">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="m-0 text-base font-black text-white">Notificaciones push web</h2>
+        <p class="mt-1 text-xs text-[#9da6b9]" id="push-status-text">Activa alertas en este dispositivo para recibir avisos incluso con la web cerrada.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          id="enable-push-btn"
+          type="button"
+          class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition hover:bg-primary/90"
+        >
+          <span class="material-symbols-outlined text-base">notifications_active</span>
+          Activar notificaciones
+        </button>
+        {% if user.role == 'ORGANIZER' %}
+        <form method="post" action="{% url 'notifications_push_demo' %}">
+          {% csrf_token %}
+          <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-[#282e39] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#343b48]">
+            <span class="material-symbols-outlined text-base">send</span>
+            Probar push demo
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
       <h1 class="m-0 text-3xl font-black text-white">Bandeja de Notificaciones</h1>
@@ -67,4 +96,18 @@
     {% endfor %}
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+{{ web_push_public_key|json_script:"web-push-public-key" }}
+<script id="web-push-config" type="application/json">
+  {
+    "subscribeUrl": "{% url web_push_subscribe_url %}",
+    "unsubscribeUrl": "{% url web_push_unsubscribe_url %}",
+    "serviceWorkerUrl": "{% url 'service_worker' %}",
+    "csrfToken": "{{ csrf_token }}"
+  }
+</script>
+<script src="{% static 'notifications/js/push-subscription.js' %}"></script>
 {% endblock %}
