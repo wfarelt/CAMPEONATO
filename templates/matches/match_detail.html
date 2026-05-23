@@ -8,16 +8,31 @@
   <p class="text-sm text-[#9da6b9]">Campeonato activo: {{ championship_category_label }}</p>
 
   <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 md:p-8">
-    <div class="mb-4 flex items-center justify-between gap-3">
-      <a
-        href="{% url 'matches' %}?{{ category_query }}"
-        class="inline-flex items-center gap-2 rounded-xl border border-[#282e39] bg-[#101622] px-4 py-2 text-sm font-bold text-[#9da6b9] transition hover:border-primary hover:text-white"
-      >
-        <span class="material-symbols-outlined text-sm">arrow_back</span>
-        <span>Volver a partidos</span>
-      </a>
-      <span class="rounded-full border border-[#282e39] px-3 py-1 text-xs font-bold uppercase text-[#9da6b9]">
-        {{ match.status }}
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div class="flex flex-wrap items-center gap-3">
+        <a
+          href="{% url 'matches' %}?{{ category_query }}"
+          class="inline-flex items-center gap-2 rounded-xl border border-[#282e39] bg-[#101622] px-4 py-2 text-sm font-bold text-[#9da6b9] transition hover:border-primary hover:text-white"
+        >
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          <span>Volver a partidos</span>
+        </a>
+        {% if user.is_organizer %}
+        <a
+          href="{% url 'match_result' match.slug %}?{{ category_query }}"
+          class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90"
+        >
+          <span class="material-symbols-outlined text-sm">edit_note</span>
+          <span>Registrar resultado</span>
+        </a>
+        {% endif %}
+      </div>
+      <span class="inline-flex w-fit self-start rounded-full border border-[#282e39] px-3 py-1 text-xs font-bold uppercase text-[#9da6b9] md:self-auto">
+        {% if match.status == "finished" %}
+        Finalizado
+        {% else %}
+        Programado
+        {% endif %}
       </span>
     </div>
 

@@ -2,7 +2,7 @@ from datetime import date, time
 
 from django.test import TestCase
 
-from apps.matches.models import Match
+from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
 from apps.teams.models import Player, Team
 from apps.tournaments.models import MatchDay
@@ -86,3 +86,26 @@ class MatchServicesTests(TestCase):
         self.assertEqual(context["top_scorers"][0]["goals"], 8)
         self.assertEqual(context["top_scorers"][1]["player_name"], "Striker A")
         self.assertEqual(context["top_scorers"][2]["team_name"], "Gamma FC")
+
+    def test_build_statistics_context_counts_cards_from_events(self):
+        home_player = Player.objects.create(team=self.team_a, name="Midfielder A", number=8, position="MF")
+        away_player = Player.objects.create(team=self.team_b, name="Defender B", number=5, position="DF")
+        MatchEvent.objects.create(
+            match=self.finished_match,
+            player=home_player,
+            team=self.team_a,
+            event_type=MatchEvent.YELLOW_CARD,
+            minute=18,
+        )
+        MatchEvent.objects.create(
+            match=self.finished_match,
+            player=away_player,
+            team=self.team_b,
+            event_type=MatchEvent.RED_CARD,
+            minute=77,
+        )
+
+        context = build_statistics_context(category="seniors")
+
+        self.assertEqual(context["total_yellow_cards"], 1)
+        self.assertEqual(context["total_red_cards"], 1)

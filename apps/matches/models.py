@@ -83,3 +83,32 @@ class PointsAdjustment(models.Model):
 
 	def __str__(self):
 		return f"{self.team.name}: {self.points:+} ({self.reason})"
+
+
+class MatchEvent(models.Model):
+	GOAL = "goal"
+	YELLOW_CARD = "yellow_card"
+	RED_CARD = "red_card"
+	EVENT_TYPE_CHOICES = [
+		(GOAL, "Gol"),
+		(YELLOW_CARD, "Tarjeta amarilla"),
+		(RED_CARD, "Tarjeta roja"),
+	]
+
+	match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="events")
+	player = models.ForeignKey("teams.Player", on_delete=models.CASCADE, related_name="match_events")
+	team = models.ForeignKey("teams.Team", on_delete=models.CASCADE, related_name="match_events")
+	event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES)
+	minute = models.PositiveSmallIntegerField(blank=True, null=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ["minute", "id"]
+
+	def __str__(self):
+		return f"{self.match}: {self.player} - {self.get_event_type_display()}"
+
+	def save(self, *args, **kwargs):
+		if self.player_id and not self.team_id:
+			self.team = self.player.team
+		super().save(*args, **kwargs)

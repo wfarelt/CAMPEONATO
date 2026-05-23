@@ -2,7 +2,7 @@
 
 from django.db.models import Sum
 
-from apps.matches.models import Match
+from apps.matches.models import Match, MatchEvent
 from apps.sponsors.models import Sponsor
 from apps.standings.services import build_standings
 from apps.standings.selectors import get_last_results
@@ -253,6 +253,10 @@ def build_statistics_context(category):
 	goals_data = finished_matches.aggregate(home_goals=Sum("home_score"), away_goals=Sum("away_score"))
 	total_goals = (goals_data["home_goals"] or 0) + (goals_data["away_goals"] or 0)
 	avg_goals_per_match = (total_goals / finished_count) if finished_count else 0
+	total_yellow_cards = MatchEvent.objects.filter(match__in=finished_matches, event_type=MatchEvent.YELLOW_CARD).count()
+	total_red_cards = MatchEvent.objects.filter(match__in=finished_matches, event_type=MatchEvent.RED_CARD).count()
+	avg_yellow_cards_per_match = (total_yellow_cards / finished_count) if finished_count else 0
+	avg_red_cards_per_match = (total_red_cards / finished_count) if finished_count else 0
 	
 	best_gk = get_best_goalkeepers(category, limit=5)
 	top_scorers = get_top_scorers(category, limit=5)
@@ -261,10 +265,10 @@ def build_statistics_context(category):
 		"total_matches": matches_scope.count(),
 		"total_goals": total_goals,
 		"avg_goals_per_match": avg_goals_per_match,
-		"total_yellow_cards": 0,
-		"avg_yellow_cards_per_match": 0,
-		"total_red_cards": 0,
-		"avg_red_cards_per_match": 0,
+		"total_yellow_cards": total_yellow_cards,
+		"avg_yellow_cards_per_match": avg_yellow_cards_per_match,
+		"total_red_cards": total_red_cards,
+		"avg_red_cards_per_match": avg_red_cards_per_match,
 		"best_goalkeepers": best_gk,
 		"top_scorers": top_scorers,
 	}

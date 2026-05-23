@@ -1,0 +1,436 @@
+{% extends "core/base.html" %}
+
+{% block title %}Registrar Resultado de Partido{% endblock %}
+{% block header_title %}Registrar partido{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <div class="bg-[#1c1f27] rounded-2xl shadow-sm border border-[#282e39] p-6">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-semibold text-white">Partido Seleccionado</h2>
+        <p class="text-sm text-[#9da6b9]">Registro de resultado para un partido programado.</p>
+      </div>
+      <a
+        href="{% url 'match_detail' match.slug %}?{{ category_query }}"
+        class="px-4 py-2 rounded-xl border border-[#282e39] text-sm font-medium text-[#cfd6e6] hover:bg-[#101622] transition"
+      >
+        Volver al detalle
+      </a>
+    </div>
+
+    <div class="rounded-xl border border-[#282e39] px-4 py-3 text-[#cfd6e6] bg-[#101622]">
+      {{ match.home_team.name }} vs {{ match.away_team.name }}
+      {% if match.match_day %}
+      - {{ match.match_day.description|default:"Jornada" }}
+      {% endif %}
+      - {{ match.get_court_display }}
+    </div>
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save_match">
+    <input type="hidden" name="date" value="{{ match.date|date:'Y-m-d' }}" />
+    <input type="hidden" name="time" value="{{ match.time|time:'H:i' }}" />
+    <input type="hidden" name="court" value="{{ match.court }}" />
+    <input type="hidden" name="status" value="finished" />
+
+    <div class="bg-[#1c1f27] rounded-2xl shadow-sm border border-[#282e39] p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div class="flex items-center gap-4 border border-[#282e39] rounded-2xl p-4 bg-[#101622]">
+          <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">⚽</div>
+          <div class="flex-1">
+            <p class="text-sm text-[#9da6b9]">Equipo Local</p>
+            <p class="text-lg font-semibold text-white">{{ match.home_team.name }}</p>
+          </div>
+        </div>
+
+        <div class="flex justify-center items-center gap-4">
+          <div class="w-24">{{ match_form.home_score }}</div>
+          <span class="text-4xl font-bold text-[#9da6b9]">-</span>
+          <div class="w-24">{{ match_form.away_score }}</div>
+        </div>
+
+        <div class="flex items-center gap-4 border border-[#282e39] rounded-2xl p-4 bg-[#101622]">
+          <div class="flex-1 text-right">
+            <p class="text-sm text-[#9da6b9]">Equipo Visitante</p>
+            <p class="text-lg font-semibold text-white">{{ match.away_team.name }}</p>
+          </div>
+          <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">⚽</div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <a
+          href="{% url 'match_detail' match.slug %}?{{ category_query }}"
+          class="px-6 py-3 rounded-xl border border-[#282e39] text-[#cfd6e6] hover:bg-[#101622] transition"
+        >
+          Cancelar
+        </a>
+        <button
+          type="submit"
+          class="px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-medium transition"
+        >
+          Finalizar partido
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+    <div class="bg-[#1c1f27] rounded-2xl shadow-sm border border-[#282e39] p-6">
+      <h3 class="text-lg font-semibold mb-5 text-white">Jugadores del Partido</h3>
+
+      <div class="mb-4 rounded-xl border border-[#282e39] p-2">
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            data-player-tab="home"
+            class="player-tab-btn rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition"
+          >
+            Equipo 1
+          </button>
+          <button
+            type="button"
+            data-player-tab="away"
+            class="player-tab-btn rounded-lg bg-[#101622] px-3 py-2 text-sm font-semibold text-[#9da6b9] transition hover:bg-[#282e39]"
+          >
+            Equipo 2
+          </button>
+        </div>
+      </div>
+
+      <div id="player-tab-home" class="player-tab-panel">
+        <p class="text-sm font-medium text-[#cfd6e6]">{{ match.home_team.name }}</p>
+        <div class="mt-2 border border-[#282e39] rounded-xl p-4 h-80 overflow-y-auto bg-[#101622]">
+          {% for player in players %}
+          {% if player.team_id == match.home_team_id %}
+          <div class="py-2 border-b border-[#282e39] last:border-none text-sm text-[#cfd6e6]">
+            {{ player.name }}
+          </div>
+          {% endif %}
+          {% empty %}
+          <p class="text-sm text-[#9da6b9]">No hay jugadores cargados.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div id="player-tab-away" class="player-tab-panel hidden">
+        <p class="text-sm font-medium text-[#cfd6e6]">{{ match.away_team.name }}</p>
+        <div class="mt-2 border border-[#282e39] rounded-xl p-4 h-80 overflow-y-auto bg-[#101622]">
+          {% for player in players %}
+          {% if player.team_id == match.away_team_id %}
+          <div class="py-2 border-b border-[#282e39] last:border-none text-sm text-[#cfd6e6]">
+            {{ player.name }}
+          </div>
+          {% endif %}
+          {% empty %}
+          <p class="text-sm text-[#9da6b9]">No hay jugadores cargados.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-[#1c1f27] rounded-2xl shadow-sm border border-[#282e39] p-6">
+      <h3 class="text-lg font-semibold mb-5 text-green-600">⚽ Goles</h3>
+
+      <div class="mb-4 rounded-xl border border-[#282e39] p-2">
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            data-goal-tab="home"
+            class="goal-tab-btn rounded-lg bg-accent-green px-3 py-2 text-sm font-semibold text-[#101622] transition"
+          >
+            Equipo 1
+          </button>
+          <button
+            type="button"
+            data-goal-tab="away"
+            class="goal-tab-btn rounded-lg bg-[#101622] px-3 py-2 text-sm font-semibold text-[#9da6b9] transition hover:bg-[#282e39]"
+          >
+            Equipo 2
+          </button>
+        </div>
+      </div>
+
+      {% if event_form.player.errors %}
+      <p class="mb-3 text-xs text-red-400">{{ event_form.player.errors|join:", " }}</p>
+      {% endif %}
+
+      <div id="goal-tab-home" class="goal-tab-panel">
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_event" />
+          <input type="hidden" name="event_type" value="goal" />
+
+          <select name="player" class="w-full rounded-xl border border-[#282e39] bg-[#101622] text-white px-4 py-3" required>
+            <option value="">Seleccionar jugador ({{ match.home_team.name }})</option>
+            {% for player in players %}
+            {% if player.team_id == match.home_team_id %}
+            <option value="{{ player.id }}">{{ player.name }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+
+          <button
+            class="w-full bg-accent-green hover:opacity-90 text-[#101622] py-3 rounded-xl font-medium transition"
+            type="submit"
+          >
+            + Registrar Gol
+          </button>
+        </form>
+      </div>
+
+      <div id="goal-tab-away" class="goal-tab-panel hidden">
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_event" />
+          <input type="hidden" name="event_type" value="goal" />
+
+          <select name="player" class="w-full rounded-xl border border-[#282e39] bg-[#101622] text-white px-4 py-3" required>
+            <option value="">Seleccionar jugador ({{ match.away_team.name }})</option>
+            {% for player in players %}
+            {% if player.team_id == match.away_team_id %}
+            <option value="{{ player.id }}">{{ player.name }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+
+          <button
+            class="w-full bg-accent-green hover:opacity-90 text-[#101622] py-3 rounded-xl font-medium transition"
+            type="submit"
+          >
+            + Registrar Gol
+          </button>
+        </form>
+      </div>
+
+      <div class="border border-[#282e39] rounded-xl p-4 h-64 overflow-y-auto mt-4 bg-[#101622]">
+        <h4 class="font-medium mb-3 text-white">Goles registrados</h4>
+
+        <div class="space-y-2">
+          {% for event in goal_events %}
+          <div class="flex justify-between items-center bg-[#1c1f27] border border-[#282e39] p-3 rounded-lg">
+            <span class="text-sm text-[#cfd6e6]">{{ event.player.name }} - {{ event.team.name }}</span>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_event" />
+              <input type="hidden" name="event_id" value="{{ event.id }}" />
+              <button type="submit" class="text-red-400">Eliminar</button>
+            </form>
+          </div>
+          {% empty %}
+          <p class="text-sm text-[#9da6b9]">Sin goles registrados.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-[#1c1f27] rounded-2xl shadow-sm border border-[#282e39] p-6">
+      <h3 class="text-lg font-semibold mb-5 text-yellow-600">🟨 Tarjetas</h3>
+
+      <div class="mb-4 rounded-xl border border-[#282e39] p-2">
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            data-card-tab="home"
+            class="card-tab-btn rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-[#101622] transition"
+          >
+            Equipo 1
+          </button>
+          <button
+            type="button"
+            data-card-tab="away"
+            class="card-tab-btn rounded-lg bg-[#101622] px-3 py-2 text-sm font-semibold text-[#9da6b9] transition hover:bg-[#282e39]"
+          >
+            Equipo 2
+          </button>
+        </div>
+      </div>
+
+      {% if event_form.player.errors %}
+      <p class="mb-3 text-xs text-red-400">{{ event_form.player.errors|join:", " }}</p>
+      {% endif %}
+
+      <div class="space-y-4">
+        <div id="card-tab-home" class="card-tab-panel space-y-3">
+          <form method="post" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_event" />
+            <input type="hidden" name="event_type" value="yellow_card" />
+            <select name="player" class="w-full rounded-xl border border-[#282e39] bg-[#101622] text-white px-4 py-3" required>
+              <option value="">Seleccionar jugador ({{ match.home_team.name }})</option>
+              {% for player in players %}
+              {% if player.team_id == match.home_team_id %}
+              <option value="{{ player.id }}">{{ player.name }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            <button
+              class="w-full bg-yellow-400 hover:bg-yellow-500 text-[#101622] py-3 rounded-xl font-medium transition"
+              type="submit"
+            >
+              Amarilla
+            </button>
+          </form>
+
+          <form method="post" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_event" />
+            <input type="hidden" name="event_type" value="red_card" />
+            <select name="player" class="w-full rounded-xl border border-[#282e39] bg-[#101622] text-white px-4 py-3" required>
+              <option value="">Seleccionar jugador ({{ match.home_team.name }})</option>
+              {% for player in players %}
+              {% if player.team_id == match.home_team_id %}
+              <option value="{{ player.id }}">{{ player.name }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            <button
+              class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-medium transition"
+              type="submit"
+            >
+              Roja
+            </button>
+          </form>
+        </div>
+
+        <div id="card-tab-away" class="card-tab-panel hidden space-y-3">
+          <form method="post" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_event" />
+            <input type="hidden" name="event_type" value="yellow_card" />
+            <select name="player" class="w-full rounded-xl border border-[#282e39] bg-[#101622] text-white px-4 py-3" required>
+              <option value="">Seleccionar jugador ({{ match.away_team.name }})</option>
+              {% for player in players %}
+              {% if player.team_id == match.away_team_id %}
+              <option value="{{ player.id }}">{{ player.name }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            <button
+              class="w-full bg-yellow-400 hover:bg-yellow-500 text-[#101622] py-3 rounded-xl font-medium transition"
+              type="submit"
+            >
+              Amarilla
+            </button>
+          </form>
+
+          <form method="post" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_event" />
+            <input type="hidden" name="event_type" value="red_card" />
+            <select name="player" class="w-full rounded-xl border border-[#282e39] bg-[#101622] text-white px-4 py-3" required>
+              <option value="">Seleccionar jugador ({{ match.away_team.name }})</option>
+              {% for player in players %}
+              {% if player.team_id == match.away_team_id %}
+              <option value="{{ player.id }}">{{ player.name }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            <button
+              class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-medium transition"
+              type="submit"
+            >
+              Roja
+            </button>
+          </form>
+        </div>
+
+        <div class="border border-[#282e39] rounded-xl p-4 h-64 overflow-y-auto bg-[#101622]">
+          <h4 class="font-medium mb-3 text-white">Tarjetas registradas</h4>
+
+          <div class="space-y-2">
+            {% for event in card_events %}
+            <div class="flex justify-between items-center bg-[#1c1f27] border border-[#282e39] p-3 rounded-lg">
+              <span class="text-sm text-[#cfd6e6]">
+                {{ event.player.name }} - {% if event.event_type == "yellow_card" %}🟨 Amarilla{% else %}🟥 Roja{% endif %}
+              </span>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_event" />
+                <input type="hidden" name="event_id" value="{{ event.id }}" />
+                <button type="submit" class="text-red-400">Eliminar</button>
+              </form>
+            </div>
+            {% empty %}
+            <p class="text-sm text-[#9da6b9]">Sin tarjetas registradas.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+  (() => {
+    const bindTabs = ({
+      buttonClass,
+      dataKey,
+      homePanelId,
+      awayPanelId,
+      activeClass,
+      inactiveClass,
+    }) => {
+      const buttons = document.querySelectorAll(`.${buttonClass}`);
+      const homePanel = document.getElementById(homePanelId);
+      const awayPanel = document.getElementById(awayPanelId);
+
+      if (!buttons.length || !homePanel || !awayPanel) {
+        return;
+      }
+
+      const setTab = (tab) => {
+        const isHome = tab === "home";
+        homePanel.classList.toggle("hidden", !isHome);
+        awayPanel.classList.toggle("hidden", isHome);
+
+        buttons.forEach((button) => {
+          const selected = button.dataset[dataKey] === tab;
+          activeClass.forEach((cls) => button.classList.toggle(cls, selected));
+          inactiveClass.forEach((cls) => button.classList.toggle(cls, !selected));
+        });
+      };
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => setTab(button.dataset[dataKey]));
+      });
+    };
+
+    bindTabs({
+      buttonClass: "goal-tab-btn",
+      dataKey: "goalTab",
+      homePanelId: "goal-tab-home",
+      awayPanelId: "goal-tab-away",
+      activeClass: ["bg-accent-green", "text-[#101622]"],
+      inactiveClass: ["bg-[#101622]", "text-[#9da6b9]"],
+    });
+
+    bindTabs({
+      buttonClass: "player-tab-btn",
+      dataKey: "playerTab",
+      homePanelId: "player-tab-home",
+      awayPanelId: "player-tab-away",
+      activeClass: ["bg-primary", "text-white"],
+      inactiveClass: ["bg-[#101622]", "text-[#9da6b9]"],
+    });
+
+    bindTabs({
+      buttonClass: "card-tab-btn",
+      dataKey: "cardTab",
+      homePanelId: "card-tab-home",
+      awayPanelId: "card-tab-away",
+      activeClass: ["bg-yellow-400", "text-[#101622]"],
+      inactiveClass: ["bg-[#101622]", "text-[#9da6b9]"],
+    });
+  })();
+</script>
+{% endblock %}

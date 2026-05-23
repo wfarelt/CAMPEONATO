@@ -290,6 +290,7 @@
             </h2>
           </div>
           <div class="flex items-center gap-3 sm:gap-6">
+            {% if request.resolver_match.url_name == 'home' %}
             <form action="{{ request.path }}" class="hidden sm:block" method="get">
               <label class="sr-only" for="championship-category">Categoria</label>
               <select
@@ -323,6 +324,7 @@
                 type="text"
               />
             </form>
+            {% endif %}
             <div class="flex items-center gap-3">
               <a
                 href="{% url 'notifications_inbox' %}?{{ category_query }}"
@@ -372,6 +374,7 @@
             </div>
           </div>
         </header>
+        {% if request.resolver_match.url_name == 'home' %}
         <div class="border-b border-[#282e39] bg-background-light/80 px-4 py-3 backdrop-blur-md dark:bg-background-dark/80 sm:hidden">
           <form action="{{ request.path }}" class="mb-3" method="get">
             <label class="sr-only" for="championship-category-mobile">Categoria</label>
@@ -407,6 +410,7 @@
             />
           </form>
         </div>
+        {% endif %}
         <div class="mx-auto flex max-w-[1400px] flex-col gap-8 p-4 sm:p-6 lg:p-10">
           {% block content %}{% endblock %}
         </div>
