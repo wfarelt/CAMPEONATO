@@ -11,6 +11,8 @@ from apps.tournaments.forms import MatchDayForm, MatchFormSet, get_match_formset
 from apps.users.permissions import organizer_required
 from apps.tournaments.models import MatchDay
 from apps.tournaments.services import recommend_matches_for_matchday, save_matchday_with_matches
+from apps.notifications.services import create_and_dispatch_notification
+from apps.notifications.models import NotificationAudienceType, NotificationCategory
 
 
 WIZARD_SESSION_KEY = "create_matchday_wizard"
@@ -141,10 +143,12 @@ def create_matchday(request):
 
                 formset = _formset_for_initial(initial_matches, selected_category)
                 if not recommended_matches:
-                    formset.non_form_errors()
-                    formset._non_form_errors = formset.error_class(
-                        ["No hay suficientes equipos disponibles para recomendar partidos."]
-                    )
+                    # Add a non-field error to the first form so templates show the message
+                    if formset.forms:
+                        formset.forms[0].add_error(None, "No hay suficientes equipos disponibles para recomendar partidos.")
+                    else:
+                        # fallback: attach to formset errors object
+                        formset.non_form_errors()
                 return render(
                     request,
                     "tournaments/create_matchday.html",
@@ -180,10 +184,12 @@ def create_matchday(request):
                         )
 
                 if not matches:
-                    formset.non_form_errors()
-                    formset._non_form_errors = formset.error_class(
-                        ["Debes registrar al menos un partido antes de continuar."]
-                    )
+                    # Add a non-field error to the first form so templates show the message
+                    if formset.forms:
+                        formset.forms[0].add_error(None, "Debes registrar al menos un partido antes de continuar.")
+                    else:
+                        # fallback: attach to formset errors object
+                        formset.non_form_errors()
                 else:
                     state["matches"] = matches
                     state["recommended_matches"] = matches
@@ -240,7 +246,18 @@ def create_matchday(request):
                             time=parse_time(match["time"]),
                             date=matchday.date,
                         )
-
+                    # Crear y despachar notificación push para todos los usuarios
+                    detail_url = reverse("matchday_detail", kwargs={"matchday_slug": matchday.slug})
+                    push_url = f"{detail_url}?category={matchday.category}"
+                    create_and_dispatch_notification(
+                        title="Jornada disponible",
+                        message="Nueva Jornada disponible",
+                        category=NotificationCategory.MATCH,
+                        audience_type=NotificationAudienceType.ALL,
+                        created_by=request.user if hasattr(request, "user") else None,
+                        send_push=True,
+                        push_url=push_url,
+                    )
                 _clear_wizard_state(request)
                 detail_url = reverse("matchday_detail", kwargs={"matchday_slug": matchday.slug})
                 return redirect(f"{detail_url}?category={matchday.category}")
@@ -330,7 +347,7 @@ def matchday_detail(request, matchday_slug):
     return render(
         request,
         "tournaments/matchday_detail.html",
-        {"matchday": matchday, "matches": matchday.matches.all()},
+        {"matchday": matchday, "matches": Match.objects.filter(match_day=matchday)},
     )
 
 

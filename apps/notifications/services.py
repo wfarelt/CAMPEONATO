@@ -5,6 +5,9 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 from pywebpush import WebPushException, webpush
+import logging
+
+logger = logging.getLogger(__name__)
 
 from apps.notifications.models import (
     Notification,
@@ -42,6 +45,7 @@ def send_web_push_to_subscription(subscription, payload):
         return False
 
     try:
+        logger.debug("Sending webpush to subscription %s for user %s", subscription.endpoint, subscription.user_id)
         webpush(
             subscription_info={
                 "endpoint": subscription.endpoint,
@@ -58,12 +62,25 @@ def send_web_push_to_subscription(subscription, payload):
         status_code = getattr(getattr(exc, "response", None), "status_code", None)
         failure_reason = f"{exc}"
         should_deactivate = status_code in {404, 410}
+        logger.warning(
+            "WebPushException for subscription %s user %s: %s (status=%s). Deactivate=%s",
+            subscription.endpoint,
+            subscription.user_id,
+            failure_reason,
+            status_code,
+            should_deactivate,
+        )
         _mark_subscription_failure(subscription, failure_reason, deactivate=should_deactivate)
+        return False
+    except Exception as exc:  # pragma: no cover - unexpected errors
+        logger.exception("Unexpected error sending webpush to %s user %s: %s", subscription.endpoint, subscription.user_id, exc)
+        _mark_subscription_failure(subscription, str(exc), deactivate=False)
         return False
 
     subscription.last_success_at = timezone.now()
     subscription.failure_reason = ""
     subscription.save(update_fields=["last_success_at", "failure_reason", "updated_at"])
+    logger.debug("Webpush sent successfully to %s user %s", subscription.endpoint, subscription.user_id)
     return True
 
 
@@ -75,6 +92,9 @@ def send_web_push_to_user_ids(user_ids, payload):
         user_id__in=user_ids,
         is_active=True,
     )
+
+    if not subscriptions.exists():
+        logger.warning("No active web push subscriptions for user_ids=%s", list(user_ids))
 
     sent = 0
     failed = 0
@@ -91,6 +111,7 @@ def send_web_push_to_user_ids(user_ids, payload):
         if was_active and not subscription.is_active:
             deactivated += 1
 
+    logger.warning("Webpush summary for payload tag=%s: sent=%s failed=%s deactivated=%s", payload.get("tag"), sent, failed, deactivated)
     return {"sent": sent, "failed": failed, "deactivated": deactivated}
 
 

@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
 from apps.core.categories import get_request_championship_category
@@ -8,6 +9,11 @@ from apps.matches.forms import MatchEventForm, MatchResultForm
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
 from apps.teams.models import Player
+from apps.notifications.services import create_and_dispatch_notification
+from apps.notifications.models import NotificationAudienceType, NotificationCategory
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def home(request):
@@ -67,8 +73,46 @@ def match_result_view(request, match_slug):
         if action == "save_match":
             match_form = MatchResultForm(request.POST, instance=match)
             if match_form.is_valid():
+                # Detect status change to 'finished' to send notification
+                new_status = match_form.cleaned_data.get("status")
+                was_finished = match.status == "finished"
                 match_form.save()
-                return redirect("match_result", match_slug=match.slug)
+
+                # Send notification when the saved status is 'finished'
+                if new_status == "finished":
+                    # Build absolute URL to match detail
+                    try:
+                        detail_path = reverse("match_detail", kwargs={"match_slug": match.slug})
+                        detail_url = request.build_absolute_uri(detail_path)
+                    except Exception:
+                        detail_url = ""
+                    # Build message with jornada (match_day), teams and result
+                    match.refresh_from_db()
+                    if match.match_day and getattr(match.match_day, "description", ""):
+                        matchday_label = match.match_day.description
+                    elif match.match_day and getattr(match.match_day, "date", None):
+                        matchday_label = match.match_day.date.strftime("%d-%m-%Y")
+                    else:
+                        matchday_label = ""
+                    title = "Partido finalizado"
+                    message = f"Jornada {matchday_label}: {match.home_team.name} {match.home_score} - {match.away_score} {match.away_team.name}"
+                    push_url = detail_url or ""
+                    logger.warning("Dispatching match-finished notification: title=%s message=%s url=%s", title, message, push_url)
+                    try:
+                        create_and_dispatch_notification(
+                            title=title,
+                            message=message,
+                            category=NotificationCategory.MATCH,
+                            audience_type=NotificationAudienceType.ALL,
+                            created_by=request.user if hasattr(request, "user") else None,
+                            send_push=True,
+                            push_url=push_url,
+                        )
+                    except Exception as exc:  # pragma: no cover - defensive logging
+                        logger.exception("Failed to dispatch match-finished notification: %s", exc)
+                        # continue without failing the request
+
+                return redirect("matches")
 
         elif action == "add_event":
             event_form = MatchEventForm(request.POST, players=players)
