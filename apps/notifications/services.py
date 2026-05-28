@@ -16,6 +16,8 @@ from apps.notifications.models import (
     WebPushSubscription,
 )
 
+from apps.core.models import AppConfiguration, ENABLE_PUSH_NOTIFICATIONS
+
 User = get_user_model()
 
 
@@ -167,13 +169,33 @@ def dispatch_notification(notification, *, send_push=False, push_url=""):
             created += 1
 
     if send_push and recipient_ids:
-        send_push_for_notification(notification, user_ids=recipient_ids, url=push_url)
+        try:
+            push_config = AppConfiguration.objects.filter(key=ENABLE_PUSH_NOTIFICATIONS).first()
+            if push_config is not None and not push_config.is_enabled:
+                logger.info("Push notifications disabled by AppConfiguration; skipping push dispatch")
+            else:
+                send_push_for_notification(notification, user_ids=recipient_ids, url=push_url)
+        except Exception:
+            # If config can't be read for any reason, proceed with sending push to avoid
+            # silently dropping notifications. Log the exception for diagnosis.
+            logger.exception("Error reading push configuration; proceeding to send push notifications")
+            send_push_for_notification(notification, user_ids=recipient_ids, url=push_url)
 
     return created
 
 
 @transaction.atomic
 def create_and_dispatch_notification(*, title, message, category, audience_type, created_by=None, role="", target_users=None, target_teams=None, expires_at=None, send_push=True, push_url=""):
+    # If global push notifications are disabled, do not create any Notification
+    # records (user requested behaviour). Check config before creating.
+    try:
+        push_config = AppConfiguration.objects.filter(key=ENABLE_PUSH_NOTIFICATIONS).first()
+        if push_config is not None and not push_config.is_enabled:
+            logger.info("Global push notifications disabled via AppConfiguration; skipping creation of notification for title=%s", title)
+            return None
+    except Exception:
+        logger.exception("Error reading AppConfiguration for push notifications; proceeding to create notification")
+
     notification = Notification.objects.create(
         title=title,
         message=message,
@@ -189,6 +211,16 @@ def create_and_dispatch_notification(*, title, message, category, audience_type,
 
     if target_teams:
         notification.target_teams.set(target_teams)
+
+    # Respect global app configuration for push notifications. If the setting
+    # exists and is disabled, force send_push to False to avoid sending webpush.
+    try:
+        push_config = AppConfiguration.objects.filter(key=ENABLE_PUSH_NOTIFICATIONS).first()
+        if push_config is not None and not push_config.is_enabled:
+            logger.info("Global push notifications disabled via AppConfiguration; not sending push for notification %s", notification.pk)
+            send_push = False
+    except Exception:
+        logger.exception("Error reading AppConfiguration for push notifications; proceeding with original send_push=%s", send_push)
 
     dispatch_notification(notification, send_push=send_push, push_url=push_url)
     return notification

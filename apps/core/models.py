@@ -5,10 +5,12 @@ from django.db import models
 
 TEAM_MANAGER_ENABLE_PLAYERS = "team_manager_enable_players"
 TEAM_MANAGER_EDIT_TEAM = "team_manager_edit_team"
+ENABLE_PUSH_NOTIFICATIONS = "enable_push_notifications"
 
 APP_CONFIGURATION_CHOICES = [
 	(TEAM_MANAGER_ENABLE_PLAYERS, "Permitir que Team Manager habilite jugadores"),
 	(TEAM_MANAGER_EDIT_TEAM, "Permitir que Team Manager edite equipo"),
+	(ENABLE_PUSH_NOTIFICATIONS, "Habilitar notificaciones push"),
 ]
 
 APP_CONFIGURATION_METADATA = {
@@ -21,6 +23,11 @@ APP_CONFIGURATION_METADATA = {
 		"label": "Team Manager puede editar equipo",
 		"description": "Permite que el rol Team Manager edite entrenador y logo de su equipo asignado.",
 		"default": False,
+	},
+	ENABLE_PUSH_NOTIFICATIONS: {
+		"label": "Habilitar notificaciones push",
+		"description": "Permite enviar notificaciones push a los usuarios (Web Push).",
+		"default": True,
 	},
 }
 

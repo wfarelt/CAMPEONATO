@@ -14,7 +14,7 @@ class MatchDayForm(forms.ModelForm):
         fields = ["category", "date", "description"]
         widgets = {
             "category": forms.Select(attrs={"class": "form-control"}),
-            "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date", "class": "form-control"}),
             "description": forms.Textarea(
                 attrs={"class": "form-control", "rows": 3, "placeholder": "Ej: Jornada de Apertura, Semifinal, etc."}
             ),
