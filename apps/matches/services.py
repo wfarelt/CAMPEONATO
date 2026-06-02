@@ -1,6 +1,6 @@
 """Business logic for matches app."""
 
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 from apps.matches.models import Match, MatchEvent
 from apps.sponsors.models import Sponsor
@@ -261,6 +261,50 @@ def build_statistics_context(category):
 	best_gk = get_best_goalkeepers(category, limit=5)
 	top_scorers = get_top_scorers(category, limit=5)
 
+	# Top players by yellow cards
+	top_yellow_qs = (
+		MatchEvent.objects.filter(
+			match__home_team__category=category,
+			match__away_team__category=category,
+			match__status="finished",
+			event_type=MatchEvent.YELLOW_CARD,
+		)
+		.values("player__id", "player__name", "player__team__name")
+		.annotate(yellow_cards=Count("id"))
+		.order_by("-yellow_cards", "player__name")[:5]
+	)
+
+	top_yellow_cards = [
+		{
+			"player_name": item["player__name"],
+			"team_name": item["player__team__name"],
+			"yellow_cards": item["yellow_cards"],
+		}
+		for item in top_yellow_qs
+	]
+
+	# Top players by red cards
+	top_red_qs = (
+		MatchEvent.objects.filter(
+			match__home_team__category=category,
+			match__away_team__category=category,
+			match__status="finished",
+			event_type=MatchEvent.RED_CARD,
+		)
+		.values("player__id", "player__name", "player__team__name")
+		.annotate(red_cards=Count("id"))
+		.order_by("-red_cards", "player__name")[:5]
+	)
+
+	top_red_cards = [
+		{
+			"player_name": item["player__name"],
+			"team_name": item["player__team__name"],
+			"red_cards": item["red_cards"],
+		}
+		for item in top_red_qs
+	]
+
 	return {
 		"total_matches": matches_scope.count(),
 		"total_goals": total_goals,
@@ -271,4 +315,6 @@ def build_statistics_context(category):
 		"avg_red_cards_per_match": avg_red_cards_per_match,
 		"best_goalkeepers": best_gk,
 		"top_scorers": top_scorers,
+		"top_yellow_cards": top_yellow_cards,
+		"top_red_cards": top_red_cards,
 	}

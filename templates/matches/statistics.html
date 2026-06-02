@@ -36,12 +36,11 @@
       <p class="relative z-[1] mt-2 text-xs text-[#9da6b9]">Promedio {{ avg_red_cards_per_match|floatformat:2 }} por partido</p>
     </article>
   </section>
-
   <section class="grid gap-8 xl:grid-cols-2">
     <article class="overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27]">
       <header class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
         <h3 class="flex items-center gap-2 text-lg font-bold text-white">
-          <span class="material-symbols-outlined text-primary">sports_soccer</span>
+          <img src="{% static 'iconos/botas-de-futbol.png' %}" alt="Goleadores" class="h-8 w-8 object-contain" style="filter: invert(45%) sepia(64%) saturate(400%) hue-rotate(85deg) brightness(95%) contrast(95%);" aria-hidden="true">
           Goleadores
         </h3>
       </header>
@@ -71,7 +70,7 @@
     <article class="overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27]">
       <header class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
         <h3 class="flex items-center gap-2 text-lg font-bold text-white">
-          <span class="material-symbols-outlined text-primary">security</span>
+          <img src="{% static 'iconos/guantes.png' %}" alt="Arqueros" class="h-8 w-8 object-contain" style="filter: invert(45%) sepia(64%) saturate(400%) hue-rotate(85deg) brightness(95%) contrast(95%);" aria-hidden="true">
           Mejores Arqueros
         </h3>
       </header>
@@ -93,6 +92,68 @@
         {% empty %}
         <div class="rounded-2xl bg-[#282e39] p-4 text-center text-sm text-[#9da6b9]">
           Sin datos de arqueros disponibles.
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="grid gap-8 xl:grid-cols-2">
+    <article class="overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27]">
+      <header class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+        <h3 class="flex items-center gap-2 text-lg font-bold text-white">
+          <img src="{% static 'iconos/tarjeta-roja.png' %}" alt="Tarjetas Amarillas" class="h-8 w-8 object-contain" style="filter: invert(86%) sepia(95%) saturate(600%) hue-rotate(5deg) brightness(1.1) contrast(1.05);" aria-hidden="true">
+          Jugadores - Tarjetas Amarillas
+        </h3>
+      </header>
+
+      <div class="space-y-3 p-6">
+        {% for yc in top_yellow_cards %}
+        <div class="flex items-center justify-between rounded-2xl bg-[#282e39] p-3">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-sm font-bold text-[#101622]">
+              {{ forloop.counter }}
+            </div>
+            <div>
+              <p class="font-bold text-white">{{ yc.player_name }}</p>
+              <p class="text-xs text-[#9da6b9]">{{ yc.team_name }}</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-yellow-400">{{ yc.yellow_cards }}</span>
+        </div>
+        {% empty %}
+        <div class="rounded-2xl bg-[#282e39] p-4 text-center text-sm text-[#9da6b9]">
+          Sin datos de tarjetas amarillas.
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27]">
+      <header class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+        <h3 class="flex items-center gap-2 text-lg font-bold text-white">
+          <img src="{% static 'iconos/tarjeta-roja.png' %}" alt="Tarjetas Rojas" class="h-8 w-8 object-contain" style="filter: invert(23%) sepia(86%) saturate(750%) hue-rotate(345deg) brightness(95%) contrast(100%);" aria-hidden="true">
+          Jugadores - Tarjetas Rojas
+        </h3>
+      </header>
+
+      <div class="space-y-3 p-6">
+        {% for rc in top_red_cards %}
+        <div class="flex items-center justify-between rounded-2xl bg-[#282e39] p-3">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-500 text-sm font-bold text-white">
+              {{ forloop.counter }}
+            </div>
+            <div>
+              <p class="font-bold text-white">{{ rc.player_name }}</p>
+              <p class="text-xs text-[#9da6b9]">{{ rc.team_name }}</p>
+            </div>
+          </div>
+          <span class="text-2xl font-black text-red-500">{{ rc.red_cards }}</span>
+        </div>
+        {% empty %}
+        <div class="rounded-2xl bg-[#282e39] p-4 text-center text-sm text-[#9da6b9]">
+          Sin datos de tarjetas rojas.
         </div>
         {% endfor %}
       </div>
