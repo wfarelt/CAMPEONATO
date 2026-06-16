@@ -12,6 +12,14 @@ class User(AbstractUser):
 		default="PLAYER",
 		verbose_name="Role",
 	)
+	favorite_team = models.ForeignKey(
+		'teams.Team',
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		related_name='fans',
+		verbose_name='Equipo favorito',
+	)
 
 	objects = UserManager()
 
