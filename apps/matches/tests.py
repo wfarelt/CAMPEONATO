@@ -67,6 +67,24 @@ class MatchServicesTests(TestCase):
         self.assertEqual(list(context["matches_finished"]), [self.finished_match])
         self.assertEqual(context["matches_pending"][0]["home_team_last_results"], [])
 
+    def test_build_matches_context_orders_pending_by_court_and_time(self):
+        second_match = Match.objects.create(
+            match_day=self.matchday,
+            home_team=self.team_a,
+            away_team=self.team_d,
+            home_score=0,
+            away_score=0,
+            court=Match.COURT_1,
+            date=self.matchday.date,
+            time=time(10, 0),
+            status="scheduled",
+        )
+        Match.objects.filter(pk=self.scheduled_match.pk).update(court=Match.COURT_2)
+
+        context = build_matches_context(category="seniors")
+
+        self.assertEqual([match["slug"] for match in context["matches_pending"]], [second_match.slug, self.scheduled_match.slug])
+
     def test_build_matches_context_excludes_other_category(self):
         context = build_matches_context(category="super_seniors")
 

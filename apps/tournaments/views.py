@@ -344,10 +344,11 @@ def edit_matchday(request, matchday_slug):
 def matchday_detail(request, matchday_slug):
     category = get_request_championship_category(request)
     matchday = get_object_or_404(MatchDay, slug=matchday_slug, category=category)
+    matches = Match.objects.filter(match_day=matchday).order_by("court", "time")
     return render(
         request,
         "tournaments/matchday_detail.html",
-        {"matchday": matchday, "matches": Match.objects.filter(match_day=matchday)},
+        {"matchday": matchday, "matches": matches},
     )
 
 

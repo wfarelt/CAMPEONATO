@@ -204,7 +204,7 @@ def build_home_context(category):
 
 def build_matches_context(category, selected_matchday_slug=None):
 	matches_scope = Match.objects.filter(home_team__category=category, away_team__category=category)
-	matches_pending = matches_scope.filter(status="scheduled").order_by("date", "time")
+	matches_pending = matches_scope.filter(status="scheduled").order_by("court", "time")
 	matches_finished = matches_scope.filter(status="finished").order_by("date", "time")
 	matchdays = MatchDay.objects.filter(category=category)
 

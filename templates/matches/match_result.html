@@ -81,6 +81,7 @@
 
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
+    <!-- Players Section -->
     <div class="bg-[#1c1f27] rounded-2xl shadow-sm border border-[#282e39] p-6">
       <h3 class="text-lg font-semibold mb-5 text-white">Jugadores del Partido</h3>
 
@@ -91,14 +92,14 @@
             data-player-tab="home"
             class="player-tab-btn rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition"
           >
-            Equipo 1
+            {{ match.home_team.name }}
           </button>
           <button
             type="button"
             data-player-tab="away"
             class="player-tab-btn rounded-lg bg-[#101622] px-3 py-2 text-sm font-semibold text-[#9da6b9] transition hover:bg-[#282e39]"
           >
-            Equipo 2
+            {{ match.away_team.name }}
           </button>
         </div>
       </div>
@@ -109,7 +110,7 @@
           {% for player in players %}
           {% if player.team_id == match.home_team_id %}
           <div class="py-2 border-b border-[#282e39] last:border-none text-sm text-[#cfd6e6]">
-            {{ player.name }}
+            {{ player.name }} - #{{ player.number }}
           </div>
           {% endif %}
           {% empty %}
@@ -124,7 +125,7 @@
           {% for player in players %}
           {% if player.team_id == match.away_team_id %}
           <div class="py-2 border-b border-[#282e39] last:border-none text-sm text-[#cfd6e6]">
-            {{ player.name }}
+            {{ player.name }} - #{{ player.number }}
           </div>
           {% endif %}
           {% empty %}
@@ -144,14 +145,14 @@
             data-goal-tab="home"
             class="goal-tab-btn rounded-lg bg-accent-green px-3 py-2 text-sm font-semibold text-[#101622] transition"
           >
-            Equipo 1
+            {{ match.home_team.name }}
           </button>
           <button
             type="button"
             data-goal-tab="away"
             class="goal-tab-btn rounded-lg bg-[#101622] px-3 py-2 text-sm font-semibold text-[#9da6b9] transition hover:bg-[#282e39]"
           >
-            Equipo 2
+            {{ match.away_team.name }}
           </button>
         </div>
       </div>
@@ -170,7 +171,7 @@
             <option value="">Seleccionar jugador ({{ match.home_team.name }})</option>
             {% for player in players %}
             {% if player.team_id == match.home_team_id %}
-            <option value="{{ player.id }}">{{ player.name }}</option>
+            <option value="{{ player.id }}">{{ player.name }} - #{{ player.number }}</option>
             {% endif %}
             {% endfor %}
           </select>
@@ -194,7 +195,7 @@
             <option value="">Seleccionar jugador ({{ match.away_team.name }})</option>
             {% for player in players %}
             {% if player.team_id == match.away_team_id %}
-            <option value="{{ player.id }}">{{ player.name }}</option>
+            <option value="{{ player.id }}">{{ player.name }} - #{{ player.number }}</option>
             {% endif %}
             {% endfor %}
           </select>
@@ -214,7 +215,7 @@
         <div class="space-y-2">
           {% for event in goal_events %}
           <div class="flex justify-between items-center bg-[#1c1f27] border border-[#282e39] p-3 rounded-lg">
-            <span class="text-sm text-[#cfd6e6]">{{ event.player.name }} - {{ event.team.name }}</span>
+            <span class="text-sm text-[#cfd6e6]">{{ event.player.name }} - #{{ event.player.number }} - {{ event.team.name }}</span>
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_event" />
@@ -239,14 +240,14 @@
             data-card-tab="home"
             class="card-tab-btn rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-[#101622] transition"
           >
-            Equipo 1
+            {{ match.home_team.name }}
           </button>
           <button
             type="button"
             data-card-tab="away"
             class="card-tab-btn rounded-lg bg-[#101622] px-3 py-2 text-sm font-semibold text-[#9da6b9] transition hover:bg-[#282e39]"
           >
-            Equipo 2
+            {{ match.away_team.name }}
           </button>
         </div>
       </div>
@@ -265,7 +266,7 @@
               <option value="">Seleccionar jugador ({{ match.home_team.name }})</option>
               {% for player in players %}
               {% if player.team_id == match.home_team_id %}
-              <option value="{{ player.id }}">{{ player.name }}</option>
+              <option value="{{ player.id }}">{{ player.name }} - #{{ player.number }}</option>
               {% endif %}
               {% endfor %}
             </select>
@@ -285,7 +286,7 @@
               <option value="">Seleccionar jugador ({{ match.home_team.name }})</option>
               {% for player in players %}
               {% if player.team_id == match.home_team_id %}
-              <option value="{{ player.id }}">{{ player.name }}</option>
+              <option value="{{ player.id }}">{{ player.name }} - #{{ player.number }}</option>
               {% endif %}
               {% endfor %}
             </select>
@@ -307,7 +308,7 @@
               <option value="">Seleccionar jugador ({{ match.away_team.name }})</option>
               {% for player in players %}
               {% if player.team_id == match.away_team_id %}
-              <option value="{{ player.id }}">{{ player.name }}</option>
+              <option value="{{ player.id }}">{{ player.name }} - #{{ player.number }}</option>
               {% endif %}
               {% endfor %}
             </select>
@@ -327,7 +328,7 @@
               <option value="">Seleccionar jugador ({{ match.away_team.name }})</option>
               {% for player in players %}
               {% if player.team_id == match.away_team_id %}
-              <option value="{{ player.id }}">{{ player.name }}</option>
+              <option value="{{ player.id }}">{{ player.name }} - #{{ player.number }}</option>
               {% endif %}
               {% endfor %}
             </select>
@@ -347,7 +348,7 @@
             {% for event in card_events %}
             <div class="flex justify-between items-center bg-[#1c1f27] border border-[#282e39] p-3 rounded-lg">
               <span class="text-sm text-[#cfd6e6]">
-                {{ event.player.name }} - {% if event.event_type == "yellow_card" %}🟨 Amarilla{% else %}🟥 Roja{% endif %}
+                  {{ event.player.name }} - #{{ event.player.number }} - {{ event.team.name }} - {% if event.event_type == "yellow_card" %}🟨 Amarilla{% else %}🟥 Roja{% endif %}
               </span>
               <form method="post">
                 {% csrf_token %}
