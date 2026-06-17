@@ -211,6 +211,11 @@ def build_matches_context(category, selected_matchday_slug=None):
 	selected_matchday = None
 	if selected_matchday_slug:
 		selected_matchday = matchdays.filter(slug=selected_matchday_slug).first()
+	else:
+		# Default to the most recent matchday that has finished matches
+		last_matchday_id = matches_finished.filter(match_day__isnull=False).order_by("-match_day__date", "-match_day__id").values_list("match_day_id", flat=True).first()
+		if last_matchday_id:
+			selected_matchday = matchdays.filter(id=last_matchday_id).first()
 
 	if selected_matchday:
 		matches_finished = matches_finished.filter(match_day=selected_matchday)
