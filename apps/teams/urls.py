@@ -11,6 +11,7 @@ from apps.teams.views import (
     team_edit_view,
     team_manager_settings_view,
     teams_view,
+    team_report_view,
 )
 
 urlpatterns = [
@@ -20,6 +21,7 @@ urlpatterns = [
     path("equipos/<slug:team_slug>/editar/", team_edit_view, name="team_edit"),
     path("equipos/<slug:team_slug>/configuracion/", team_manager_settings_view, name="team_manager_settings"),
     path("equipos/<slug:team_slug>/eliminar/", team_delete_view, name="team_delete"),
+    path("equipos/<slug:team_slug>/reporte/", team_report_view, name="team_report"),
     path("equipos/<slug:team_slug>/jugadores/crear/", player_create_view, name="player_create"),
     path("equipos/<slug:team_slug>/jugadores/<int:player_id>/editar/", player_edit_view, name="player_edit"),
     path("equipos/<slug:team_slug>/jugadores/<int:player_id>/eliminar/", player_delete_view, name="player_delete"),

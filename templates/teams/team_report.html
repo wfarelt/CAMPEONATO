@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Reporte - {{ team.name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 12px; font-size:12px; }
+        .header { display:flex; align-items:center; gap:12px; }
+        .logo { width:64px; height:64px; object-fit:cover; border:1px solid #ddd; }
+        table { width:100%; border-collapse:collapse; margin-top:12px; }
+        th, td { border:1px solid #ccc; padding:4px 6px; font-size:11px; }
+        th { background:#f7f7f7; }
+        .match-col { white-space:normal; font-size:11px; max-width:140px; word-wrap:break-word; text-align:center; }
+        th.match-col > div { display:block; }
+        .small { font-size:11px; color:#444; }
+        @media print { .no-print { display:none; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if team.logo %}
+            <img src="{{ team.logo.url }}" class="logo" alt="Logo">
+        {% endif %}
+        <div>
+            <h1>Reporte del Equipo: {{ team.name }}</h1>
+            <div class="small">Entrenador: {{ team.coach }} — Categoría: {{ team.get_category_display }}</div>
+        </div>
+    </div>
+
+    <h2>Resumen del equipo</h2>
+    <ul>
+        <li>Jugadores registrados: {{ player_rows|length }}</li>
+        <li>Partidos listados: {{ matches|length }}</li>
+        <li>Total de Goles: {{ totals.goals }}</li>
+        <li>Total de Tarjetas Amarillas: {{ totals.yellow_cards }}</li>
+        <li>Total de Tarjetas Rojas: {{ totals.red_cards }}</li>
+    </ul>
+
+    <h2>Detalles por jugador (goles y tarjetas por partido)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>N°</th>
+                <th>Jugador</th>
+                <th>Posición</th>
+                {% for m in matches %}
+                    <th class="match-col">
+                        <div>{{ m.jornada_label }}</div>
+                        <div style="font-weight:700; margin-top:4px; line-height:1.1;">
+                            <div>{{ m.home_label }}</div>
+                            <div style="text-align:center; margin:4px 0;">vs</div>
+                            <div>{{ m.away_label }}</div>
+                        </div>
+                    </th>
+                {% endfor %}
+                <th>G</th>
+                <th>TA</th>
+                <th>TR</th>
+            </tr>
+        </thead>
+        <tbody>
+                {% for row in player_rows %}
+                    <tr>
+                        <td>{{ row.player.number }}</td>
+                        <td>{{ row.player.name }}{% if row.player.is_reinforcement %} (R){% endif %}</td>
+                        <td>{{ row.player.get_position_display }}</td>
+                        {% for cell in row.cells %}
+                            <td style="text-align:center;">
+                                {% if cell.goals > 0 %}G: {{ cell.goals }}{% if cell.yellow_cards > 0 or cell.red_cards > 0 %} | {% endif %}{% endif %}
+                                {% if cell.yellow_cards > 0 %}TA: {{ cell.yellow_cards }}{% if cell.red_cards > 0 %} | {% endif %}{% endif %}
+                                {% if cell.red_cards > 0 %}TR: {{ cell.red_cards }}{% endif %}
+                            </td>
+                        {% endfor %}
+                        <td style="text-align:center;">{% if row.totals.goals > 0 %}{{ row.totals.goals }}{% endif %}</td>
+                        <td style="text-align:center;">{% if row.totals.yellow_cards > 0 %}{{ row.totals.yellow_cards }}{% endif %}</td>
+                        <td style="text-align:center;">{% if row.totals.red_cards > 0 %}{{ row.totals.red_cards }}{% endif %}</td>
+                    </tr>
+                {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="margin-top:16px;">
+        <button class="no-print" onclick="window.print()">Imprimir reporte</button>
+    </div>
+</body>
+</html>

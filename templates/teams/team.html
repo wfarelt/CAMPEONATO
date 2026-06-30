@@ -33,6 +33,14 @@
     >
       <span class="material-symbols-outlined text-base">delete</span>
     </a>
+    <a
+      class="inline-flex items-center justify-center rounded-lg bg-[#374151] px-3 py-2 text-white transition-all hover:bg-[#4b5563]"
+      href="{% url 'team_report' team.slug %}?{{ category_query }}"
+      title="Imprimir reporte del equipo"
+      aria-label="Imprimir reporte del equipo"
+    >
+      <span class="material-symbols-outlined text-base">print</span>
+    </a>
     {% elif can_edit_team_profile %}
     <a
       class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-all hover:bg-primary/90"
