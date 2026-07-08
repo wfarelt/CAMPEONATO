@@ -21,3 +21,4 @@ class MatchEventAdmin(admin.ModelAdmin):
     list_display = ("id", "match", "player", "team", "event_type", "minute", "created_at")
     list_filter = ("event_type", "team", "match")
     search_fields = ("match__home_team__name", "match__away_team__name", "player__name", "team__name")
+    raw_id_fields = ("player", "match")
