@@ -11,4 +11,5 @@ urlpatterns = [
     path("", include("apps.tournaments.urls")),
     path("", include("apps.notifications.urls")),
     path("", include("apps.sponsors.urls")),
+    path("", include("apps.payments.urls")),
 ]

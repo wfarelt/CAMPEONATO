@@ -1,0 +1,123 @@
+{% extends "core/base.html" %}
+
+{% block title %}Registrar Pago – Tarjeta{% endblock %}
+{% block header_title %}Registrar Pago{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-xl mx-auto">
+
+  {# Event detail card #}
+  <div class="bg-[#1c1f27] rounded-2xl border border-[#282e39] p-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <h2 class="text-lg font-semibold text-white">Detalle del Evento</h2>
+      <a href="{% url 'card_payments' %}?{{ category_query }}"
+         class="px-4 py-2 rounded-xl border border-[#282e39] text-sm font-medium text-[#cfd6e6] hover:bg-[#101622] transition">
+        Volver
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <p class="text-[#9da6b9] text-xs uppercase tracking-wide mb-1">Jugador</p>
+        <p class="text-white font-medium">
+          {{ event.player.name }}
+          {% if event.player.number %}<span class="text-[#9da6b9]">#{{ event.player.number }}</span>{% endif %}
+        </p>
+      </div>
+      <div>
+        <p class="text-[#9da6b9] text-xs uppercase tracking-wide mb-1">Equipo</p>
+        <p class="text-white font-medium">{{ event.team.name }}</p>
+      </div>
+      <div>
+        <p class="text-[#9da6b9] text-xs uppercase tracking-wide mb-1">Tipo de tarjeta</p>
+        {% if event.event_type == 'yellow_card' %}
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+            Amarilla
+          </span>
+        {% else %}
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
+            Roja
+          </span>
+        {% endif %}
+      </div>
+      <div>
+        <p class="text-[#9da6b9] text-xs uppercase tracking-wide mb-1">Partido</p>
+        <p class="text-[#cfd6e6]">{{ event.match.home_team.name }} vs {{ event.match.away_team.name }}</p>
+        <p class="text-[#9da6b9] text-xs">{{ event.match.date|date:"d/m/Y" }}</p>
+      </div>
+    </div>
+  </div>
+
+  {# Payment form #}
+  <form method="post" class="bg-[#1c1f27] rounded-2xl border border-[#282e39] p-6 space-y-5">
+    {% csrf_token %}
+
+    <h2 class="text-lg font-semibold text-white mb-2">
+      {% if payment.pk and payment.amount %}Editar Pago{% else %}Registrar Pago{% endif %}
+    </h2>
+
+    {# Amount #}
+    <div>
+      <label class="block text-sm font-medium text-[#cfd6e6] mb-1" for="{{ form.amount.id_for_label }}">
+        Monto ($)
+      </label>
+      {{ form.amount }}
+      {% if form.amount.errors %}
+        <p class="text-red-400 text-xs mt-1">{{ form.amount.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    {# Paid toggle #}
+    <div class="flex items-center gap-3">
+      {{ form.paid }}
+      <label class="text-sm font-medium text-[#cfd6e6]" for="{{ form.paid.id_for_label }}">
+        Marcar como pagado
+      </label>
+      {% if form.paid.errors %}
+        <p class="text-red-400 text-xs">{{ form.paid.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    {# Paid date #}
+    <div>
+      <label class="block text-sm font-medium text-[#cfd6e6] mb-1" for="{{ form.paid_date.id_for_label }}">
+        Fecha de pago
+      </label>
+      {{ form.paid_date }}
+      {% if form.paid_date.errors %}
+        <p class="text-red-400 text-xs mt-1">{{ form.paid_date.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    {# Notes #}
+    <div>
+      <label class="block text-sm font-medium text-[#cfd6e6] mb-1" for="{{ form.notes.id_for_label }}">
+        Observaciones
+      </label>
+      {{ form.notes }}
+      {% if form.notes.errors %}
+        <p class="text-red-400 text-xs mt-1">{{ form.notes.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    {# Non-field errors #}
+    {% if form.non_field_errors %}
+      <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="pt-2 flex gap-3">
+      <button type="submit"
+              class="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-700 transition">
+        Guardar
+      </button>
+      <a href="{% url 'card_payments' %}?{{ category_query }}"
+         class="flex-1 py-3 rounded-xl border border-[#282e39] text-[#cfd6e6] text-sm font-medium text-center hover:bg-[#101622] transition">
+        Cancelar
+      </a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}
