@@ -129,7 +129,8 @@ def create_matchday(request):
                     request.POST.get("recommended_match_count"),
                     default=_default_recommended_match_count(selected_category),
                 )
-                recommended_matches = recommend_matches_for_matchday(selected_category, requested_count)
+                recommendation = recommend_matches_for_matchday(selected_category, requested_count)
+                recommended_matches = recommendation["matches"]
                 initial_matches = [
                     {
                         "home_team": item["home_team"],
@@ -142,12 +143,11 @@ def create_matchday(request):
                 _save_wizard_state(request, state)
 
                 formset = _formset_for_initial(initial_matches, selected_category)
-                if not recommended_matches:
-                    # Add a non-field error to the first form so templates show the message
+                if not recommendation["possible"]:
+                    error_message = recommendation["message"] or "No se pueden recomendar partidos sin repetir."
                     if formset.forms:
-                        formset.forms[0].add_error(None, "No hay suficientes equipos disponibles para recomendar partidos.")
+                        formset.forms[0].add_error(None, error_message)
                     else:
-                        # fallback: attach to formset errors object
                         formset.non_form_errors()
                 return render(
                     request,
