@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
@@ -17,6 +18,21 @@ logger = logging.getLogger(__name__)
 
 
 def home(request):
+    category = get_request_championship_category(request)
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        correo = request.POST.get("correo", "").strip()
+        mensaje = request.POST.get("mensaje", "").strip()
+        if nombre and correo and mensaje:
+            messages.success(request, "¡Mensaje enviado! Nos pondremos en contacto pronto.")
+        else:
+            messages.error(request, "Por favor completa todos los campos.")
+        return redirect(reverse("home"))
+    return render(request, "home.html", build_home_context(category=category))
+
+
+@login_required
+def dashboard_view(request):
     category = get_request_championship_category(request)
     return render(request, "matches/dashboard.html", build_home_context(category=category))
 

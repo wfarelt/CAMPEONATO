@@ -1,3 +1,10 @@
+@font-face {
+    font-family: 'BebasNeue';
+    src: url('/static/tournament/fonts/BebasNeue-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-display: swap;
+}
+
 :root {
     --color-red: #AE0000;
     --color-black: #000000; 

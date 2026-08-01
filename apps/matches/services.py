@@ -88,7 +88,7 @@ def get_best_goalkeepers(category, limit=5):
 	return sorted_teams
 
 
-def get_top_scorers(category, limit=5):
+def get_top_scorers(category, limit=10):
 	"""Return top goal scorers from players in the selected category."""
 	top_players = (
 		Player.objects.filter(team__category=category)
@@ -103,6 +103,7 @@ def get_top_scorers(category, limit=5):
 				"position": position,
 				"player_name": player.name,
 				"team_name": player.team.name,
+				"team_logo": player.team.logo.url if player.team.logo else DEFAULT_TEAM_LOGO,
 				"goals": player.goals_scored,
 			}
 		)
@@ -176,12 +177,31 @@ def build_home_context(category):
 		}
 
 	quick_standings = build_standings(category=category, include_adjustments=True)[:5]
+	full_standings = build_standings(category=category, include_adjustments=True)
+	top_scorers = get_top_scorers(category=category, limit=10)
 	top_scoring_teams = get_top_scoring_teams(category=category, limit=5)
 	sponsors = list(Sponsor.objects.filter(is_active=True).only("name", "image").order_by("name"))
+
+	matches_by_court = []
+	court_order = {}
+	for match in timeline_matches:
+		court = match["court"]
+		if court not in court_order:
+			court_order[court] = {"court_name": court, "matches": []}
+			matches_by_court.append(court_order[court])
+		court_order[court]["matches"].append(match)
+
+	matchday_date_obj = latest_matchday.date if latest_matchday else None
+	matchday_slug = latest_matchday.slug if latest_matchday else None
 
 	return {
 		"timeline_title": timeline_title,
 		"timeline_matches": timeline_matches,
+		"matches_by_court": matches_by_court,
+		"full_standings": full_standings,
+		"top_scorers": top_scorers,
+		"matchday_date_obj": matchday_date_obj,
+		"matchday_slug": matchday_slug,
 		"featured_match": featured_match,
 		"summary_cards": [
 			{"label": "Partidos Totales", "value": category_matches.count()},

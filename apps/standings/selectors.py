@@ -34,6 +34,8 @@ def calculate_team_standing(team, include_adjustments=True, category=None):
 
 	return {
 		"team": team.name,
+		"team_logo": team.logo.url if team.logo else "/static/tournament/img/default_logo.jpg",
+		"team_slug": team.slug or "",
 		"category": championship_category,
 		"matches_played": matches_played.count(),
 		"won": won,
