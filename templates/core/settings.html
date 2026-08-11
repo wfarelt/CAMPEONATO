@@ -54,5 +54,57 @@
     <p class="text-sm text-[#9da6b9]">No hay configuraciones disponibles.</p>
     {% endfor %}
   </div>
+
+  <div class="mt-10 border-t border-[#282e39] pt-8">
+    <h3 class="text-xl font-black text-white">Redes sociales</h3>
+    <p class="mt-2 text-sm text-[#9da6b9]">
+      Registra los enlaces que se mostraran en el footer del inicio.
+    </p>
+
+    <div class="mt-6 space-y-4">
+      {% for social_link in social_links_list %}
+      <form
+        method="post"
+        action="{% url 'settings' %}?{{ category_query }}"
+        class="flex flex-col gap-4 rounded-2xl border border-[#282e39] bg-[#101622] p-4"
+      >
+        {% csrf_token %}
+        <input type="hidden" name="key" value="{{ social_link.key }}" />
+
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h4 class="text-base font-bold text-white">{{ social_link.label }}</h4>
+            <p class="text-xs text-[#9da6b9]">{{ social_link.description }}</p>
+          </div>
+
+          <div class="flex w-full flex-col gap-2 sm:max-w-xl">
+            <label class="text-xs font-bold uppercase tracking-wider text-[#9da6b9]" for="social-link-{{ social_link.key }}">
+              URL
+            </label>
+            <input
+              id="social-link-{{ social_link.key }}"
+              name="url"
+              type="url"
+              value="{{ social_link.url }}"
+              placeholder="https://..."
+              class="w-full rounded-xl border border-[#282e39] bg-[#1c1f27] px-4 py-3 text-sm text-white placeholder:text-[#9da6b9] focus:border-primary focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            class="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90"
+          >
+            Guardar enlace
+          </button>
+        </div>
+      </form>
+      {% empty %}
+      <p class="text-sm text-[#9da6b9]">No hay redes sociales disponibles.</p>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 {% endblock %}

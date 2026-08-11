@@ -90,11 +90,18 @@
           <!-- Nav Links -->
           <nav class="flex flex-col gap-2">
             <a
-              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'home' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
-              href="{% url 'home' %}?{{ category_query }}"
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'dashboard' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
+              href="{% url 'dashboard' %}"
             >
               <span class="material-symbols-outlined">dashboard</span>
               <span class="text-sm font-medium">Dashboard</span>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'home' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
+              href="{% url 'home' %}?{{ category_query }}"
+            >
+              <span class="material-symbols-outlined">home</span>
+              <span class="text-sm font-medium">Inicio</span>
             </a>
             {% if user.is_authenticated %}
             <a
@@ -206,11 +213,18 @@
           </div>
           <nav class="flex flex-col gap-2">
             <a
-              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'home' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
-              href="{% url 'home' %}?{{ category_query }}"
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'dashboard' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
+              href="{% url 'dashboard' %}"
             >
               <span class="material-symbols-outlined">dashboard</span>
               <span class="text-sm font-medium">Dashboard</span>
+            </a>
+            <a
+              class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'home' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
+              href="{% url 'home' %}?{{ category_query }}"
+            >
+              <span class="material-symbols-outlined">home</span>
+              <span class="text-sm font-medium">Inicio</span>
             </a>
             {% if user.is_authenticated %}
             <a

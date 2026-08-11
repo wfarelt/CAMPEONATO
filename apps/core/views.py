@@ -1,24 +1,38 @@
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from apps.core.categories import get_request_championship_category
-from apps.core.models import APP_CONFIGURATION_METADATA, AppConfiguration
+from apps.core.models import APP_CONFIGURATION_METADATA, SOCIAL_LINK_METADATA, AppConfiguration, SocialLink
 from apps.teams.models import Player, Team
 from apps.users.permissions import organizer_required
 
 
-@login_required
-@organizer_required
-def settings_view(request):
-    # Ensure known settings exist so future toggles appear automatically.
+def _ensure_configuration_records():
     for key, metadata in APP_CONFIGURATION_METADATA.items():
         AppConfiguration.objects.get_or_create(
             key=key,
             defaults={"is_enabled": metadata.get("default", False)},
         )
+
+    for key, metadata in SOCIAL_LINK_METADATA.items():
+        SocialLink.objects.get_or_create(
+            key=key,
+            defaults={
+                "label": metadata.get("label", key),
+                "url": "",
+                "icon_name": metadata.get("icon", "link"),
+            },
+        )
+
+
+@login_required
+@organizer_required
+def settings_view(request):
+    _ensure_configuration_records()
 
     if request.method == "POST":
         setting_key = request.POST.get("key")
@@ -27,10 +41,24 @@ def settings_view(request):
             setting.is_enabled = request.POST.get("is_enabled") == "on"
             setting.save(update_fields=["is_enabled", "updated_at"])
             messages.success(request, "Configuracion actualizada correctamente.")
+        elif setting_key in SOCIAL_LINK_METADATA:
+            social_link = SocialLink.objects.get(key=setting_key)
+            social_link.url = request.POST.get("url", "").strip()
+            try:
+                social_link.full_clean()
+                social_link.save(update_fields=["url", "updated_at"])
+                messages.success(request, f"Enlace de {social_link.label} actualizado correctamente.")
+            except ValidationError:
+                messages.error(request, "El enlace ingresado no es válido.")
         return redirect(f"{reverse('settings')}?category={request.GET.get('category', 'seniors')}")
 
     settings_list = AppConfiguration.objects.all()
-    return render(request, "core/settings.html", {"settings_list": settings_list})
+    social_links_list = SocialLink.objects.all()
+    return render(
+        request,
+        "core/settings.html",
+        {"settings_list": settings_list, "social_links_list": social_links_list},
+    )
 
 
 @login_required

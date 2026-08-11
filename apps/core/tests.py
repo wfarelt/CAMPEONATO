@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.core.models import TEAM_MANAGER_ENABLE_PLAYERS, AppConfiguration
+from apps.core.models import SOCIAL_WHATSAPP, TEAM_MANAGER_ENABLE_PLAYERS, AppConfiguration, SocialLink
 
 
 class CoreSettingsViewTests(TestCase):
@@ -40,3 +40,18 @@ class CoreSettingsViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         config = AppConfiguration.objects.get(key=TEAM_MANAGER_ENABLE_PLAYERS)
         self.assertTrue(config.is_enabled)
+
+    def test_organizer_can_update_social_link(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.post(
+            f"{reverse('settings')}?category=seniors",
+            {
+                "key": SOCIAL_WHATSAPP,
+                "url": "https://wa.me/59170000000",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        social_link = SocialLink.objects.get(key=SOCIAL_WHATSAPP)
+        self.assertEqual(social_link.url, "https://wa.me/59170000000")
