@@ -1,11 +1,13 @@
 """Template context processors for shared UI state."""
 
+from django.templatetags.static import static
+
 from apps.core.categories import (
     CHAMPIONSHIP_CATEGORY_CHOICES,
     get_championship_label,
     get_request_championship_category,
 )
-from apps.core.models import SOCIAL_LINK_METADATA, SocialLink
+from apps.core.models import SOCIAL_LINK_METADATA, SiteBranding, SocialLink
 
 
 def championship_context(request):
@@ -36,3 +38,11 @@ def social_links_context(request):
             for key, metadata in SOCIAL_LINK_METADATA.items()
         }
     }
+
+
+def site_branding_context(request):
+    """Expose global league branding across all templates."""
+    branding = SiteBranding.objects.first() or SiteBranding()
+    branding.logo_url = branding.logo.url if branding.logo else static("tournament/img/cnf4.png")
+    branding.hero_background_url = branding.hero_bg_img.url if branding.hero_bg_img else static("tournament/img/hero.png")
+    return {"site_branding": branding}

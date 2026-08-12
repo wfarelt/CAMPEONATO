@@ -43,6 +43,15 @@ APP_CONFIGURATION_METADATA = {
 	},
 }
 
+SITE_BRANDING_DEFAULTS = {
+	"league_name": "Super Liga Nacional Florida",
+	"league_subtitle": "NACIONAL FLORIDA",
+	"primary_color": "#cc0000",
+	"secondary_color": "#990000",
+	"footer_location_name": "SANTA CRUZ DE LA SIERRA",
+	"footer_organizer_name": "PROMO 2001T",
+}
+
 SOCIAL_LINK_METADATA = {
 	SOCIAL_FACEBOOK: {
 		"label": "Facebook",
@@ -109,3 +118,39 @@ class SocialLink(models.Model):
 	@property
 	def description(self):
 		return SOCIAL_LINK_METADATA.get(self.key, {}).get("description", "")
+
+
+class SiteBranding(models.Model):
+	league_name = models.CharField(max_length=120, default=SITE_BRANDING_DEFAULTS["league_name"])
+	league_subtitle = models.CharField(max_length=120, default=SITE_BRANDING_DEFAULTS["league_subtitle"])
+	primary_color = models.CharField(max_length=7, default=SITE_BRANDING_DEFAULTS["primary_color"])
+	secondary_color = models.CharField(max_length=7, default=SITE_BRANDING_DEFAULTS["secondary_color"])
+	logo = models.ImageField(upload_to="branding/", blank=True, null=True)
+	hero_bg_img = models.ImageField(upload_to="branding/", blank=True, null=True)
+	footer_location_name = models.CharField(max_length=160, default=SITE_BRANDING_DEFAULTS["footer_location_name"])
+	footer_organizer_name = models.CharField(max_length=120, default=SITE_BRANDING_DEFAULTS["footer_organizer_name"])
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		verbose_name = "Branding de la liga"
+		verbose_name_plural = "Branding de la liga"
+
+	def __str__(self):
+		return self.league_name
+
+	def save(self, *args, **kwargs):
+		self.pk = 1
+		super().save(*args, **kwargs)
+
+	@property
+	def hero_subtitle(self):
+		return self.league_subtitle
+
+	@property
+	def has_logo(self):
+		return bool(self.logo)
+
+	@property
+	def has_hero_bg_img(self):
+		return bool(self.hero_bg_img)

@@ -7,8 +7,10 @@
 
 /* ===== VARIABLES ===== */
 :root {
-    --red: #cc0000;
-    --red-dark: #990000;
+    --primary-color: #cc0000;
+    --secondary-color: #990000;
+    --red: var(--primary-color);
+    --red-dark: var(--secondary-color);
     --bg: #0d0d0d;
     --bg-card: #1a1a1a;
     --bg-card-alt: #141414;
@@ -62,10 +64,10 @@ img { max-width: 100%; display: block; }
     overflow: hidden; padding-top: 80px;
 }
 .hero-bg-img {
-    position: absolute; right: 0; top: 0; bottom: 0; width: 65%;
+    position: absolute; right: 0; top: 0; bottom: 0; width: 70%;
     background-size: cover; background-position: center top;
-    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.85) 20%, transparent 75%);
-    mask-image: linear-gradient(to left, rgba(0,0,0,0.85) 20%, transparent 75%);
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.9) 12%, rgba(0,0,0,0.45) 62%, transparent 92%);
+    mask-image: linear-gradient(to left, rgba(0,0,0,0.9) 12%, rgba(0,0,0,0.45) 62%, transparent 92%);
 }
 .hero-content {
     position: relative; z-index: 2;
@@ -123,21 +125,21 @@ img { max-width: 100%; display: block; }
 .sponsors-fade--left  { left: 0;  background: linear-gradient(to right, #111, transparent); }
 .sponsors-fade--right { right: 0; background: linear-gradient(to left,  #111, transparent); }
 .sponsors-track {
-    display: flex; align-items: center; gap: 2.8rem;
+    display: flex; align-items: center; gap: 3.5rem;
     width: max-content;
     animation: sponsors-scroll 32s linear infinite;
 }
 .sponsors-track:hover { animation-play-state: paused; }
 .sponsor-item {
     background: #1c1c1c; border: 1px solid var(--border); border-radius: 6px;
-    padding: 1rem 1.8rem; flex-shrink: 0;
+    padding: 1.5rem 2.2rem; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    height: 120px; min-width: 240px;
+    height: 180px; min-width: 360px;
     transition: border-color .2s;
 }
 .sponsor-item:hover { border-color: var(--red); }
 .sponsor-item img {
-    max-height: 92px; max-width: 190px; object-fit: contain;
+    max-height: 140px; max-width: 280px; object-fit: contain;
     filter: grayscale(30%) brightness(0.9);
     transition: filter .2s;
 }

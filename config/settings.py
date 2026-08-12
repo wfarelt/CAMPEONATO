@@ -80,6 +80,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.core.context_processors.championship_context',
                 'apps.core.context_processors.social_links_context',
+                'apps.core.context_processors.site_branding_context',
                 'apps.notifications.context_processors.notifications_context',
             ],
         },
