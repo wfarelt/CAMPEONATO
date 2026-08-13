@@ -49,7 +49,6 @@ class PlayerForm(forms.ModelForm):
             "is_sub35",
             "number",
             "position",
-            "goals_scored",
             "is_reinforcement",
         ]
         widgets = {
@@ -60,7 +59,6 @@ class PlayerForm(forms.ModelForm):
             "photo": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "number": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Numero de camiseta (opcional)"}),
             "position": forms.Select(attrs={"class": "form-control"}),
-            "goals_scored": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Goles anotados", "min": 0}),
             "is_sub35": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_reinforcement": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
@@ -80,9 +78,4 @@ class PlayerForm(forms.ModelForm):
             if not AppConfiguration.objects.filter(key=config_key, is_enabled=True).exists():
                 self.fields.pop(field_name, None)
 
-        if self.instance and self.instance.pk and user is not None and getattr(user, "role", None) != "ORGANIZER":
-            self.fields["goals_scored"].disabled = True
-
         self.fields["number"].required = False
-        self.fields["goals_scored"].required = False
-        self.fields["goals_scored"].initial = self.instance.goals_scored if self.instance.pk else 0

@@ -16,3 +16,16 @@ class PlayerAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "number", "position", "team")
     list_filter = ("position", "team")
     search_fields = ("name", "team__name")
+    fields = (
+        "name",
+        "ci",
+        "graduation_year",
+        "birth_date",
+        "photo",
+        "is_sub35",
+        "number",
+        "position",
+        "goals_scored",
+        "is_reinforcement",
+        "team",
+    )

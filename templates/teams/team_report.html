@@ -61,7 +61,7 @@
         <tbody>
                 {% for row in player_rows %}
                     <tr>
-                        <td>{{ row.player.number }}</td>
+                        <td>{{ row.player.number|default_if_none:"" }}</td>
                         <td>{{ row.player.name }}{% if row.player.is_reinforcement %} (R){% endif %}</td>
                         <td>{{ row.player.get_position_display }}</td>
                         {% for cell in row.cells %}

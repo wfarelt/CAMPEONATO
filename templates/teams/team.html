@@ -130,7 +130,7 @@
         {% for player in team_players %}
         <div class="flex items-center gap-3 rounded-lg border border-[#282e39] bg-[#282e39] p-3 transition-all hover:border-primary hover:bg-primary/5">
           <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-xs text-white">
-            {{ player.number }}
+            {{ player.number|default_if_none:"" }}
           </div>
           {% if player.show_photo and player.photo %}
           <div class="h-10 w-10 overflow-hidden rounded-full border border-[#282e39] bg-[#1c1f27]">

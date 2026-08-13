@@ -80,14 +80,6 @@
       </div>
     </div>
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_goals_scored">Goles</label>
-      {{ form.goals_scored }}
-      {% if form.goals_scored.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.goals_scored.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
     {% if form.is_sub35 %}
     <div class="rounded-xl border border-[#282e39] bg-[#282e39]/60 p-4">
       <label for="id_is_sub35" class="flex cursor-pointer items-center justify-between gap-4">
