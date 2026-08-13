@@ -80,7 +80,7 @@ class Player(models.Model):
 	birth_date = models.DateField(blank=True, null=True, verbose_name="Fecha de nacimiento")
 	photo = models.ImageField(upload_to="player_photos/", blank=True, null=True, verbose_name="Foto")
 	is_sub35 = models.BooleanField(default=False, verbose_name="Es Sub35")
-	number = models.PositiveIntegerField(verbose_name="Jersey Number")
+	number = models.PositiveIntegerField(blank=True, null=True, verbose_name="Jersey Number")
 	position = models.CharField(max_length=2, choices=PLAYER_POSITION_CHOICES, verbose_name="Position")
 	goals_scored = models.PositiveIntegerField(default=0, verbose_name="Goles")
 	is_reinforcement = models.BooleanField(default=False, verbose_name="Es refuerzo")

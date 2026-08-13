@@ -58,7 +58,7 @@ class PlayerForm(forms.ModelForm):
             "graduation_year": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Año de egreso"}),
             "birth_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
             "photo": forms.ClearableFileInput(attrs={"class": "form-control"}),
-            "number": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Numero de camiseta"}),
+            "number": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Numero de camiseta (opcional)"}),
             "position": forms.Select(attrs={"class": "form-control"}),
             "goals_scored": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Goles anotados", "min": 0}),
             "is_sub35": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -83,5 +83,6 @@ class PlayerForm(forms.ModelForm):
         if self.instance and self.instance.pk and user is not None and getattr(user, "role", None) != "ORGANIZER":
             self.fields["goals_scored"].disabled = True
 
+        self.fields["number"].required = False
         self.fields["goals_scored"].required = False
         self.fields["goals_scored"].initial = self.instance.goals_scored if self.instance.pk else 0
