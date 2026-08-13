@@ -6,6 +6,10 @@ from django.db import models
 TEAM_MANAGER_ENABLE_PLAYERS = "team_manager_enable_players"
 TEAM_MANAGER_EDIT_TEAM = "team_manager_edit_team"
 ENABLE_PUSH_NOTIFICATIONS = "enable_push_notifications"
+PLAYER_FIELD_GRADUATION_YEAR = "player_field_graduation_year"
+PLAYER_FIELD_BIRTH_DATE = "player_field_birth_date"
+PLAYER_FIELD_PHOTO = "player_field_photo"
+PLAYER_FIELD_SUB35 = "player_field_sub35"
 
 SOCIAL_FACEBOOK = "facebook"
 SOCIAL_INSTAGRAM = "instagram"
@@ -16,6 +20,10 @@ APP_CONFIGURATION_CHOICES = [
 	(TEAM_MANAGER_ENABLE_PLAYERS, "Permitir que Team Manager habilite jugadores"),
 	(TEAM_MANAGER_EDIT_TEAM, "Permitir que Team Manager edite equipo"),
 	(ENABLE_PUSH_NOTIFICATIONS, "Habilitar notificaciones push"),
+	(PLAYER_FIELD_GRADUATION_YEAR, "Mostrar año de egreso en jugadores"),
+	(PLAYER_FIELD_BIRTH_DATE, "Mostrar fecha de nacimiento en jugadores"),
+	(PLAYER_FIELD_PHOTO, "Mostrar foto en jugadores"),
+	(PLAYER_FIELD_SUB35, "Mostrar campo 'Es Sub35' en jugadores"),
 ]
 
 SOCIAL_LINK_CHOICES = [
@@ -30,16 +38,43 @@ APP_CONFIGURATION_METADATA = {
 		"label": "Team Manager puede habilitar jugadores",
 		"description": "Permite que el rol Team Manager gestione la habilitacion de jugadores.",
 		"default": False,
+		"group": "general",
 	},
 	TEAM_MANAGER_EDIT_TEAM: {
 		"label": "Team Manager puede editar equipo",
 		"description": "Permite que el rol Team Manager edite entrenador y logo de su equipo asignado.",
 		"default": False,
+		"group": "general",
 	},
 	ENABLE_PUSH_NOTIFICATIONS: {
 		"label": "Habilitar notificaciones push",
 		"description": "Permite enviar notificaciones push a los usuarios (Web Push).",
 		"default": True,
+		"group": "general",
+	},
+	PLAYER_FIELD_GRADUATION_YEAR: {
+		"label": "Mostrar año de egreso",
+		"description": "Activa el campo de año de egreso en el formulario y la vista de jugadores.",
+		"default": False,
+		"group": "player",
+	},
+	PLAYER_FIELD_BIRTH_DATE: {
+		"label": "Mostrar fecha de nacimiento",
+		"description": "Activa el campo de fecha de nacimiento en el formulario y la vista de jugadores.",
+		"default": False,
+		"group": "player",
+	},
+	PLAYER_FIELD_PHOTO: {
+		"label": "Mostrar foto del jugador",
+		"description": "Activa la foto del jugador en el formulario y la vista del equipo.",
+		"default": False,
+		"group": "player",
+	},
+	PLAYER_FIELD_SUB35: {
+		"label": "Mostrar campo 'Es Sub35'",
+		"description": "Activa la marca de jugador Sub35 en el formulario y la vista del equipo.",
+		"default": False,
+		"group": "player",
 	},
 }
 

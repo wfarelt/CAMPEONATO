@@ -132,6 +132,15 @@
           <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-xs text-white">
             {{ player.number }}
           </div>
+          {% if player.show_photo and player.photo %}
+          <div class="h-10 w-10 overflow-hidden rounded-full border border-[#282e39] bg-[#1c1f27]">
+            <img src="{{ player.photo.url }}" alt="{{ player.name }}" class="h-full w-full object-cover" />
+          </div>
+          {% elif player.show_photo %}
+          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-[#4b5563] bg-[#1c1f27] text-[10px] font-bold uppercase text-[#9da6b9]">
+            Foto
+          </div>
+          {% endif %}
           <div class="flex-1">
             <p class="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span>{{ player.name }}</span>
@@ -140,8 +149,21 @@
                 Refuerzo
               </span>
               {% endif %}
+              {% if player.show_sub35 and player.is_sub35 %}
+              <span class="rounded-full border border-cyan-300/70 bg-cyan-300/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200">
+                Sub35
+              </span>
+              {% endif %}
             </p>
-            <p class="text-xs text-[#9da6b9]">{{ player.position }}</p>
+            <div class="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#9da6b9]">
+              <span>{{ player.position }}</span>
+              {% if player.show_graduation_year and player.graduation_year %}
+              <span>• Egreso {{ player.graduation_year }}</span>
+              {% endif %}
+              {% if player.show_birth_date and player.birth_date %}
+              <span>• {{ player.birth_date|date:"d/m/Y" }}</span>
+              {% endif %}
+            </div>
           </div>
           {% if can_edit_players %}
           <div class="flex items-center gap-2">

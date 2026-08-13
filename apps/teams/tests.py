@@ -2,7 +2,15 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.core.models import AppConfiguration, TEAM_MANAGER_ENABLE_PLAYERS
+from apps.core.models import (
+    AppConfiguration,
+    TEAM_MANAGER_ENABLE_PLAYERS,
+    PLAYER_FIELD_BIRTH_DATE,
+    PLAYER_FIELD_GRADUATION_YEAR,
+    PLAYER_FIELD_PHOTO,
+    PLAYER_FIELD_SUB35,
+)
+from apps.teams.forms import PlayerForm
 from apps.teams.models import Player, Team
 
 
@@ -204,6 +212,60 @@ class TeamCrudPermissionsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         positions = [player.position for player in response.context["team_players"]]
         self.assertEqual(positions, ["GK", "DF", "MF", "FW"])
+
+    def test_player_form_hides_extra_fields_when_disabled(self):
+        AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_GRADUATION_YEAR, defaults={"is_enabled": False})
+        AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_BIRTH_DATE, defaults={"is_enabled": False})
+        AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_PHOTO, defaults={"is_enabled": False})
+        AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_SUB35, defaults={"is_enabled": False})
+
+        form = PlayerForm()
+
+        self.assertNotIn("graduation_year", form.fields)
+        self.assertNotIn("birth_date", form.fields)
+        self.assertNotIn("photo", form.fields)
+        self.assertNotIn("is_sub35", form.fields)
+
+    def test_player_form_includes_extra_fields_when_enabled(self):
+        AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_GRADUATION_YEAR, defaults={"is_enabled": True})
+        AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_BIRTH_DATE, defaults={"is_enabled": True})
+        AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_PHOTO, defaults={"is_enabled": True})
+        AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_SUB35, defaults={"is_enabled": True})
+
+        form = PlayerForm()
+
+        self.assertIn("graduation_year", form.fields)
+        self.assertIn("birth_date", form.fields)
+        self.assertIn("photo", form.fields)
+        self.assertIn("is_sub35", form.fields)
+
+    def test_team_manager_cannot_edit_goals(self):
+        AppConfiguration.objects.update_or_create(
+            key=TEAM_MANAGER_ENABLE_PLAYERS,
+            defaults={"is_enabled": True},
+        )
+        player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF", goals_scored=3)
+        self.client.force_login(self.team_manager)
+        response = self.client.post(
+            f"{reverse('player_edit', kwargs={'team_slug': self.team.slug, 'player_id': player.id})}?category=seniors",
+            {"name": "Mario", "number": 7, "position": "DF", "goals_scored": 99},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        player.refresh_from_db()
+        self.assertEqual(player.goals_scored, 3)
+
+    def test_organizer_can_edit_goals(self):
+        player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF", goals_scored=3)
+        self.client.force_login(self.organizer)
+        response = self.client.post(
+            f"{reverse('player_edit', kwargs={'team_slug': self.team.slug, 'player_id': player.id})}?category=seniors",
+            {"name": "Mario", "number": 7, "position": "DF", "goals_scored": 15},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        player.refresh_from_db()
+        self.assertEqual(player.goals_scored, 15)
 
     def test_team_default_is_available_for_matchday(self):
         self.assertTrue(self.team.is_available_for_matchday)

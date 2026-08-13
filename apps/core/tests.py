@@ -41,6 +41,14 @@ class CoreSettingsViewTests(TestCase):
         config = AppConfiguration.objects.get(key=TEAM_MANAGER_ENABLE_PLAYERS)
         self.assertTrue(config.is_enabled)
 
+    def test_settings_groups_general_and_player_configurations(self):
+        self.client.force_login(self.organizer)
+        response = self.client.get(f"{reverse('settings')}?category=seniors")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Configuraci\u00f3n general")
+        self.assertContains(response, "Configuraci\u00f3n de jugadores")
+
     def test_organizer_can_update_social_link(self):
         self.client.force_login(self.organizer)
 

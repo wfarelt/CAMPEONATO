@@ -52,12 +52,34 @@ def settings_view(request):
                 messages.error(request, "El enlace ingresado no es válido.")
         return redirect(f"{reverse('settings')}?category={request.GET.get('category', 'seniors')}")
 
-    settings_list = AppConfiguration.objects.all()
+    settings_list = AppConfiguration.objects.all().order_by("key")
     social_links_list = SocialLink.objects.all()
+    grouped_settings = {}
+    for setting in settings_list:
+        group_name = APP_CONFIGURATION_METADATA.get(setting.key, {}).get("group", "general")
+        grouped_settings.setdefault(group_name, []).append(setting)
+
+    setting_groups = [
+        {
+            "key": "general",
+            "label": "Configuración general",
+            "settings": grouped_settings.get("general", []),
+        },
+        {
+            "key": "player",
+            "label": "Configuración de jugadores",
+            "settings": grouped_settings.get("player", []),
+        },
+    ]
+
     return render(
         request,
         "core/settings.html",
-        {"settings_list": settings_list, "social_links_list": social_links_list},
+        {
+            "settings_list": settings_list,
+            "setting_groups": setting_groups,
+            "social_links_list": social_links_list,
+        },
     )
 
 

@@ -145,14 +145,14 @@ def player_create_view(request, team_slug):
         return HttpResponseForbidden("No tienes permisos para anadir jugadores a este equipo.")
 
     if request.method == "POST":
-        form = PlayerForm(request.POST)
+        form = PlayerForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             player = form.save(commit=False)
             player.team = team
             player.save()
             return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
     else:
-        form = PlayerForm()
+        form = PlayerForm(user=request.user)
 
     return render(
         request,
@@ -172,12 +172,12 @@ def player_edit_view(request, team_slug, player_id):
     player = get_object_or_404(Player, pk=player_id, team=team)
 
     if request.method == "POST":
-        form = PlayerForm(request.POST, instance=player)
+        form = PlayerForm(request.POST, request.FILES, instance=player, user=request.user)
         if form.is_valid():
             form.save()
             return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
     else:
-        form = PlayerForm(instance=player)
+        form = PlayerForm(instance=player, user=request.user)
 
     return render(
         request,
