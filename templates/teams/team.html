@@ -133,14 +133,49 @@
             {{ player.number|default_if_none:"" }}
           </div>
           {% if player.show_photo and player.photo %}
-          <div class="h-10 w-10 overflow-hidden rounded-full border border-[#282e39] bg-[#1c1f27]">
-            <img src="{{ player.photo.url }}" alt="{{ player.name }}" class="h-full w-full object-cover" />
-          </div>
+          <button
+            type="button"
+            class="group flex flex-1 items-center gap-3 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#playerPhotoModal"
+            data-player-name="{{ player.name|escape }}"
+            data-player-photo="{{ player.photo.url }}"
+            aria-label="Ver foto ampliada de {{ player.name }}"
+          >
+            <div class="h-10 w-10 overflow-hidden rounded-full border border-[#282e39] bg-[#1c1f27]">
+              <img src="{{ player.photo.url }}" alt="{{ player.name }}" class="h-full w-full object-cover transition group-hover:scale-105" />
+            </div>
+            <div class="flex-1">
+              <p class="flex flex-wrap items-center gap-2 text-sm font-bold">
+                <span>{{ player.name }}</span>
+                {% if player.is_reinforcement %}
+                <span class="rounded-full border border-amber-300/70 bg-amber-300/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+                  Refuerzo
+                </span>
+                {% endif %}
+                {% if player.show_sub35 and player.is_sub35 %}
+                <span class="rounded-full border border-cyan-300/70 bg-cyan-300/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200">
+                  Sub35
+                </span>
+                {% endif %}
+              </p>
+              <div class="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#9da6b9]">
+                <span>{{ player.position }}</span>
+                {% if player.show_graduation_year and player.graduation_year %}
+                <span>• Egreso {{ player.graduation_year }}</span>
+                {% endif %}
+                {% if player.show_birth_date and player.birth_date %}
+                <span>• {{ player.birth_date|date:"d/m/Y" }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </button>
           {% elif player.show_photo %}
           <div class="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-[#4b5563] bg-[#1c1f27] text-[10px] font-bold uppercase text-[#9da6b9]">
             Foto
           </div>
           {% endif %}
+          {% if not player.show_photo or not player.photo %}
           <div class="flex-1">
             <p class="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span>{{ player.name }}</span>
@@ -165,6 +200,7 @@
               {% endif %}
             </div>
           </div>
+          {% endif %}
           {% if can_edit_players %}
           <div class="flex items-center gap-2">
             <a
@@ -273,4 +309,72 @@
     {% endif %}
   </div>
 </section>
+
+<div
+  aria-hidden="true"
+  class="modal fade"
+  id="playerPhotoModal"
+  tabindex="-1"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border border-[#282e39] bg-[#1c1f27] text-white">
+      <div class="modal-header border-b border-[#282e39]">
+        <h5 class="modal-title text-lg font-bold" id="playerPhotoModalLabel">Foto del jugador</h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="overflow-hidden rounded-2xl border border-[#282e39] bg-[#101622]">
+          <img
+            alt="Foto del jugador"
+            class="max-h-[75vh] w-full object-contain"
+            id="playerPhotoModalImage"
+            src=""
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const modal = document.getElementById("playerPhotoModal");
+    const modalImage = document.getElementById("playerPhotoModalImage");
+    const modalTitle = document.getElementById("playerPhotoModalLabel");
+
+    if (!modal || !modalImage || !modalTitle) {
+      return;
+    }
+
+    modal.addEventListener("show.bs.modal", (event) => {
+      const trigger = event.relatedTarget;
+      if (!trigger) {
+        return;
+      }
+
+      const photoUrl = trigger.getAttribute("data-player-photo");
+      const playerName = trigger.getAttribute("data-player-name") || "Foto del jugador";
+
+      if (photoUrl) {
+        modalImage.src = photoUrl;
+        modalImage.alt = `Foto de ${playerName}`;
+      }
+
+      modalTitle.textContent = playerName;
+    });
+
+    modal.addEventListener("hidden.bs.modal", () => {
+      modalImage.src = "";
+      modalImage.alt = "Foto del jugador";
+      modalTitle.textContent = "Foto del jugador";
+    });
+  })();
+</script>
 {% endblock %}
