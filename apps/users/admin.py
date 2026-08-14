@@ -7,5 +7,5 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
         ("Roles", {"fields": ("role",)}),
     )
-    list_display = ("username", "email", "role", "is_staff", "is_active")
+    list_display = ("username", "email", "role", "favorite_team", "is_staff", "is_active")
     list_filter = ("role", "is_staff", "is_superuser", "is_active")

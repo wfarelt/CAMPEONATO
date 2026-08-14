@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.http import HttpResponseForbidden
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
@@ -50,6 +51,9 @@ def matches_view(request):
 
 @login_required
 def statistics(request):
+    if getattr(request.user, "role", None) == "PLAYER":
+        return HttpResponseForbidden("No tienes permisos para ver estas estadisticas.")
+
     category = get_request_championship_category(request)
     return render(request, "matches/statistics.html", build_statistics_context(category=category))
 

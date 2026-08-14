@@ -26,6 +26,9 @@ def teams_view(request):
 
 @login_required
 def team_detail_view(request, team_slug):
+    if getattr(request.user, "role", None) == "PLAYER":
+        return HttpResponseForbidden("No tienes permisos para ver los detalles de este equipo.")
+
     category = get_request_championship_category(request)
     team = get_team_or_404(team_slug, category=category)
     team_players = team.players.annotate(

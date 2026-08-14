@@ -267,12 +267,14 @@
         {% endfor %}
       </div>
       <div class="p-4">
+        {% if user.role != 'PLAYER' %}
         <a
           class="inline-flex w-full items-center justify-center rounded-2xl bg-[#282e39] py-3 text-sm font-bold transition-colors hover:bg-[#343b48]"
           href="{% url 'statistics' %}?{{ category_query }}"
         >
           Ver Estadisticas Completas
         </a>
+        {% endif %}
       </div>
     </section>
     <section class="rounded-3xl bg-primary p-6 shadow-xl shadow-primary/20">

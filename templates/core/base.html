@@ -126,7 +126,7 @@
               <span class="material-symbols-outlined">leaderboard</span>
               <span class="text-sm font-medium">Posiciones</span>
             </a>
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and user.role != 'PLAYER' %}
             <a
               class="flex items-center gap-3 px-3 py-3 rounded-xl {% if current_url == 'statistics' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white transition-colors{% endif %}"
               href="{% url 'statistics' %}?{{ category_query }}"
@@ -249,7 +249,7 @@
               <span class="material-symbols-outlined">leaderboard</span>
               <span class="text-sm font-medium">Posiciones</span>
             </a>
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and user.role != 'PLAYER' %}
             <a
               class="flex items-center gap-3 rounded-xl px-3 py-3 {% if current_url == 'statistics' %}bg-primary text-white{% else %}text-[#9da6b9] transition-colors hover:bg-[#282e39] hover:text-white{% endif %}"
               href="{% url 'statistics' %}?{{ category_query }}"
