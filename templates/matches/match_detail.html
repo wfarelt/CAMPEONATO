@@ -164,7 +164,7 @@
           <tr>
             <td style="border:1px solid #000; padding:2px; height:16px;">{{ player.ci|default:"" }}</td>
             <td style="border:1px solid #000; padding:2px; text-align:center;"></td>
-            <td style="border:1px solid #000; padding:2px;">{{ player.name }}{% if player.is_reinforcement %} <strong>R</strong>{% endif %}</td>
+            <td style="border:1px solid #000; padding:2px;">{{ player.name }}{% if player.is_reinforcement %} <strong>R</strong>{% endif %}{% if player.is_sub35 %} <strong>SUB35</strong>{% endif %}</td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
@@ -173,7 +173,6 @@
           {% for i in home_padding %}
           <tr>
             <td style="border:1px solid #000; padding:2px; height:16px;"></td>
-            <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
@@ -205,7 +204,7 @@
           <tr>
             <td style="border:1px solid #000; padding:2px; height:16px;">{{ player.ci|default:"" }}</td>
             <td style="border:1px solid #000; padding:2px; text-align:center;"></td>
-            <td style="border:1px solid #000; padding:2px;">{{ player.name }}{% if player.is_reinforcement %} <strong>R</strong>{% endif %}</td>
+            <td style="border:1px solid #000; padding:2px;">{{ player.name }}{% if player.is_reinforcement %} <strong>R</strong>{% endif %}{% if player.is_sub35 %} <strong>SUB35</strong>{% endif %}</td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
@@ -214,7 +213,6 @@
           {% for i in away_padding %}
           <tr>
             <td style="border:1px solid #000; padding:2px; height:16px;"></td>
-            <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>

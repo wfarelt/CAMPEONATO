@@ -73,8 +73,8 @@ def match_detail_view(request, match_slug):
         "match": match,
         "home_players": home_players,
         "away_players": away_players,
-        "home_padding": range(max(0, 20 - len(home_players))),
-        "away_padding": range(max(0, 20 - len(away_players))),
+        "home_padding": range(max(0, 19 - len(home_players))),
+        "away_padding": range(max(0, 19 - len(away_players))),
     })
 
 
