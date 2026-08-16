@@ -107,15 +107,15 @@
   <table style="width:100%; border-collapse:collapse; margin-bottom:6px;">
     <tr>
       <td style="width:13%; text-align:center; vertical-align:middle; padding:2px;">
-        <img src="{% static 'tournament/img/cnf3.png' %}" style="height:75px; width:auto;" alt="Logo CNF">
+        <img src="{{ site_branding.logo_url }}" style="height:75px; width:auto;" alt="{{ site_branding.league_name }}">
       </td>
       <td style="text-align:center; vertical-align:middle; padding:4px;">
-        <p style="margin:0; font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">SUPER LIGA NACIONAL FLORIDA</p>
-        <p style="margin:3px 0 0; font-size:15px; font-weight:bold; text-transform:uppercase; letter-spacing:3px;">APERTURA 2026</p>
+        <p style="margin:0; font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">{{ site_branding.league_name }}</p>
+        <p style="margin:3px 0 0; font-size:15px; font-weight:bold; text-transform:uppercase; letter-spacing:3px;">{{ site_branding.league_subtitle }}</p>
         <p style="margin:5px 0 0; font-size:10px; font-weight:bold; text-transform:uppercase; letter-spacing:4px; border-top:2px solid #000; padding-top:4px;">PLANILLA DE JUEGO</p>
       </td>
       <td style="width:13%; text-align:center; vertical-align:middle; padding:2px;">
-        <img src="{% static 'tournament/img/cnf3.png' %}" style="height:75px; width:auto;" alt="Logo CNF">
+        <img src="{{ site_branding.logo_url }}" style="height:75px; width:auto;" alt="{{ site_branding.league_name }}">
       </td>
     </tr>
   </table>
@@ -123,7 +123,7 @@
   <!-- Encabezado -->
   <table style="width:100%; border-collapse:collapse; font-size:10px; margin-bottom:4px;">
     <tr>
-      <td style="border:1px solid #000; padding:3px; width:40%;">CATEGORIA: <strong>{{ championship_category_label }}</strong> &nbsp;&nbsp;&nbsp; CANCHA: <strong>{{ match.get_court_display }}</strong></td>
+      <td style="border:1px solid #000; padding:3px; width:40%;">CATEGORIA: <strong>FUERZA LIBRE</strong> &nbsp;&nbsp;&nbsp; CANCHA: <strong>{{ match.get_court_display }}</strong></td>
       <td style="border:1px solid #000; padding:3px; width:30%;">Hora de Fixture: ___________________</td>
       <td style="border:1px solid #000; padding:3px; width:30%;">FISCAL: ___________________</td>
     </tr>
@@ -150,24 +150,21 @@
         <table style="width:100%; border-collapse:collapse; font-size:9px;">
           <tr>
             <td colspan="5" style="border:1px solid #000; padding:3px; font-weight:bold; font-size:10px;">EQUIPO: {{ match.home_team.name }}</td>
-            <td style="border:1px solid #000; padding:3px; text-align:center; font-weight:bold;">1er T</td>
-            <td style="border:1px solid #000; padding:3px; text-align:center; font-weight:bold;">2do T</td>
+            <td style="border:1px solid #000; padding:3px; text-align:center; font-weight:bold;">Goles</td>
           </tr>
           <tr style="background:#e0e0e0; font-weight:bold; text-align:center;">
             <td style="border:1px solid #000; padding:2px; width:14%;">Carnet</td>
             <td style="border:1px solid #000; padding:2px; width:7%;">No.</td>
-            <td style="border:1px solid #000; padding:2px; text-align:left; width:47%;">Nombre y Apellidos</td>
+            <td style="border:1px solid #000; padding:2px; text-align:left; width:55%;">Nombre y Apellidos</td>
             <td style="border:1px solid #000; padding:2px; width:8%;">T.A.</td>
             <td style="border:1px solid #000; padding:2px; width:8%;">T.R.</td>
-            <td style="border:1px solid #000; padding:2px; width:8%;">Goles</td>
             <td style="border:1px solid #000; padding:2px; width:8%;">Goles</td>
           </tr>
           {% for player in home_players %}
           <tr>
             <td style="border:1px solid #000; padding:2px; height:16px;">{{ player.ci|default:"" }}</td>
-            <td style="border:1px solid #000; padding:2px; text-align:center;">{{ player.number }}</td>
+            <td style="border:1px solid #000; padding:2px; text-align:center;"></td>
             <td style="border:1px solid #000; padding:2px;">{{ player.name }}{% if player.is_reinforcement %} <strong>R</strong>{% endif %}</td>
-            <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
@@ -194,24 +191,21 @@
         <table style="width:100%; border-collapse:collapse; font-size:9px;">
           <tr>
             <td colspan="5" style="border:1px solid #000; padding:3px; font-weight:bold; font-size:10px;">EQUIPO: {{ match.away_team.name }}</td>
-            <td style="border:1px solid #000; padding:3px; text-align:center; font-weight:bold;">1er T</td>
-            <td style="border:1px solid #000; padding:3px; text-align:center; font-weight:bold;">2do T</td>
+            <td style="border:1px solid #000; padding:3px; text-align:center; font-weight:bold;">Goles</td>
           </tr>
           <tr style="background:#e0e0e0; font-weight:bold; text-align:center;">
             <td style="border:1px solid #000; padding:2px; width:14%;">Carnet</td>
             <td style="border:1px solid #000; padding:2px; width:7%;">No.</td>
-            <td style="border:1px solid #000; padding:2px; text-align:left; width:47%;">Nombre y Apellidos</td>
+            <td style="border:1px solid #000; padding:2px; text-align:left; width:55%;">Nombre y Apellidos</td>
             <td style="border:1px solid #000; padding:2px; width:8%;">T.A.</td>
             <td style="border:1px solid #000; padding:2px; width:8%;">T.R.</td>
-            <td style="border:1px solid #000; padding:2px; width:8%;">Goles</td>
             <td style="border:1px solid #000; padding:2px; width:8%;">Goles</td>
           </tr>
           {% for player in away_players %}
           <tr>
             <td style="border:1px solid #000; padding:2px; height:16px;">{{ player.ci|default:"" }}</td>
-            <td style="border:1px solid #000; padding:2px; text-align:center;">{{ player.number }}</td>
+            <td style="border:1px solid #000; padding:2px; text-align:center;"></td>
             <td style="border:1px solid #000; padding:2px;">{{ player.name }}{% if player.is_reinforcement %} <strong>R</strong>{% endif %}</td>
-            <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
