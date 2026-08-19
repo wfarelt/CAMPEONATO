@@ -1,5 +1,8 @@
 from datetime import date, time
+import tempfile
 
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.test import TestCase
 
 from apps.matches.models import Match, MatchEvent
@@ -104,6 +107,27 @@ class MatchServicesTests(TestCase):
         self.assertEqual(context["top_scorers"][0]["goals"], 8)
         self.assertEqual(context["top_scorers"][1]["player_name"], "Striker A")
         self.assertEqual(context["top_scorers"][2]["team_name"], "Gamma FC")
+
+    def test_build_statistics_context_uses_player_photo_when_available(self):
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            player = Player.objects.create(team=self.team_a, name="Striker Photo", number=9, position="FW", goals_scored=5)
+            player.photo.save(
+                "striker-photo.jpg",
+                SimpleUploadedFile("striker-photo.jpg", b"photo-bytes", content_type="image/jpeg"),
+                save=True,
+            )
+
+            context = build_statistics_context(category="seniors")
+
+        self.assertEqual(context["top_scorers"][0]["player_name"], "Striker Photo")
+        self.assertIn("striker-photo.jpg", context["top_scorers"][0]["player_photo"])
+
+    def test_build_statistics_context_falls_back_when_player_photo_missing(self):
+        Player.objects.create(team=self.team_a, name="Striker No Photo", number=9, position="FW", goals_scored=5)
+
+        context = build_statistics_context(category="seniors")
+
+        self.assertEqual(context["top_scorers"][0]["player_photo"], "/static/tournament/img/default_logo.jpg")
 
     def test_build_statistics_context_counts_cards_from_events(self):
         home_player = Player.objects.create(team=self.team_a, name="Midfielder A", number=8, position="MF")

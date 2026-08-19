@@ -52,6 +52,9 @@
             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
               {{ scorer.position }}
             </div>
+            <div class="h-10 w-10 overflow-hidden rounded-full border border-[#282e39] bg-[#1c1f27]">
+              <img src="{{ scorer.player_photo }}" alt="{{ scorer.player_name }}" class="h-full w-full object-cover">
+            </div>
             <div>
               <p class="font-bold text-white">{{ scorer.player_name }}</p>
               <p class="text-xs text-[#9da6b9]">{{ scorer.team_name }}</p>

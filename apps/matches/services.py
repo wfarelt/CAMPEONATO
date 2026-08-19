@@ -13,6 +13,19 @@ from apps.tournaments.models import MatchDay
 DEFAULT_TEAM_LOGO = "/static/tournament/img/default_logo.jpg"
 
 
+def _get_image_url_or_default(image_field, default_url):
+	if not image_field:
+		return default_url
+
+	try:
+		if image_field.storage.exists(image_field.name):
+			return image_field.url
+	except (FileNotFoundError, OSError, ValueError):
+		pass
+
+	return default_url
+
+
 def get_top_scoring_teams(category, limit=5):
 	"""Return teams ordered by goals scored in finished matches."""
 	finished_matches = Match.objects.filter(
@@ -104,6 +117,7 @@ def get_top_scorers(category, limit=10):
 				"player_name": player.name,
 				"team_name": player.team.name,
 				"team_logo": player.team.logo.url if player.team.logo else DEFAULT_TEAM_LOGO,
+				"player_photo": _get_image_url_or_default(player.photo, DEFAULT_TEAM_LOGO),
 				"goals": player.goals_scored,
 			}
 		)

@@ -69,7 +69,7 @@
         </div>
         <div>
             <div class="value-title">COMPETENCIA</div>
-            <div class="value-desc">Promociones unidas en una sola pasión.</div>
+            <div class="value-desc">Amigos unidos en una sola pasión.</div>
         </div>
     </div>
     <div class="value-item">
@@ -235,7 +235,7 @@
         <div class="scorer-row">
             <div class="scorer-pos">{{ scorer.position }}</div>
             <div class="scorer-avatar">
-                <img src="{% static 'tournament/img/default_logo.jpg' %}" alt="{{ scorer.player_name }}">
+                <img src="{{ scorer.player_photo }}" alt="{{ scorer.player_name }}">
             </div>
             <div class="scorer-info">
                 <div class="scorer-name">{{ scorer.player_name }}</div>
