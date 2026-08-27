@@ -8,105 +8,168 @@
 <p class="mb-4 text-sm text-[#9da6b9]">Campeonato activo: {{ championship_category_label }}</p>
 <!-- Upcoming Matches Section -->
 <section>
-  <div class="mb-6 flex items-center justify-between">
-    <h3 class="text-2xl font-bold">Partidos Próximos</h3>
-    <div class="flex items-center gap-2">
-      {% if user.is_organizer %}
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h3 class="text-2xl font-bold tracking-tight">
+        Próximos Partidos
+      </h3>
+      <p class="text-sm text-[#9da6b9]">
+        Calendario de encuentros programados
+      </p>
+    </div>
+
+    {% if user.is_organizer %}
+    <div class="flex flex-wrap gap-2">
       <a
         href="{% url 'matchdays_list' %}?{{ category_query }}"
-        class="inline-flex items-center gap-2 rounded-xl border border-[#282e39] bg-[#1c1f27] px-4 py-2 text-sm font-bold text-[#9da6b9] transition hover:border-primary hover:text-white"
+        class="inline-flex items-center gap-2 rounded-xl border border-[#282e39] bg-[#1c1f27] px-4 py-2 text-sm font-semibold text-[#9da6b9] hover:border-primary hover:text-white"
       >
         <span class="material-symbols-outlined text-base">list</span>
-        <span>Listar Jornadas</span>
+        Jornadas
       </a>
+
       <a
         href="{% url 'create_matchday' %}?{{ category_query }}"
-        class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90"
+        class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
       >
         <span class="material-symbols-outlined text-base">add</span>
-        <span>Registrar Jornada</span>
+        Nueva Jornada
       </a>
-      {% endif %}
     </div>
+    {% endif %}
   </div>
+
+  <!-- bloque 2-->
+
   <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
     {% for match in matches_pending %}
+    
     <a
-      class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 transition-all hover:border-primary"
       href="{% url 'match_detail' match.slug %}?{{ category_query }}"
+      class="group block overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27] transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/10"
     >
-      <div class="flex flex-col items-center gap-8 md:flex-row md:justify-between">
-        <!-- Home Team -->
-        <div class="flex flex-1 flex-col items-center gap-3 text-center">
-          {% if match.home_team_logo %}
-          <div
-            class="size-20 rounded-full border-4 border-primary bg-cover bg-center"
-            style="background-image: url('{{ match.home_team_logo }}');"
-          ></div>
-          {% else %}
-          <div
-            class="flex size-20 items-center justify-center rounded-full border-4 border-primary bg-[#282e39]"
-          >
-            <span class="material-symbols-outlined text-3xl">shield</span>
-          </div>
-          {% endif %}
-          <h4 class="text-lg font-bold">{{ match.home_team }}</h4>
-          <div class="flex gap-1">
-            {% for res in match.home_team_last_results %}
-            <span
-              class="inline-flex size-6 items-center justify-center rounded-full text-xs font-bold text-white
-              {% if res == 'G' %}bg-accent-green{% elif res == 'E' %}bg-[#9da6b9]{% elif res == 'P' %}bg-red-500{% endif %}"
-            >
-              {{ res }}
-            </span>
-            {% endfor %}
-          </div>
-        </div>
 
-        <!-- VS Divider -->
-        <div class="flex flex-col items-center gap-2">
-          <div class="text-center text-xs font-bold uppercase text-[#9da6b9]">
+      <!-- Header -->
+      <div class="border-b border-[#282e39] px-5 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+
+          <span
+            class="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary"
+          >
             {{ match.matchday_label }}
-          </div>
-          <div class="rounded-full border border-[#282e39] px-3 py-1 text-[11px] font-bold text-[#9da6b9]">
-            {{ match.court }}
-          </div>
-          <div class="text-xs font-bold uppercase text-[#9da6b9]">
-            {{ match.date|date:"d M" }} · {{ match.time }}
-          </div>
-          <div class="rounded-full bg-primary px-4 py-2 font-bold text-white">
-            VS
-          </div>
-        </div>
+          </span>
 
-        <!-- Away Team -->
-        <div class="flex flex-1 flex-col items-center gap-3 text-center">
-          {% if match.away_team_logo %}
-          <div
-            class="size-20 rounded-full border-4 border-[#282e39] bg-cover bg-center"
-            style="background-image: url('{{ match.away_team_logo }}');"
-          ></div>
-          {% else %}
-          <div
-            class="flex size-20 items-center justify-center rounded-full border-4 border-[#282e39] bg-[#282e39]"
-          >
-            <span class="material-symbols-outlined text-3xl">security</span>
-          </div>
-          {% endif %}
-          <h4 class="text-lg font-bold">{{ match.away_team }}</h4>
-          <div class="flex gap-1">
-            {% for res in match.away_team_last_results %}
-            <span
-              class="inline-flex size-6 items-center justify-center rounded-full text-xs font-bold text-white
-              {% if res == 'G' %}bg-accent-green{% elif res == 'E' %}bg-[#9da6b9]{% elif res == 'P' %}bg-red-500{% endif %}"
-            >
-              {{ res }}
+          <div class="flex items-center gap-3 text-xs text-[#9da6b9]">
+
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">sports_soccer</span>
+              {{ match.court }}
             </span>
-            {% endfor %}
+
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">schedule</span>
+              {{ match.date|date:"d M" }} · {{ match.time }}
+            </span>
+
           </div>
         </div>
       </div>
+
+      <!-- Teams -->
+      <div class="px-5 py-6">
+
+        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+
+          <!-- Local -->
+          <div class="flex flex-col items-center text-center">
+
+            {% if match.home_team_logo %}
+            <div
+              class="mb-3 h-16 w-16 rounded-full border-2 border-primary bg-cover bg-center"
+              style="background-image:url('{{ match.home_team_logo }}')"
+            ></div>
+            {% endif %}
+
+            <h4 class="line-clamp-2 text-sm font-bold sm:text-base">
+              {{ match.home_team }}
+            </h4>
+
+          </div>
+
+          <!-- VS -->
+
+          <div class="flex flex-col items-center">
+
+            <div
+              class="rounded-full bg-primary px-4 py-2 text-sm font-black text-white"
+            >
+              VS
+            </div>
+
+          </div>
+
+          <!-- Visitante -->
+
+          <div class="flex flex-col items-center text-center">
+
+            {% if match.away_team_logo %}
+            <div
+              class="mb-3 h-16 w-16 rounded-full border-2 border-[#3a4252] bg-cover bg-center"
+              style="background-image:url('{{ match.away_team_logo }}')"
+            ></div>
+            {% endif %}
+
+            <h4 class="line-clamp-2 text-sm font-bold sm:text-base">
+              {{ match.away_team }}
+            </h4>
+
+          </div>
+
+        </div>
+
+        <!-- Forma reciente -->
+
+        <div
+          class="mt-6 flex items-center justify-between border-t border-[#282e39] pt-4"
+        >
+
+          <div class="flex gap-1">
+            {% for res in match.home_team_last_results %}
+            <span
+              class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white
+              {% if res == 'G' %}bg-green-500
+              {% elif res == 'E' %}bg-slate-500
+              {% else %}bg-red-500{% endif %}"
+            >
+              {{ res }}
+            </span>
+            {% endfor %}
+          </div>
+
+          <div class="text-xs font-semibold text-[#9da6b9]">
+            Últimos partidos
+          </div>
+
+          <div class="flex gap-1">
+            {% for res in match.away_team_last_results %}
+            <span
+              class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white
+              {% if res == 'G' %}bg-green-500
+              {% elif res == 'E' %}bg-slate-500
+              {% else %}bg-red-500{% endif %}"
+            >
+              {{ res }}
+            </span>
+            {% endfor %}
+          </div>
+
+        </div>
+
+      </div>
+
     </a>
+
+
     {% empty %}
     <div class="rounded-2xl border border-[#282e39] bg-[#1c1f27] p-8 text-center">
       <p class="text-[#9da6b9]">No hay partidos próximos en este momento.</p>
@@ -117,68 +180,182 @@
 
 <!-- Finished Matches Section -->
 <section>
-  <div class="mb-6 flex items-center justify-between">
-    <h3 class="text-2xl font-bold">Resultados</h3>
-    <form method="get" action="{% url 'matches' %}" class="flex items-center gap-2">
-      <input type="hidden" name="category" value="{{ championship_category }}">
-      <label for="matchday-filter" class="text-sm font-medium text-[#9da6b9]">Jornada:</label>
-      <select
-        id="matchday-filter"
-        name="matchday"
-        class="rounded-lg border border-[#282e39] bg-[#1c1f27] px-4 py-2.5 text-base text-white focus:border-primary focus:outline-none min-w-[180px]"
-        onchange="this.form.submit()"
-      >
-        <option value="">Todas</option>
-        {% for matchday in matchdays %}
-        <option value="{{ matchday.slug }}" {% if selected_matchday_slug == matchday.slug %}selected{% endif %}>
-          {% if matchday.description %}
-            {{ matchday.description }}
-          {% else %}
-            Jornada {{ matchday.date|date:"d/m/Y" }}
-          {% endif %}
-        </option>
-        {% endfor %}
-      </select>
-    </form>
-  </div>
+  <!-- Header -->
+  <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
+    <div>
+        <h3 class="text-2xl font-bold tracking-tight">
+            Resultados
+        </h3>
+        <p class="text-sm text-[#9da6b9]">
+            Historial de partidos disputados
+        </p>
+    </div>
+
+    <form
+        method="get"
+        action="{% url 'matches' %}"
+        class="flex flex-col gap-2 sm:flex-row sm:items-center"
+    >
+        <input
+            type="hidden"
+            name="category"
+            value="{{ championship_category }}"
+        >
+
+        <label
+            for="matchday-filter"
+            class="text-sm font-medium text-[#9da6b9]"
+        >
+            Jornada
+        </label>
+
+        <select
+            id="matchday-filter"
+            name="matchday"
+            onchange="this.form.submit()"
+            class="w-full sm:w-auto min-w-[220px] rounded-xl border border-[#282e39] bg-[#1c1f27] px-4 py-2.5 text-sm text-white transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        >
+            <option value="">Todas las jornadas</option>
+
+            {% for matchday in matchdays %}
+            <option
+                value="{{ matchday.slug }}"
+                {% if selected_matchday_slug == matchday.slug %}selected{% endif %}
+            >
+                {% if matchday.description %}
+                    {{ matchday.description }}
+                {% else %}
+                    Jornada {{ matchday.date|date:"d/m/Y" }}
+                {% endif %}
+            </option>
+            {% endfor %}
+        </select>
+
+      </form>
+
+  </div>  
+
+  <!-- Finished Matches List -->
   {% regroup matches_finished by date as match_list %}
   {% if match_list %}
   <div class="flex flex-col gap-4">
     {% for group in match_list %}
-    <div class="rounded-2xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
-      <div class="border-b border-[#282e39] bg-primary px-6 py-4">
-        <p class="font-bold text-white">{{ group.grouper|date:"d \\o\\f F, Y" }}</p>
+    <div class="overflow-hidden rounded-3xl border border-[#282e39]
+        bg-[#1c1f27] shadow-sm">
+      
+
+      <div class="flex items-center justify-between border-b border-[#282e39]
+          bg-gradient-to-r from-primary to-primary/80 px-5 py-3">
+      
+        <h4 class="font-bold text-white">
+          {{ group.grouper|date:"d M Y" }}
+        </h4>
+      
+        <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
+          {{ group.list|length }} partidos
+        </span>
+      
       </div>
+
       <div class="divide-y divide-[#282e39]">
         {% for match in group.list %}
-        <a href="{% url 'match_detail' match.slug %}?{{ category_query }}" class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-[#282e39] transition-colors">
-          <div class="flex flex-1 items-center gap-3">
-            <span class="text-sm font-bold text-[#9da6b9] min-w-fit">
-              {{ match.home_team }}
-            </span>
-            <span class="text-lg font-bold text-white">
-              {{ match.home_score }}
-            </span>
-          </div>
-          <span class="text-[#9da6b9]">-</span>
-          <div class="flex flex-1 items-center justify-end gap-3">
-            <span class="text-lg font-bold text-white">
-              {{ match.away_score }}
-            </span>
-            <span class="text-sm font-bold text-[#9da6b9] min-w-fit">
-              {{ match.away_team }}
-            </span>
-          </div>
-        </a>
-        {% endfor %}
+
+          <a href="{% url 'match_detail' match.slug %}?{{ category_query }}"
+            class="block px-5 py-4 transition hover:bg-[#282e39]/60">
+          
+            <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          
+              <!-- LOCAL -->
+              <div class="flex items-center gap-3 min-w-0">
+          
+                {% if match.home_team_logo %}
+                <div class="h-10 w-10 rounded-full bg-cover bg-center flex-shrink-0"
+                  style="background-image:url('{{ match.home_team_logo }}')"></div>
+                {% endif %}
+          
+                <span class="
+                                    truncate font-semibold
+                                    {% if match.home_score > match.away_score %}
+                                        text-green-400
+                                    {% elif match.home_score < match.away_score %}
+                                        text-slate-400
+                                    {% else %}
+                                        text-white
+                                    {% endif %}
+                                    ">
+                  {{ match.home_team }}
+                </span>
+          
+              </div>
+          
+              <!-- MARCADOR -->
+              <div class="text-center">
+          
+                <div class="rounded-xl bg-[#282e39] px-4 py-2">
+                  <span class="text-2xl font-black text-white">
+                    {{ match.home_score }}
+                  </span>
+          
+                  <span class="mx-2 text-[#9da6b9]">
+                    -
+                  </span>
+          
+                  <span class="text-2xl font-black text-white">
+                    {{ match.away_score }}
+                  </span>
+                </div>
+          
+                <span class="mt-1 block text-[11px] uppercase tracking-wide text-[#9da6b9]">
+                  Finalizado
+                </span>
+          
+              </div>
+          
+              <!-- VISITANTE -->
+              <div class="flex items-center justify-end gap-3 min-w-0">
+          
+                <span class="
+                                    truncate text-right font-semibold
+                                    {% if match.away_score > match.home_score %}
+                                        text-green-400
+                                    {% elif match.away_score < match.home_score %}
+                                        text-slate-400
+                                    {% else %}
+                                        text-white
+                                    {% endif %}
+                                    ">
+                  {{ match.away_team }}
+                </span>
+          
+                {% if match.away_team_logo %}
+                <div class="h-10 w-10 rounded-full bg-cover bg-center flex-shrink-0"
+                  style="background-image:url('{{ match.away_team_logo }}')"></div>
+                {% endif %}
+          
+              </div>
+          
+            </div>
+          
+          </a>
+          
+          {% endfor %}
       </div>
     </div>
     {% endfor %}
   </div>
   {% else %}
-  <div class="rounded-2xl border border-[#282e39] bg-[#1c1f27] p-8 text-center">
-    <p class="text-[#9da6b9]">Sin resultados disponibles aún.</p>
+  <div class="rounded-3xl border border-dashed border-[#282e39]
+      bg-[#1c1f27] p-10 text-center">
+  
+    <span class="material-symbols-outlined mb-3 text-5xl text-[#9da6b9]">
+      sports_soccer
+    </span>
+  
+    <p class="text-[#9da6b9]">
+      Sin resultados disponibles aún.
+    </p>
+  
   </div>
   {% endif %}
 </section>
