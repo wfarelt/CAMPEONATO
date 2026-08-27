@@ -76,7 +76,7 @@
       </div>
 
       <!-- Teams -->
-      <div class="px-5 py-6">
+      <div class="px-2 py-6">
 
         <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
 
@@ -90,7 +90,7 @@
             ></div>
             {% endif %}
 
-            <h4 class="line-clamp-2 text-sm font-bold sm:text-base">
+            <h4 class="line-clamp-2 font-bold sm:text-base">
               {{ match.home_team }}
             </h4>
 
@@ -101,7 +101,7 @@
           <div class="flex flex-col items-center">
 
             <div
-              class="rounded-full bg-primary px-4 py-2 text-sm font-black text-white"
+              class="rounded-full bg-primary px-3 py-2 text-sm font-black text-white"
             >
               VS
             </div>
@@ -119,7 +119,7 @@
             ></div>
             {% endif %}
 
-            <h4 class="line-clamp-2 text-sm font-bold sm:text-base">
+            <h4 class="line-clamp-2 font-bold sm:text-base">
               {{ match.away_team }}
             </h4>
 
@@ -136,7 +136,7 @@
           <div class="flex gap-1">
             {% for res in match.home_team_last_results %}
             <span
-              class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white
+              class="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white
               {% if res == 'G' %}bg-green-500
               {% elif res == 'E' %}bg-slate-500
               {% else %}bg-red-500{% endif %}"
@@ -153,7 +153,7 @@
           <div class="flex gap-1">
             {% for res in match.away_team_last_results %}
             <span
-              class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white
+              class="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white
               {% if res == 'G' %}bg-green-500
               {% elif res == 'E' %}bg-slate-500
               {% else %}bg-red-500{% endif %}"
@@ -239,110 +239,118 @@
   <!-- Finished Matches List -->
   {% regroup matches_finished by date as match_list %}
   {% if match_list %}
-  <div class="flex flex-col gap-4">
-    {% for group in match_list %}
-    <div class="overflow-hidden rounded-3xl border border-[#282e39]
-        bg-[#1c1f27] shadow-sm">
-      
+  <div class="flex flex-col gap-3">
 
+  {% for group in match_list %}
+
+    <div class="overflow-hidden rounded-2xl border border-[#282e39]
+        bg-[#1c1f27] shadow-sm">
+
+      <!-- CABECERA -->
       <div class="flex items-center justify-between border-b border-[#282e39]
-          bg-gradient-to-r from-primary to-primary/80 px-5 py-3">
-      
-        <h4 class="font-bold text-white">
+          bg-gradient-to-r from-primary to-primary/80 px-4 py-2">
+
+        <h4 class="text-sm font-bold text-white">
           {{ group.grouper|date:"d M Y" }}
         </h4>
-      
-        <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
+
+        <span class="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white">
           {{ group.list|length }} partidos
         </span>
-      
+
       </div>
 
       <div class="divide-y divide-[#282e39]">
+
         {% for match in group.list %}
 
-          <a href="{% url 'match_detail' match.slug %}?{{ category_query }}"
-            class="block px-5 py-4 transition hover:bg-[#282e39]/60">
-          
-            <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-          
-              <!-- LOCAL -->
-              <div class="flex items-center gap-3 min-w-0">
-          
-                {% if match.home_team_logo %}
-                <div class="h-10 w-10 rounded-full bg-cover bg-center flex-shrink-0"
-                  style="background-image:url('{{ match.home_team_logo }}')"></div>
-                {% endif %}
-          
-                <span class="
-                                    truncate font-semibold
-                                    {% if match.home_score > match.away_score %}
-                                        text-green-400
-                                    {% elif match.home_score < match.away_score %}
-                                        text-slate-400
-                                    {% else %}
-                                        text-white
-                                    {% endif %}
-                                    ">
-                  {{ match.home_team }}
-                </span>
-          
+        <a href="{% url 'match_detail' match.slug %}?{{ category_query }}"
+          class="block px-3 py-2 transition hover:bg-[#282e39]/60">
+
+          <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+
+            <!-- LOCAL -->
+            <div class="flex min-w-0 items-center gap-2">
+
+              {% if match.home_team_logo %}
+              <div
+                class="h-7 w-7 flex-shrink-0 rounded-full bg-cover bg-center"
+                style="background-image:url('{{ match.home_team_logo }}')">
               </div>
-          
-              <!-- MARCADOR -->
-              <div class="text-center">
-          
-                <div class="rounded-xl bg-[#282e39] px-4 py-2">
-                  <span class="text-2xl font-black text-white">
-                    {{ match.home_score }}
-                  </span>
-          
-                  <span class="mx-2 text-[#9da6b9]">
-                    -
-                  </span>
-          
-                  <span class="text-2xl font-black text-white">
-                    {{ match.away_score }}
-                  </span>
-                </div>
-          
-                <span class="mt-1 block text-[11px] uppercase tracking-wide text-[#9da6b9]">
-                  Finalizado
-                </span>
-          
-              </div>
-          
-              <!-- VISITANTE -->
-              <div class="flex items-center justify-end gap-3 min-w-0">
-          
-                <span class="
-                                    truncate text-right font-semibold
-                                    {% if match.away_score > match.home_score %}
-                                        text-green-400
-                                    {% elif match.away_score < match.home_score %}
-                                        text-slate-400
-                                    {% else %}
-                                        text-white
-                                    {% endif %}
-                                    ">
-                  {{ match.away_team }}
-                </span>
-          
-                {% if match.away_team_logo %}
-                <div class="h-10 w-10 rounded-full bg-cover bg-center flex-shrink-0"
-                  style="background-image:url('{{ match.away_team_logo }}')"></div>
-                {% endif %}
-          
-              </div>
-          
+              {% endif %}
+
+              <span class="truncate text-xs font-semibold
+                {% if match.home_score > match.away_score %}
+                  text-green-400
+                {% elif match.home_score < match.away_score %}
+                  text-slate-400
+                {% else %}
+                  text-white
+                {% endif %}">
+                {{ match.home_team }}
+              </span>
+
             </div>
-          
-          </a>
-          
-          {% endfor %}
+
+            <!-- MARCADOR -->
+            <div class="text-center">
+
+              <div class="rounded-lg bg-[#282e39] px-2.5 py-1">
+
+                <span class="text-lg font-black text-white">
+                  {{ match.home_score }}
+                </span>
+
+                <span class="mx-1 text-xs text-[#9da6b9]">
+                  -
+                </span>
+
+                <span class="text-lg font-black text-white">
+                  {{ match.away_score }}
+                </span>
+
+              </div>
+
+              <span class="mt-0.5 block text-[9px] uppercase tracking-wide text-[#9da6b9]">
+                Finalizado
+              </span>
+
+            </div>
+
+            <!-- VISITANTE -->
+            <div class="flex min-w-0 items-center justify-end gap-2">
+
+              <span class="truncate text-right text-xs font-semibold
+                {% if match.away_score > match.home_score %}
+                  text-green-400
+                {% elif match.away_score < match.home_score %}
+                  text-slate-400
+                {% else %}
+                  text-white
+                {% endif %}">
+                {{ match.away_team }}
+              </span>
+
+              {% if match.away_team_logo %}
+              <div
+                class="h-7 w-7 flex-shrink-0 rounded-full bg-cover bg-center"
+                style="background-image:url('{{ match.away_team_logo }}')">
+              </div>
+              {% endif %}
+
+            </div>
+
+          </div>
+
+        </a>
+
+        {% endfor %}
+
       </div>
     </div>
+
     {% endfor %}
+
   </div>
   {% else %}
   <div class="rounded-3xl border border-dashed border-[#282e39]
