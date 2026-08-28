@@ -8,6 +8,18 @@
     <meta name="description" content="Campeonato de fútbol {{ site_branding.league_name }}. Fixture, posiciones y goleadores.">
     <link rel="icon" type="image/png" href="{% static 'tournament/img/favicon.png' %}">
     <link rel="stylesheet" href="{% static 'tournament/css/home.css' %}">
+    <style>
+        @media (max-width: 768px) {
+            .mobile-hide {
+                display: none;
+            }
+
+            .standings-legend {
+                display: none;
+            }
+            
+        }
+    </style>
 </head>
 <body style="--primary-color: {{ site_branding.primary_color }}; --secondary-color: {{ site_branding.secondary_color }}; --red: {{ site_branding.primary_color }}; --red-dark: {{ site_branding.secondary_color }};">
 
@@ -148,7 +160,7 @@
             <div class="court-label">{{ court_group.court_name }}</div>
             {% for match in court_group.matches %}
             <div class="match-row">
-                <span class="match-time">{{ match.time }}</span>
+                
                 <div class="match-team">
                     <img class="team-logo-sm" src="{{ match.home_logo }}" alt="{{ match.home_team }}">
                     <span class="team-name-sm">{{ match.home_team }}</span>
@@ -156,7 +168,12 @@
                 {% if match.is_finished %}
                 <span class="score-badge">{{ match.home_score }}-{{ match.away_score }}</span>
                 {% else %}
-                <span class="vs-badge">VS</span>
+                <div style="text-align: center;">
+                    <span class="match-time">{{ match.time }}</span><br>
+                    <span class="vs-badge">VS</span>
+                </div>
+                
+                
                 {% endif %}
                 <div class="match-team away">
                     <span class="team-name-sm">{{ match.away_team }}</span>
@@ -186,8 +203,14 @@
                 <tr>
                     <th style="width:26px">#</th>
                     <th class="col-team">EQUIPO</th>
-                    <th>PJ</th><th>PG</th><th>PE</th><th>PP</th>
-                    <th>GF</th><th>GC</th><th>DIF</th><th>PTS</th>
+                    <th>PJ</th>
+                    <th class="mobile-hide">PG</th>
+                    <th class="mobile-hide">PE</th>
+                    <th class="mobile-hide">PP</th>
+                    <th class="mobile-hide">GF</th>
+                    <th class="mobile-hide">GC</th>
+                    <th>DIF</th>
+                    <th>PTS</th>
                 </tr>
             </thead>
             <tbody>
@@ -201,11 +224,11 @@
                         </div>
                     </td>
                     <td>{{ row.matches_played }}</td>
-                    <td>{{ row.won }}</td>
-                    <td>{{ row.drawn }}</td>
-                    <td>{{ row.lost }}</td>
-                    <td>{{ row.goals_for }}</td>
-                    <td>{{ row.goals_against }}</td>
+                    <td class="mobile-hide">{{ row.won }}</td>
+                    <td class="mobile-hide">{{ row.drawn }}</td>
+                    <td class="mobile-hide">{{ row.lost }}</td>
+                    <td class="mobile-hide">{{ row.goals_for }}</td>
+                    <td class="mobile-hide">{{ row.goals_against }}</td>
                     <td>{% if row.goal_difference > 0 %}+{% endif %}{{ row.goal_difference }}</td>
                     <td class="col-pts">{{ row.points }}</td>
                 </tr>
@@ -214,7 +237,7 @@
                 {% endfor %}
             </tbody>
         </table>
-        <div class="standings-legend">
+        <div class="standings-legend mobile-hide">
             <span>PJ: Partidos Jugados</span><span>PG: Partidos Ganados</span>
             <span>PE: Empatados</span><span>PP: Perdidos</span>
             <span>GF: Goles a Favor</span><span>GC: Goles en Contra</span>

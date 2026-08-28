@@ -313,9 +313,7 @@ img { max-width: 100%; display: block; }
     -webkit-overflow-scrolling: touch;
 }
 
-#tabla .standings-table {
-    min-width: 720px;
-}
+
 
 #goleadores .scorers-header { border-bottom: 1px solid #e8e8e8; }
 #goleadores .scorers-header span { color: #aaa; }
