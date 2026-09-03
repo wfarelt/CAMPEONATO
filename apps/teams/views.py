@@ -46,6 +46,15 @@ def team_detail_view(request, team_slug):
         "team_players": team_players,
         "next_opponents": get_opponents_with_points(team),
         "results": get_results_by_team(team),
+        "pending_card_events": (
+            MatchEvent.objects.filter(
+                team=team,
+                event_type__in=[MatchEvent.YELLOW_CARD, MatchEvent.RED_CARD],
+            )
+            .filter(Q(card_payment__isnull=True) | Q(card_payment__paid=False))
+            .select_related("player", "match", "match__home_team", "match__away_team", "card_payment")
+            .order_by("-match__date", "-minute")
+        ),
         "can_add_players": can_add_players_to_team(request.user, team),
         "can_edit_team_profile": can_manage_team_profile_for_team(request.user, team),
         "can_edit_players": can_manage_players_for_team(request.user, team),

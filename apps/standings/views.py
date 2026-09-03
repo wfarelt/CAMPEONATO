@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from datetime import datetime
 
 from apps.core.categories import get_request_championship_category, CHAMPIONSHIP_CATEGORY_CHOICES
+from apps.playoffs.services import get_teams_classified
 from apps.standings.services import build_standings
 
 
@@ -12,7 +13,10 @@ def standings_view(request):
     return render(
         request,
         "standings/standings.html",
-        {"standings": build_standings(category=category, include_adjustments=True)},
+        {
+            "standings": build_standings(category=category, include_adjustments=True),
+            "teams_classified": get_teams_classified(category),
+        },
     )
 
 

@@ -7,6 +7,7 @@ from django.test import TestCase
 
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
+from apps.playoffs.models import LeagueSettings
 from apps.teams.models import Player, Team
 from apps.tournaments.models import MatchDay
 
@@ -55,12 +56,14 @@ class MatchServicesTests(TestCase):
         )
 
     def test_build_home_context_uses_latest_matchday(self):
+        LeagueSettings.objects.create(category="seniors", teams_classified=4)
         context = build_home_context(category="seniors")
 
         self.assertEqual(context["timeline_title"], "Fecha 1")
         self.assertEqual(len(context["timeline_matches"]), 2)
         self.assertEqual(context["featured_match"]["home_team"], "Alpha FC")
         self.assertTrue(context["featured_match"]["is_finished"])
+        self.assertEqual(context["teams_classified"], 4)
 
     def test_build_matches_context_includes_pending_and_finished(self):
         context = build_matches_context(category="seniors")

@@ -3,6 +3,7 @@
 from django.db.models import Sum, Count
 
 from apps.matches.models import Match, MatchEvent
+from apps.playoffs.services import get_teams_classified
 from apps.sponsors.models import Sponsor
 from apps.standings.services import build_standings
 from apps.standings.selectors import get_last_results
@@ -192,6 +193,7 @@ def build_home_context(category):
 
 	quick_standings = build_standings(category=category, include_adjustments=True)[:5]
 	full_standings = build_standings(category=category, include_adjustments=True)
+	teams_classified = get_teams_classified(category)
 	top_scorers = get_top_scorers(category=category, limit=10)
 	top_scoring_teams = get_top_scoring_teams(category=category, limit=5)
 	sponsors = list(Sponsor.objects.filter(is_active=True).only("name", "image").order_by("name"))
@@ -213,6 +215,7 @@ def build_home_context(category):
 		"timeline_matches": timeline_matches,
 		"matches_by_court": matches_by_court,
 		"full_standings": full_standings,
+		"teams_classified": teams_classified,
 		"top_scorers": top_scorers,
 		"matchday_date_obj": matchday_date_obj,
 		"matchday_slug": matchday_slug,

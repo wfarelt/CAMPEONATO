@@ -262,20 +262,21 @@
   </section>
 </div>
 
-<!-- Results Section -->
-<section class="mt-8 rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
+<!-- Results and Pending Card Payments -->
+<div class="mt-8 grid gap-8 lg:grid-cols-2">
+<section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
   <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
     <h3 class="flex items-center gap-2 text-lg font-bold">
       <span class="material-symbols-outlined text-primary">bar_chart</span>
       Resultados de Partidos
     </h3>
   </div>
-  <div class="p-6">
+  <div class="p-4">
     {% if results %}
     <div class="overflow-x-auto">
       <div class="flex flex-col gap-2">
         {% for r in results %}
-        <div class="flex items-center justify-between gap-4 rounded-lg border border-[#282e39] bg-[#282e39] p-4 transition-all hover:border-primary">
+        <div class="flex items-center justify-between gap-4 rounded-lg border border-[#282e39] bg-[#282e39] p-3 transition-all hover:border-primary">
           <div class="flex-1">
             <p class="text-xs text-[#9da6b9] font-bold uppercase tracking-wider">{{ r.date }}</p>
             <p class="text-sm font-bold text-white">
@@ -309,6 +310,54 @@
     {% endif %}
   </div>
 </section>
+
+<section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
+  <div class="border-b border-[#282e39] bg-gradient-to-r from-orange-500/10 to-transparent px-6 py-4">
+    <div class="flex items-center justify-between gap-3">
+      <h3 class="flex items-center gap-2 text-lg font-bold">
+        <span class="material-symbols-outlined text-orange-400">credit_card</span>
+        Tarjetas Pendientes
+      </h3>
+      <span class="rounded-full bg-orange-500/20 px-2.5 py-1 text-xs font-bold text-orange-300">{{ pending_card_events|length }}</span>
+    </div>
+  </div>
+  <div class="p-4">
+    {% if pending_card_events %}
+    <div class="flex flex-col gap-2">
+      {% for event in pending_card_events %}
+      <div class="flex items-center justify-between gap-3 rounded-lg border border-[#282e39] bg-[#282e39] p-3">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <p class="truncate text-sm font-bold text-white">{{ event.player.name }}</p>
+            {% if event.event_type == 'yellow_card' %}
+            <span class="rounded bg-yellow-500/20 px-2 py-0.5 text-[10px] font-bold text-yellow-300">Amarilla</span>
+            {% else %}
+            <span class="rounded bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-300">Roja</span>
+            {% endif %}
+          </div>
+          <p class="mt-1 truncate text-xs text-[#9da6b9]">{{ event.match.home_team.name }} vs {{ event.match.away_team.name }} · {{ event.match.date|date:"d/m/Y" }}</p>
+        </div>
+        {% if user.role == 'ORGANIZER' %}
+        <a
+          href="{% url 'register_card_payment' event.id %}?{{ category_query }}"
+          class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/20 text-primary transition hover:bg-primary hover:text-white"
+          title="Registrar pago"
+          aria-label="Registrar pago de {{ event.player.name }}"
+        >
+          <span class="material-symbols-outlined text-sm">payments</span>
+        </a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="rounded-lg border border-[#282e39] bg-[#282e39] p-4 text-center">
+      <p class="text-sm text-[#9da6b9]">Sin tarjetas pendientes de pago</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+</div>
 
 <div
   aria-hidden="true"

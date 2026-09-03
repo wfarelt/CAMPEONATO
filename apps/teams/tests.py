@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from datetime import date
 from django.test import TestCase
 from django.urls import reverse
 
@@ -11,6 +12,8 @@ from apps.core.models import (
     PLAYER_FIELD_SUB35,
 )
 from apps.teams.forms import PlayerForm
+from apps.matches.models import Match, MatchEvent
+from apps.payments.models import CardPayment
 from apps.teams.models import Player, Team
 
 
@@ -213,6 +216,33 @@ class TeamCrudPermissionsTests(TestCase):
         positions = [player.position for player in response.context["team_players"]]
         self.assertEqual(positions, ["GK", "DF", "MF", "FW"])
 
+    def test_team_detail_includes_only_pending_card_payments(self):
+        player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")
+        match = Match.objects.create(
+            home_team=self.team,
+            away_team=self.other_team,
+            date=date(2026, 6, 1),
+            time="10:00",
+        )
+        pending_event = MatchEvent.objects.create(
+            match=match,
+            player=player,
+            team=self.team,
+            event_type=MatchEvent.YELLOW_CARD,
+        )
+        paid_event = MatchEvent.objects.create(
+            match=match,
+            player=player,
+            team=self.team,
+            event_type=MatchEvent.RED_CARD,
+        )
+        CardPayment.objects.create(match_event=paid_event, paid=True)
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(f"{reverse('team', kwargs={'team_slug': self.team.slug})}?category=seniors")
+
+        self.assertEqual(list(response.context["pending_card_events"]), [pending_event])
+
     def test_player_form_hides_extra_fields_when_disabled(self):
         AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_GRADUATION_YEAR, defaults={"is_enabled": False})
         AppConfiguration.objects.update_or_create(key=PLAYER_FIELD_BIRTH_DATE, defaults={"is_enabled": False})
@@ -238,6 +268,23 @@ class TeamCrudPermissionsTests(TestCase):
         self.assertIn("birth_date", form.fields)
         self.assertIn("photo", form.fields)
         self.assertIn("is_sub35", form.fields)
+
+    def test_player_form_renders_saved_birth_date_for_editing(self):
+        AppConfiguration.objects.update_or_create(
+            key=PLAYER_FIELD_BIRTH_DATE,
+            defaults={"is_enabled": True},
+        )
+        player = Player.objects.create(
+            team=self.team,
+            name="Carlos",
+            number=10,
+            position="MF",
+            birth_date=date(1990, 5, 12),
+        )
+
+        form = PlayerForm(instance=player)
+
+        self.assertIn('value="1990-05-12"', form["birth_date"].as_widget())
 
     def test_team_manager_cannot_edit_goals(self):
         AppConfiguration.objects.update_or_create(

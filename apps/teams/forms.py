@@ -55,7 +55,7 @@ class PlayerForm(forms.ModelForm):
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del jugador"}),
             "ci": forms.TextInput(attrs={"class": "form-control", "placeholder": "Carnet de identidad"}),
             "graduation_year": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Año de egreso"}),
-            "birth_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "birth_date": forms.DateInput(format="%Y-%m-%d", attrs={"class": "form-control", "type": "date"}),
             "photo": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "number": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Numero de camiseta (opcional)"}),
             "position": forms.Select(attrs={"class": "form-control"}),

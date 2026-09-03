@@ -241,6 +241,7 @@ img { max-width: 100%; display: block; }
 .standings-table td.col-pos { color: #666; font-size: .78rem; }
 .standings-table td.col-team { text-align: left; padding-left: .5rem; }
 .standings-table td.col-pts { color: var(--red); font-weight: bold; font-size: .88rem; }
+.standings-table td.col-pos.classified-position { color: var(--primary-color); font-weight: 800; }
 .team-cell { display: flex; align-items: center; gap: .35rem; }
 .team-cell img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 .team-cell span { font-size: .73rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }

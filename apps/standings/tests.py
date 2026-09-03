@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from apps.matches.models import Match, PointsAdjustment
 from apps.standings.services import build_standings
+from apps.playoffs.models import LeagueSettings
 from apps.teams.models import Team
 
 
@@ -64,3 +65,10 @@ class StandingsServiceTests(TestCase):
 
         self.assertEqual(len(standings), 2)
         self.assertEqual({item["team"] for item in standings}, {"Master FC", "Veteranos FC"})
+
+    def test_standings_view_uses_the_category_qualification_limit(self):
+        LeagueSettings.objects.create(category="seniors", teams_classified=2)
+
+        response = self.client.get("/tabla-posiciones/?category=seniors")
+
+        self.assertContains(response, "bg-primary/60 text-white", count=4)

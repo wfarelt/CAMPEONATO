@@ -202,7 +202,7 @@
     <!-- TABLA DE POSICIONES -->
     <section id="tabla" class="section-card">
         <div class="section-header">TABLA DE POSICIONES</div>
-        <table class="standings-table">
+        <table class="standings-table" style="margin-left: 10px;">
             <thead>
                 <tr>
                     <th style="width:26px">#</th>
@@ -220,7 +220,7 @@
             <tbody>
                 {% for row in full_standings %}
                 <tr>
-                    <td class="col-pos">{{ forloop.counter }}</td>
+                    <td class="col-pos{% if forloop.counter <= teams_classified %} classified-position scorer-pos{% endif %}">{{ forloop.counter }}</td>
                     <td class="col-team">
                         <div class="team-cell">
                             <img src="{{ row.team_logo }}" alt="{{ row.team }}">

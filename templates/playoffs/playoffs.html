@@ -1,0 +1,75 @@
+{% extends "core/base.html" %}
+
+{% block title %}Playoffs - {{ site_branding.league_name }}{% endblock %}
+{% block header_title %}Playoffs{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
+    <div class="flex flex-wrap items-end justify-between gap-3 border-b border-[#282e39] pb-5">
+        <div>
+            <p class="text-sm text-[#9da6b9]">{{ championship_category_label }}</p>
+            <h1 class="mt-1 text-3xl font-bold">Cuadro eliminatorio</h1>
+        </div>
+        {% if settings.playoffs_home_and_away %}
+            <p class="text-sm text-[#9da6b9]">Llaves a ida y vuelta</p>
+        {% else %}
+            <p class="text-sm text-[#9da6b9]">Llaves a partido unico</p>
+        {% endif %}
+    </div>
+    {% if not settings or not settings.playoffs_enabled %}
+        <p class="mt-6 text-[#9da6b9]">Los playoffs no estan habilitados para esta categoria.</p>
+    {% elif not playoff %}
+        <p class="mt-6 text-[#9da6b9]">El cuadro de playoffs aun no fue generado.</p>
+        {% if user.is_authenticated and user.role == 'ORGANIZER' %}
+        <section class="mt-6 max-w-2xl rounded-lg border border-[#282e39] bg-[#1c1f27] p-5">
+            <h2 class="text-lg font-bold">Generar cuadro</h2>
+            <form class="mt-4 grid gap-4 sm:grid-cols-2" method="post" action="{% url 'generate_playoff' %}?{{ category_query }}">
+                {% csrf_token %}
+                <div>{{ generation_form.match_date.label_tag }}{{ generation_form.match_date }}</div>
+                <div>{{ generation_form.match_time.label_tag }}{{ generation_form.match_time }}</div>
+                <div>{{ generation_form.court.label_tag }}{{ generation_form.court }}</div>
+                {% if settings.playoffs_home_and_away %}
+                <div>{{ generation_form.second_leg_date.label_tag }}{{ generation_form.second_leg_date }}</div>
+                <div>{{ generation_form.second_leg_time.label_tag }}{{ generation_form.second_leg_time }}</div>
+                {% endif %}
+                <div class="flex items-end">
+                    <button class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90" type="submit">Generar playoffs</button>
+                </div>
+            </form>
+        </section>
+        {% endif %}
+    {% else %}
+        <div class="mt-8 grid gap-8 lg:grid-cols-2 xl:grid-cols-4">
+        {% for round in rounds %}
+            <section>
+                <h2 class="mb-4 text-sm font-bold uppercase text-[#9da6b9]">{{ round.label }}</h2>
+                <div class="space-y-4">
+                {% for item in round.ties %}
+                    <article class="overflow-hidden rounded-lg border border-[#282e39] bg-[#1c1f27]">
+                        <div class="flex items-center justify-between gap-3 border-b border-[#282e39] px-4 py-3">
+                            <span class="truncate text-sm">{{ item.tie.home_team|default:"Por definir" }}</span>
+                            <strong>{{ item.home_goals }}</strong>
+                        </div>
+                        <div class="flex items-center justify-between gap-3 px-4 py-3">
+                            <span class="truncate text-sm">{{ item.tie.away_team|default:"Por definir" }}</span>
+                            <strong>{{ item.away_goals }}</strong>
+                        </div>
+                        {% if item.tie.decided_by_penalties %}
+                        <div class="border-t border-[#282e39] px-4 py-2 text-xs text-[#9da6b9]">
+                            Penales: {{ item.tie.home_penalties }} - {{ item.tie.away_penalties }}
+                        </div>
+                        {% endif %}
+                        {% if item.tie.winner %}
+                        <div class="border-t border-[#282e39] bg-primary/10 px-4 py-2 text-xs font-semibold text-white">
+                            Clasifica: {{ item.tie.winner }}
+                        </div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+                </div>
+            </section>
+        {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
