@@ -45,7 +45,7 @@
     <ul class="navbar-nav">
         <li><a href="#inicio">INICIO</a></li>
         <li><a href="#jornada">JORNADA</a></li>
-        <li><a href="#tabla">TABLA</a></li>
+        <li><a href="#playoff">PLAYOFFS</a></li>
         <li><a href="#goleadores">GOLEADORES</a></li>
     </ul>
     <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}" class="btn-login">
@@ -199,54 +199,38 @@
         </a>
     </section>
 
-    <!-- TABLA DE POSICIONES -->
-    <section id="tabla" class="section-card">
-        <div class="section-header">TABLA DE POSICIONES</div>
-        <table class="standings-table" style="margin-left: 10px;">
-            <thead>
-                <tr>
-                    <th style="width:26px">#</th>
-                    <th class="col-team">EQUIPO</th>
-                    <th>PJ</th>
-                    <th class="mobile-hide">PG</th>
-                    <th class="mobile-hide">PE</th>
-                    <th class="mobile-hide">PP</th>
-                    <th class="mobile-hide">GF</th>
-                    <th class="mobile-hide">GC</th>
-                    <th>DIF</th>
-                    <th>PTS</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in full_standings %}
-                <tr>
-                    <td class="col-pos{% if forloop.counter <= teams_classified %} classified-position scorer-pos{% endif %}">{{ forloop.counter }}</td>
-                    <td class="col-team">
-                        <div class="team-cell">
-                            <img src="{{ row.team_logo }}" alt="{{ row.team }}">
-                            <span>{{ row.team }}</span>
+    <!-- PLAYOFFS -->
+    <section id="playoff" class="section-card playoff-card">
+        <div class="section-header">PLAYOFFS</div>
+        {% if playoff_rounds %}
+        <div class="playoff-bracket">
+            {% for round in playoff_rounds %}
+            <div class="playoff-round">
+                <div class="playoff-round-title">{{ round.label }}</div>
+                <div class="playoff-ties">
+                    {% for tie in round.ties %}
+                    <article class="playoff-tie">
+                        <div class="playoff-team{% if tie.winner == tie.home_team %} playoff-team-winner{% endif %}">
+                            <span class="playoff-team-name"><img src="{{ tie.home_logo }}" alt="{{ tie.home_team }}">{{ tie.home_team }}</span>
+                            <strong>{{ tie.home_goals }}</strong>
                         </div>
-                    </td>
-                    <td>{{ row.matches_played }}</td>
-                    <td class="mobile-hide">{{ row.won }}</td>
-                    <td class="mobile-hide">{{ row.drawn }}</td>
-                    <td class="mobile-hide">{{ row.lost }}</td>
-                    <td class="mobile-hide">{{ row.goals_for }}</td>
-                    <td class="mobile-hide">{{ row.goals_against }}</td>
-                    <td>{% if row.goal_difference > 0 %}+{% endif %}{{ row.goal_difference }}</td>
-                    <td class="col-pts">{{ row.points }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="10" style="text-align:center;padding:1.2rem;color:#666">Sin datos disponibles</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="standings-legend mobile-hide">
-            <span>PJ: Partidos Jugados</span><span>PG: Partidos Ganados</span>
-            <span>PE: Empatados</span><span>PP: Perdidos</span>
-            <span>GF: Goles a Favor</span><span>GC: Goles en Contra</span>
-            <span>DIF: Diferencia de Goles</span><span>PTS: Puntos</span>
+                        <div class="playoff-team{% if tie.winner == tie.away_team %} playoff-team-winner{% endif %}">
+                            <span class="playoff-team-name"><img src="{{ tie.away_logo }}" alt="{{ tie.away_team }}">{{ tie.away_team }}</span>
+                            <strong>{{ tie.away_goals }}</strong>
+                        </div>
+                        {% if tie.decided_by_penalties %}
+                        <div class="playoff-penalties">Penales {{ tie.home_penalties }} - {{ tie.away_penalties }}</div>
+                        {% endif %}
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
+        <a href="{% url 'playoffs' %}" class="btn-fixture">VER CUADRO COMPLETO</a>
+        {% else %}
+        <p class="playoff-empty">El cuadro de playoffs aun no fue generado.</p>
+        {% endif %}
     </section>
 
     <!-- GOLEADORES -->

@@ -1,12 +1,15 @@
 """Business rules for generating and resolving knockout brackets."""
 
 from django.core.exceptions import ValidationError
+from datetime import timedelta
+
 from django.db import transaction
 
 from apps.matches.models import Match
 from apps.playoffs.models import LeagueSettings, Playoff, PlayoffTie
 from apps.standings.services import build_standings
 from apps.teams.models import Team
+from apps.tournaments.models import MatchDay
 
 
 ROUND_BY_TEAM_COUNT = {
@@ -57,6 +60,19 @@ def generate_playoff(category, match_date, match_time, court=Match.COURT_1, seco
     with transaction.atomic():
         playoff = Playoff.objects.create(category=category, settings=settings)
         initial_round = ROUND_BY_TEAM_COUNT[settings.teams_classified]
+        round_label = dict(PlayoffTie.ROUND_CHOICES)[initial_round]
+        first_matchday = MatchDay.objects.create(
+            category=category,
+            date=match_date,
+            description=f"{round_label} (ida)" if settings.playoffs_home_and_away else round_label,
+        )
+        second_matchday = None
+        if settings.playoffs_home_and_away:
+            second_matchday = MatchDay.objects.create(
+                category=category,
+                date=second_leg_date or match_date + timedelta(days=1),
+                description=f"{round_label} (vuelta)",
+            )
         for position in range(1, (settings.teams_classified // 2) + 1):
             home_team = ranked_teams[position - 1]
             away_team = ranked_teams[-position]
@@ -69,6 +85,8 @@ def generate_playoff(category, match_date, match_time, court=Match.COURT_1, seco
                 home_and_away=settings.playoffs_home_and_away,
                 second_leg_date=second_leg_date,
                 second_leg_time=second_leg_time,
+                first_matchday=first_matchday,
+                second_matchday=second_matchday,
             )
             PlayoffTie.objects.create(
                 playoff=playoff,
@@ -84,11 +102,23 @@ def generate_playoff(category, match_date, match_time, court=Match.COURT_1, seco
     return playoff
 
 
-def _create_tie_matches(home_team, away_team, match_date, match_time, court, home_and_away, second_leg_date, second_leg_time):
+def _create_tie_matches(
+    home_team,
+    away_team,
+    match_date,
+    match_time,
+    court,
+    home_and_away,
+    second_leg_date,
+    second_leg_time,
+    first_matchday,
+    second_matchday,
+):
     if not home_and_away:
         return Match.objects.create(
             home_team=home_team,
             away_team=away_team,
+            match_day=first_matchday,
             date=match_date,
             time=match_time,
             court=court,
@@ -97,6 +127,7 @@ def _create_tie_matches(home_team, away_team, match_date, match_time, court, hom
     first_leg = Match.objects.create(
         home_team=away_team,
         away_team=home_team,
+        match_day=first_matchday,
         date=match_date,
         time=match_time,
         court=court,
@@ -104,6 +135,7 @@ def _create_tie_matches(home_team, away_team, match_date, match_time, court, hom
     second_leg = Match.objects.create(
         home_team=home_team,
         away_team=away_team,
+        match_day=second_matchday,
         date=second_leg_date or match_date,
         time=second_leg_time or match_time,
         court=court,

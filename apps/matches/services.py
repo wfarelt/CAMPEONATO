@@ -3,7 +3,8 @@
 from django.db.models import Sum, Count
 
 from apps.matches.models import Match, MatchEvent
-from apps.playoffs.services import get_teams_classified
+from apps.playoffs.models import Playoff, PlayoffTie
+from apps.playoffs.services import get_tie_aggregate, get_teams_classified
 from apps.sponsors.models import Sponsor
 from apps.standings.services import build_standings
 from apps.standings.selectors import get_last_results
@@ -127,7 +128,15 @@ def get_top_scorers(category, limit=10):
 
 
 def build_home_context(category):
-	latest_matchday = MatchDay.objects.filter(category=category).prefetch_related("matches__home_team", "matches__away_team").first()
+	matchdays = MatchDay.objects.filter(category=category).prefetch_related("matches__home_team", "matches__away_team")
+	scheduled_matchday_id = Match.objects.filter(
+		home_team__category=category,
+		away_team__category=category,
+		status="scheduled",
+		match_day__isnull=False,
+	).order_by("date", "match_day_id").values_list("match_day_id", flat=True).first()
+	next_matchday = matchdays.filter(id=scheduled_matchday_id).first() if scheduled_matchday_id else None
+	latest_matchday = next_matchday or matchdays.first()
 	category_matches = Match.objects.filter(home_team__category=category, away_team__category=category)
 	finished_matches = category_matches.filter(status="finished")
 	scheduled_matches = category_matches.filter(status="scheduled")
@@ -194,6 +203,7 @@ def build_home_context(category):
 	quick_standings = build_standings(category=category, include_adjustments=True)[:5]
 	full_standings = build_standings(category=category, include_adjustments=True)
 	teams_classified = get_teams_classified(category)
+	playoff_rounds = build_home_playoff_context(category)
 	top_scorers = get_top_scorers(category=category, limit=10)
 	top_scoring_teams = get_top_scoring_teams(category=category, limit=5)
 	sponsors = list(Sponsor.objects.filter(is_active=True).only("name", "image").order_by("name"))
@@ -215,6 +225,7 @@ def build_home_context(category):
 		"timeline_matches": timeline_matches,
 		"matches_by_court": matches_by_court,
 		"full_standings": full_standings,
+		"playoff_rounds": playoff_rounds,
 		"teams_classified": teams_classified,
 		"top_scorers": top_scorers,
 		"matchday_date_obj": matchday_date_obj,
@@ -237,6 +248,41 @@ def build_home_context(category):
 		"quick_standings": quick_standings,
 		"sponsors": sponsors,
 	}
+
+
+def build_home_playoff_context(category):
+	playoff = Playoff.objects.filter(category=category, is_active=True).prefetch_related(
+		"ties__home_team",
+		"ties__away_team",
+		"ties__first_leg",
+		"ties__second_leg",
+	).first()
+	if not playoff:
+		return []
+
+	ties_by_round = {}
+	for tie in playoff.ties.all():
+		home_goals, away_goals = get_tie_aggregate(tie)
+		ties_by_round.setdefault(tie.round, []).append(
+			{
+				"home_team": tie.home_team.name if tie.home_team else "Por definir",
+				"away_team": tie.away_team.name if tie.away_team else "Por definir",
+				"home_logo": tie.home_team.logo.url if tie.home_team and tie.home_team.logo else DEFAULT_TEAM_LOGO,
+				"away_logo": tie.away_team.logo.url if tie.away_team and tie.away_team.logo else DEFAULT_TEAM_LOGO,
+				"home_goals": home_goals,
+				"away_goals": away_goals,
+				"winner": tie.winner.name if tie.winner else None,
+				"decided_by_penalties": tie.decided_by_penalties,
+				"home_penalties": tie.home_penalties,
+				"away_penalties": tie.away_penalties,
+			}
+		)
+
+	return [
+		{"label": label, "ties": ties_by_round[round_code]}
+		for round_code, label in PlayoffTie.ROUND_CHOICES
+		if round_code in ties_by_round
+	]
 
 
 def build_matches_context(category, selected_matchday_slug=None):

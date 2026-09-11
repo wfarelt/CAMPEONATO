@@ -226,6 +226,34 @@ img { max-width: 100%; display: block; }
 }
 .btn-fixture:hover { background: var(--red); color: #fff; }
 
+/* --- Playoffs --- */
+.playoff-card { grid-column: 1 / -1; }
+.playoff-bracket {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1rem; padding: 1rem;
+    overflow-x: auto;
+}
+.playoff-round { min-width: 0; }
+.playoff-round-title {
+    color: #777; font-family: var(--font-bebas); font-size: .95rem;
+    letter-spacing: 1px; text-align: center; margin-bottom: .65rem;
+}
+.playoff-ties { display: grid; gap: .7rem; }
+.playoff-tie { background: #111; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.playoff-team {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: .45rem; padding: .45rem .55rem; border-bottom: 1px solid var(--border);
+    color: #bbb; font-size: .72rem;
+}
+.playoff-team:last-of-type { border-bottom: none; }
+.playoff-team-winner { color: #fff; background: color-mix(in srgb, var(--red) 14%, transparent); }
+.playoff-team strong { color: var(--red); font-family: var(--font-bebas); font-size: 1rem; }
+.playoff-team-name { display: flex; align-items: center; gap: .35rem; min-width: 0; overflow: hidden; }
+.playoff-team-name img { width: 25px; height: 25px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.playoff-team-name { white-space: nowrap; text-overflow: ellipsis; }
+.playoff-penalties { padding: .3rem .55rem; color: #777; font-size: .65rem; }
+.playoff-empty { padding: 1.5rem; color: #666; text-align: center; font-size: .85rem; }
+
 /* --- Standings --- */
 .standings-table { width: 100%; border-collapse: collapse; font-size: .77rem; }
 .standings-table thead tr { background: #111; }

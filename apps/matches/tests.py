@@ -65,6 +65,25 @@ class MatchServicesTests(TestCase):
         self.assertTrue(context["featured_match"]["is_finished"])
         self.assertEqual(context["teams_classified"], 4)
 
+    def test_build_home_context_uses_next_scheduled_matchday(self):
+        self.scheduled_match.status = "finished"
+        self.scheduled_match.save(update_fields=["status"])
+        next_matchday = MatchDay.objects.create(date=date(2026, 5, 19), description="Fecha 2", category="seniors")
+        Match.objects.create(
+            match_day=next_matchday,
+            home_team=self.team_a,
+            away_team=self.team_c,
+            date=next_matchday.date,
+            time=time(16, 0),
+            status="scheduled",
+        )
+
+        context = build_home_context(category="seniors")
+
+        self.assertEqual(context["timeline_title"], "Fecha 2")
+        self.assertEqual(len(context["timeline_matches"]), 1)
+        self.assertEqual(context["timeline_matches"][0]["home_team"], "Alpha FC")
+
     def test_build_matches_context_includes_pending_and_finished(self):
         context = build_matches_context(category="seniors")
 

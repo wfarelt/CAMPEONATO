@@ -8,6 +8,7 @@ from apps.matches.models import Match
 from apps.playoffs.models import LeagueSettings, PlayoffTie
 from apps.playoffs.services import generate_playoff, record_penalty_result, resolve_tie
 from apps.teams.models import Team
+from apps.tournaments.models import MatchDay
 from apps.users.models import User
 
 
@@ -39,6 +40,10 @@ class PlayoffGenerationTests(TestCase):
         tie = playoff.ties.get(round=PlayoffTie.QUARTERFINAL, position=1)
         self.assertEqual(tie.first_leg.home_team, self.teams[-1])
         self.assertEqual(tie.second_leg.home_team, self.teams[0])
+
+        self.assertEqual(tie.first_leg.match_day.description, "Cuartos de final (ida)")
+        self.assertEqual(tie.second_leg.match_day.description, "Cuartos de final (vuelta)")
+        self.assertEqual(MatchDay.objects.filter(category="seniors").count(), 2)
 
     def test_tied_single_match_requires_penalties_and_advances_winner(self):
         playoff = generate_playoff("seniors", date(2026, 6, 1), time(10, 0))

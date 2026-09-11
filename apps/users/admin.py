@@ -5,7 +5,7 @@ from .models import User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
-        ("Roles", {"fields": ("role",)}),
+        ("Roles", {"fields": ("role", "favorite_team")}),
     )
     list_display = ("username", "email", "role", "favorite_team", "is_staff", "is_active")
     list_filter = ("role", "is_staff", "is_superuser", "is_active")
