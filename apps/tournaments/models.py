@@ -16,6 +16,7 @@ class MatchDay(models.Model):
 	date = models.DateField(verbose_name="Match Day Date")
 	slug = models.SlugField(max_length=180, unique=True, blank=True, null=True)
 	description = models.TextField(blank=True, null=True, verbose_name="Description")
+	is_visible = models.BooleanField(default=True, verbose_name="Visible publicamente")
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
-from apps.playoffs.models import LeagueSettings
+from apps.playoffs.models import LeagueSettings, Playoff, PlayoffTie
 from apps.teams.models import Player, Team
 from apps.tournaments.models import MatchDay
 
@@ -64,6 +64,39 @@ class MatchServicesTests(TestCase):
         self.assertEqual(context["featured_match"]["home_team"], "Alpha FC")
         self.assertTrue(context["featured_match"]["is_finished"])
         self.assertEqual(context["teams_classified"], 4)
+
+    def test_home_playoff_context_shows_only_current_round(self):
+        settings = LeagueSettings.objects.create(category="seniors", teams_classified=4, playoffs_enabled=True)
+        playoff = Playoff.objects.create(category="seniors", settings=settings)
+        semifinal_one = PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=1,
+            home_team=self.team_a,
+            away_team=self.team_b,
+        )
+        semifinal_two = PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=2,
+            home_team=self.team_c,
+            away_team=self.team_d,
+        )
+        PlayoffTie.objects.create(playoff=playoff, round=PlayoffTie.FINAL, position=1)
+
+        context = build_home_context(category="seniors")
+
+        self.assertEqual([round_data["label"] for round_data in context["playoff_rounds"]], ["Semifinal"])
+        semifinal_one.winner = self.team_a
+        semifinal_one.loser = self.team_b
+        semifinal_one.save(update_fields=["winner", "loser"])
+        semifinal_two.winner = self.team_c
+        semifinal_two.loser = self.team_d
+        semifinal_two.save(update_fields=["winner", "loser"])
+
+        context = build_home_context(category="seniors")
+
+        self.assertEqual([round_data["label"] for round_data in context["playoff_rounds"]], ["Final"])
 
     def test_build_home_context_uses_next_scheduled_matchday(self):
         self.scheduled_match.status = "finished"

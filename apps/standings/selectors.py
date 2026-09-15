@@ -13,6 +13,7 @@ def calculate_team_standing(team, include_adjustments=True, category=None):
 		Q(home_team=team, status="finished") | Q(away_team=team, status="finished"),
 		home_team__category=championship_category,
 		away_team__category=championship_category,
+		playoff_link__isnull=True,
 	)
 	won = matches_played.filter(
 		Q(home_team=team, home_score__gt=F("away_score"))

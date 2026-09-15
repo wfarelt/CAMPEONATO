@@ -1,18 +1,18 @@
 from django.contrib import admin
 
-from apps.playoffs.models import LeagueSettings, Playoff, PlayoffTie
+from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
 
 
 @admin.register(LeagueSettings)
 class LeagueSettingsAdmin(admin.ModelAdmin):
-    list_display = ("category", "teams_classified", "playoffs_enabled", "playoffs_home_and_away", "third_place_match")
+    list_display = ("category", "teams_classified", "playoffs_enabled", "playoffs_home_and_away", "final_home_and_away", "third_place_match")
     list_filter = ("playoffs_enabled", "playoffs_home_and_away", "third_place_match")
 
 
 class PlayoffTieInline(admin.TabularInline):
     model = PlayoffTie
     extra = 0
-    fields = ("round", "position", "home_team", "away_team", "first_leg", "second_leg", "winner", "loser")
+    fields = ("round", "position", "home_team", "away_team", "next_tie", "next_slot", "winner", "loser")
     readonly_fields = ("winner", "loser")
 
 
@@ -28,3 +28,9 @@ class PlayoffTieAdmin(admin.ModelAdmin):
     list_display = ("playoff", "round", "position", "home_team", "away_team", "winner", "decided_by_penalties")
     list_filter = ("round", "decided_by_penalties")
     search_fields = ("home_team__name", "away_team__name")
+
+
+@admin.register(PlayoffMatch)
+class PlayoffMatchAdmin(admin.ModelAdmin):
+    list_display = ("tie", "match", "leg")
+    list_filter = ("leg",)

@@ -6,7 +6,7 @@ from django.urls import reverse
 from apps.core.categories import get_request_championship_category
 from apps.playoffs.forms import PlayoffGenerationForm
 from apps.playoffs.models import LeagueSettings, Playoff
-from apps.playoffs.services import generate_playoff, get_tie_aggregate
+from apps.playoffs.services import generate_playoff, get_tie_aggregate, get_tie_matches
 from apps.users.permissions import organizer_required
 
 
@@ -16,8 +16,7 @@ def playoffs_view(request):
     playoff = Playoff.objects.filter(category=category, is_active=True).prefetch_related(
         "ties__home_team",
         "ties__away_team",
-        "ties__first_leg",
-        "ties__second_leg",
+        "ties__match_links__match",
     ).first()
     rounds = []
     if playoff:
@@ -28,6 +27,7 @@ def playoffs_view(request):
                     "tie": tie,
                     "home_goals": get_tie_aggregate(tie)[0],
                     "away_goals": get_tie_aggregate(tie)[1],
+                    "matches": get_tie_matches(tie),
                 }
             )
         for round_code, round_label in playoff.ties.model.ROUND_CHOICES:
@@ -42,6 +42,7 @@ def playoffs_view(request):
             "playoff": playoff,
             "rounds": rounds,
             "generation_form": PlayoffGenerationForm(),
+            "is_organizer": getattr(request.user, "role", None) == "ORGANIZER",
         },
     )
 

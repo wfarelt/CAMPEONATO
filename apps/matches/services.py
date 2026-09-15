@@ -1,6 +1,6 @@
 """Business logic for matches app."""
 
-from django.db.models import Sum, Count
+from django.db.models import Q, Sum, Count
 
 from apps.matches.models import Match, MatchEvent
 from apps.playoffs.models import Playoff, PlayoffTie
@@ -128,12 +128,13 @@ def get_top_scorers(category, limit=10):
 
 
 def build_home_context(category):
-	matchdays = MatchDay.objects.filter(category=category).prefetch_related("matches__home_team", "matches__away_team")
+	matchdays = MatchDay.objects.filter(category=category, is_visible=True).prefetch_related("matches__home_team", "matches__away_team")
 	scheduled_matchday_id = Match.objects.filter(
 		home_team__category=category,
 		away_team__category=category,
 		status="scheduled",
 		match_day__isnull=False,
+		match_day__is_visible=True,
 	).order_by("date", "match_day_id").values_list("match_day_id", flat=True).first()
 	next_matchday = matchdays.filter(id=scheduled_matchday_id).first() if scheduled_matchday_id else None
 	latest_matchday = next_matchday or matchdays.first()
@@ -152,10 +153,10 @@ def build_home_context(category):
 		matches_qs = latest_matchday.matches.select_related("home_team", "away_team").order_by("time")
 		timeline_title = latest_matchday.description or f"Jornada del {latest_matchday.date.strftime('%d/%m/%Y')}"
 	else:
-		latest_match_date = category_matches.order_by("-date").values_list("date", flat=True).first()
+		latest_match_date = category_matches.filter(match_day__is_visible=True).order_by("-date").values_list("date", flat=True).first()
 		matches_qs = Match.objects.none()
 		if latest_match_date:
-			matches_qs = category_matches.filter(date=latest_match_date).select_related("home_team", "away_team").order_by("time")
+			matches_qs = category_matches.filter(date=latest_match_date, match_day__is_visible=True).select_related("home_team", "away_team").order_by("time")
 			timeline_title = f"Jornada del {latest_match_date.strftime('%d/%m/%Y')}"
 
 	for match in matches_qs:
@@ -254,14 +255,20 @@ def build_home_playoff_context(category):
 	playoff = Playoff.objects.filter(category=category, is_active=True).prefetch_related(
 		"ties__home_team",
 		"ties__away_team",
-		"ties__first_leg",
-		"ties__second_leg",
+		"ties__match_links__match",
 	).first()
 	if not playoff:
 		return []
 
+	main_rounds = [
+		(round_code, label)
+		for round_code, label in PlayoffTie.ROUND_CHOICES
+		if round_code != PlayoffTie.THIRD_PLACE
+	]
 	ties_by_round = {}
 	for tie in playoff.ties.all():
+		if tie.round == PlayoffTie.THIRD_PLACE:
+			continue
 		home_goals, away_goals = get_tie_aggregate(tie)
 		ties_by_round.setdefault(tie.round, []).append(
 			{
@@ -278,18 +285,26 @@ def build_home_playoff_context(category):
 			}
 		)
 
-	return [
-		{"label": label, "ties": ties_by_round[round_code]}
-		for round_code, label in PlayoffTie.ROUND_CHOICES
-		if round_code in ties_by_round
-	]
+	current_round = next(
+		(
+			round_code
+			for round_code, _ in main_rounds
+			if round_code in ties_by_round and any(not tie.winner for tie in playoff.ties.all() if tie.round == round_code)
+		),
+		PlayoffTie.FINAL,
+	)
+	label = dict(main_rounds)[current_round]
+	return [{"label": label, "ties": ties_by_round.get(current_round, []), "is_auxiliary": False}]
 
 
 def build_matches_context(category, selected_matchday_slug=None):
-	matches_scope = Match.objects.filter(home_team__category=category, away_team__category=category)
+	matches_scope = Match.objects.filter(
+		home_team__category=category,
+		away_team__category=category,
+	).filter(Q(match_day__isnull=True) | Q(match_day__is_visible=True))
 	matches_pending = matches_scope.filter(status="scheduled").order_by("court", "time")
 	matches_finished = matches_scope.filter(status="finished").order_by("date", "time")
-	matchdays = MatchDay.objects.filter(category=category)
+	matchdays = MatchDay.objects.filter(category=category, is_visible=True)
 
 	selected_matchday = None
 	if selected_matchday_slug:

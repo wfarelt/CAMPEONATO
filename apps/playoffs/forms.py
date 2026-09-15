@@ -30,3 +30,13 @@ class PlayoffGenerationForm(forms.Form):
 
     def clean_court(self):
         return int(self.cleaned_data["court"])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        second_leg_date = cleaned_data.get("second_leg_date")
+        second_leg_time = cleaned_data.get("second_leg_time")
+        if second_leg_date and not second_leg_time:
+            self.add_error("second_leg_time", "Indica la hora de la vuelta.")
+        if second_leg_time and not second_leg_date:
+            self.add_error("second_leg_date", "Indica la fecha de la vuelta.")
+        return cleaned_data

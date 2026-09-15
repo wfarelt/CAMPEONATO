@@ -100,6 +100,7 @@ def create_matchday(request):
                     "category": normalized_category,
                     "date": form.cleaned_data["date"].isoformat(),
                     "description": form.cleaned_data.get("description") or "",
+                    "is_visible": form.cleaned_data.get("is_visible", True),
                 }
                 # If category changes, clear matches to avoid mixed-team categories.
                 if previous_category and previous_category != normalized_category:
@@ -236,6 +237,7 @@ def create_matchday(request):
                         category=matchday_data["category"],
                         date=parse_date(matchday_data["date"]),
                         description=matchday_data.get("description") or "",
+                        is_visible=matchday_data.get("is_visible", True),
                     )
                     for match in matches_data:
                         Match.objects.create(
@@ -319,7 +321,10 @@ def create_matchday(request):
 @login_required
 def edit_matchday(request, matchday_slug):
     category = get_request_championship_category(request)
-    matchday = get_object_or_404(MatchDay, slug=matchday_slug, category=category)
+    matchday_query = MatchDay.objects.filter(slug=matchday_slug, category=category)
+    if getattr(request.user, "role", None) != "ORGANIZER":
+        matchday_query = matchday_query.filter(is_visible=True)
+    matchday = get_object_or_404(matchday_query)
 
     if request.method == "POST":
         form = MatchDayForm(request.POST, instance=matchday)
@@ -355,4 +360,4 @@ def matchday_detail(request, matchday_slug):
 @login_required
 def matchdays_list(request):
     category = get_request_championship_category(request)
-    return render(request, "tournaments/matchdays_list.html", {"matchdays": MatchDay.objects.filter(category=category)})
+    return render(request, "tournaments/matchdays_list.html", {"matchdays": MatchDay.objects.filter(category=category, is_visible=True)})

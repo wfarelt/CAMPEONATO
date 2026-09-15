@@ -7,7 +7,7 @@
     <title>{{ site_branding.league_name }}</title>
     <meta name="description" content="Campeonato de fútbol {{ site_branding.league_name }}. Fixture, posiciones y goleadores.">
     <link rel="icon" type="image/png" href="{% static 'tournament/img/favicon.png' %}">
-    <link rel="stylesheet" href="{% static 'tournament/css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'tournament/css/home.css' %}?v=playoff-bracket-2">
     <style>
         @media (max-width: 768px) {
             .mobile-hide {
@@ -201,15 +201,20 @@
 
     <!-- PLAYOFFS -->
     <section id="playoff" class="section-card playoff-card">
-        <div class="section-header">PLAYOFFS</div>
+        <div class="section-header playoff-section-header">
+            <span>PLAYOFFS</span>
+            {% if playoff_rounds %}<span class="playoff-format-label">CUADRO ELIMINATORIO</span>{% endif %}
+        </div>
         {% if playoff_rounds %}
+        <div class="playoff-bracket-scroll">
         <div class="playoff-bracket">
             {% for round in playoff_rounds %}
-            <div class="playoff-round">
+            {% if not round.is_auxiliary %}<div class="playoff-round">
                 <div class="playoff-round-title">{{ round.label }}</div>
                 <div class="playoff-ties">
                     {% for tie in round.ties %}
                     <article class="playoff-tie">
+                        <div class="playoff-tie-number">LLAVE {{ forloop.counter }}</div>
                         <div class="playoff-team{% if tie.winner == tie.home_team %} playoff-team-winner{% endif %}">
                             <span class="playoff-team-name"><img src="{{ tie.home_logo }}" alt="{{ tie.home_team }}">{{ tie.home_team }}</span>
                             <strong>{{ tie.home_goals }}</strong>
@@ -221,12 +226,31 @@
                         {% if tie.decided_by_penalties %}
                         <div class="playoff-penalties">Penales {{ tie.home_penalties }} - {{ tie.away_penalties }}</div>
                         {% endif %}
+                        {% if tie.winner %}<div class="playoff-qualifier">CLASIFICA {{ tie.winner }}</div>{% endif %}
                     </article>
                     {% endfor %}
                 </div>
-            </div>
+            </div>{% endif %}
             {% endfor %}
         </div>
+        </div>
+        {% for round in playoff_rounds %}
+        {% if round.is_auxiliary %}
+        <div class="playoff-auxiliary-round">
+            <div class="playoff-round-title">{{ round.label }}</div>
+            <div class="playoff-auxiliary-ties">
+            {% for tie in round.ties %}
+                <article class="playoff-tie">
+                    <div class="playoff-tie-number">LLAVE {{ forloop.counter }}</div>
+                    <div class="playoff-team{% if tie.winner == tie.home_team %} playoff-team-winner{% endif %}"><span class="playoff-team-name"><img src="{{ tie.home_logo }}" alt="{{ tie.home_team }}">{{ tie.home_team }}</span><strong>{{ tie.home_goals }}</strong></div>
+                    <div class="playoff-team{% if tie.winner == tie.away_team %} playoff-team-winner{% endif %}"><span class="playoff-team-name"><img src="{{ tie.away_logo }}" alt="{{ tie.away_team }}">{{ tie.away_team }}</span><strong>{{ tie.away_goals }}</strong></div>
+                    {% if tie.winner %}<div class="playoff-qualifier">CLASIFICA {{ tie.winner }}</div>{% endif %}
+                </article>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
         <a href="{% url 'playoffs' %}" class="btn-fixture">VER CUADRO COMPLETO</a>
         {% else %}
         <p class="playoff-empty">El cuadro de playoffs aun no fue generado.</p>

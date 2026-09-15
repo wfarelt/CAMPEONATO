@@ -270,6 +270,9 @@ form .form-control::placeholder {
                     <small class="text-danger">{{ matchday_form.description.errors }}</small>
                 {% endif %}
             </div>
+            <label class="form-check-label mt-3" for="{{ matchday_form.is_visible.id_for_label }}">
+                {{ matchday_form.is_visible }} Mostrar jornada públicamente
+            </label>
         </div>
 
         <div class="wizard-card p-4 md:p-6">
@@ -374,6 +377,9 @@ form .form-control::placeholder {
                         <small class="text-danger">{{ matchday_form.description.errors }}</small>
                     {% endif %}
                 </div>
+                <label class="form-check-label mt-3" for="{{ matchday_form.is_visible.id_for_label }}">
+                    {{ matchday_form.is_visible }} Mostrar jornada públicamente
+                </label>
         </div>
 
         <div class="wizard-actions">

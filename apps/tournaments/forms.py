@@ -11,13 +11,14 @@ from apps.tournaments.models import MatchDay
 class MatchDayForm(forms.ModelForm):
     class Meta:
         model = MatchDay
-        fields = ["category", "date", "description"]
+        fields = ["category", "date", "description", "is_visible"]
         widgets = {
             "category": forms.Select(attrs={"class": "form-control"}),
             "date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date", "class": "form-control"}),
             "description": forms.Textarea(
                 attrs={"class": "form-control", "rows": 3, "placeholder": "Ej: Jornada de Apertura, Semifinal, etc."}
             ),
+			"is_visible": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
 

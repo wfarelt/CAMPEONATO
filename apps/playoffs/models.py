@@ -13,7 +13,10 @@ class LeagueSettings(models.Model):
     playoffs_enabled = models.BooleanField(default=False)
     third_place_match = models.BooleanField(default=True)
     playoffs_home_and_away = models.BooleanField(default=False)
+    final_home_and_away = models.BooleanField(default=False)
     penalties_on_aggregate_tie = models.BooleanField(default=True)
+    sporting_advantage_on_tie = models.BooleanField(default=False)
+    replay_on_aggregate_tie = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -39,8 +42,8 @@ class Playoff(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Edicion de playoffs"
-        verbose_name_plural = "Ediciones de playoffs"
+        verbose_name = "Cuadro de playoffs"
+        verbose_name_plural = "Cuadros de playoffs"
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
@@ -78,13 +81,13 @@ class PlayoffTie(models.Model):
     position = models.PositiveSmallIntegerField()
     home_team = models.ForeignKey("teams.Team", on_delete=models.PROTECT, related_name="playoff_home_ties", null=True, blank=True)
     away_team = models.ForeignKey("teams.Team", on_delete=models.PROTECT, related_name="playoff_away_ties", null=True, blank=True)
-    first_leg = models.OneToOneField("matches.Match", on_delete=models.PROTECT, related_name="playoff_first_leg", null=True, blank=True)
-    second_leg = models.OneToOneField("matches.Match", on_delete=models.PROTECT, related_name="playoff_second_leg", null=True, blank=True)
     winner = models.ForeignKey("teams.Team", on_delete=models.PROTECT, related_name="won_playoff_ties", null=True, blank=True)
     loser = models.ForeignKey("teams.Team", on_delete=models.PROTECT, related_name="lost_playoff_ties", null=True, blank=True)
     home_penalties = models.PositiveSmallIntegerField(null=True, blank=True)
     away_penalties = models.PositiveSmallIntegerField(null=True, blank=True)
     decided_by_penalties = models.BooleanField(default=False)
+    next_tie = models.ForeignKey("self", on_delete=models.SET_NULL, related_name="previous_ties", null=True, blank=True)
+    next_slot = models.CharField(max_length=4, choices=[("home", "Local"), ("away", "Visitante")], blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -103,6 +106,23 @@ class PlayoffTie(models.Model):
     def __str__(self):
         return f"{self.get_round_display()} {self.position} - {self.playoff}"
 
+    @property
+    def first_leg(self):
+        if hasattr(self, "_first_leg_cache"):
+            return self._first_leg_cache
+        link = self.match_links.select_related("match").filter(leg=PlayoffMatch.FIRST).first()
+        link = link or self.match_links.select_related("match").filter(leg=PlayoffMatch.SINGLE).first()
+        self._first_leg_cache = link.match if link else None
+        return self._first_leg_cache
+
+    @property
+    def second_leg(self):
+        if hasattr(self, "_second_leg_cache"):
+            return self._second_leg_cache
+        link = self.match_links.select_related("match").filter(leg=PlayoffMatch.SECOND).first()
+        self._second_leg_cache = link.match if link else None
+        return self._second_leg_cache
+
     def clean(self):
         super().clean()
         team_ids = {self.home_team_id, self.away_team_id}
@@ -117,3 +137,31 @@ class PlayoffTie(models.Model):
                 raise ValidationError("Una definicion por penales requiere ambos marcadores.")
             if self.home_penalties == self.away_penalties:
                 raise ValidationError("Los penales deben determinar un ganador.")
+
+
+class PlayoffMatch(models.Model):
+    SINGLE = "single"
+    FIRST = "first"
+    SECOND = "second"
+    REPLAY = "replay"
+    LEG_CHOICES = [
+        (SINGLE, "Partido unico"),
+        (FIRST, "Ida"),
+        (SECOND, "Vuelta"),
+        (REPLAY, "Desempate"),
+    ]
+
+    tie = models.ForeignKey(PlayoffTie, on_delete=models.CASCADE, related_name="match_links")
+    match = models.OneToOneField("matches.Match", on_delete=models.PROTECT, related_name="playoff_link")
+    leg = models.CharField(max_length=10, choices=LEG_CHOICES, default=SINGLE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["tie", "leg"], name="unique_playoff_tie_leg"),
+        ]
+        indexes = [
+            models.Index(fields=["tie", "leg"]),
+        ]
+
+    def __str__(self):
+        return f"{self.tie} - {self.get_leg_display()}"

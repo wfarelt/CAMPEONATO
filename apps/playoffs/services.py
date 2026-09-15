@@ -1,166 +1,124 @@
-"""Business rules for generating and resolving knockout brackets."""
+"""Services for category-based knockout playoffs."""
 
-from django.core.exceptions import ValidationError
 from datetime import timedelta
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from apps.matches.models import Match
-from apps.playoffs.models import LeagueSettings, Playoff, PlayoffTie
+from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
 from apps.standings.services import build_standings
 from apps.teams.models import Team
 from apps.tournaments.models import MatchDay
 
 
-ROUND_BY_TEAM_COUNT = {
-    16: PlayoffTie.ROUND_OF_16,
-    8: PlayoffTie.QUARTERFINAL,
-    4: PlayoffTie.SEMIFINAL,
-    2: PlayoffTie.FINAL,
-}
-NEXT_ROUND = {
-    PlayoffTie.ROUND_OF_16: PlayoffTie.QUARTERFINAL,
-    PlayoffTie.QUARTERFINAL: PlayoffTie.SEMIFINAL,
-    PlayoffTie.SEMIFINAL: PlayoffTie.FINAL,
-}
+ROUND_BY_TEAM_COUNT = {16: PlayoffTie.ROUND_OF_16, 8: PlayoffTie.QUARTERFINAL, 4: PlayoffTie.SEMIFINAL, 2: PlayoffTie.FINAL}
+NEXT_ROUND = {PlayoffTie.ROUND_OF_16: PlayoffTie.QUARTERFINAL, PlayoffTie.QUARTERFINAL: PlayoffTie.SEMIFINAL, PlayoffTie.SEMIFINAL: PlayoffTie.FINAL}
 
 
 def get_teams_classified(category):
-    """Return the configured qualification limit without creating settings on reads."""
     return LeagueSettings.objects.filter(category=category).values_list("teams_classified", flat=True).first() or 8
 
 
 def get_league_settings(category):
-    """Return the saved category rules, creating the default rules when absent."""
     settings, _ = LeagueSettings.objects.get_or_create(category=category)
     return settings
 
 
 def generate_playoff(category, match_date, match_time, court=Match.COURT_1, second_leg_date=None, second_leg_time=None):
-    """Seed a new active playoff using the current standings for a category."""
     settings = get_league_settings(category)
     settings.full_clean()
     if not settings.playoffs_enabled:
         raise ValidationError("Los playoffs no estan habilitados para esta categoria.")
     if Playoff.objects.filter(category=category, is_active=True).exists():
-        raise ValidationError("Ya existe una edicion activa de playoffs para esta categoria.")
+        raise ValidationError("Ya existe un cuadro activo de playoffs para esta categoria.")
 
     standings = build_standings(category=category, include_adjustments=True)
     if len(standings) < settings.teams_classified:
         raise ValidationError("No hay suficientes equipos clasificados para generar el cuadro.")
-
-    team_by_slug = {
-        team.slug: team
-        for team in Team.objects.filter(category=category, slug__in=[standing["team_slug"] for standing in standings])
-    }
-    ranked_teams = [team_by_slug[standing["team_slug"]] for standing in standings[:settings.teams_classified]]
+    slugs = [standing["team_slug"] for standing in standings[:settings.teams_classified]]
+    teams = {team.slug: team for team in Team.objects.filter(category=category, slug__in=slugs)}
+    ranked_teams = [teams[slug] for slug in slugs if slug in teams]
     if len(ranked_teams) != settings.teams_classified:
         raise ValidationError("No se pudieron resolver los equipos clasificados.")
 
     with transaction.atomic():
         playoff = Playoff.objects.create(category=category, settings=settings)
+        ties = _create_bracket(playoff, settings.teams_classified, settings.third_place_match)
         initial_round = ROUND_BY_TEAM_COUNT[settings.teams_classified]
-        round_label = dict(PlayoffTie.ROUND_CHOICES)[initial_round]
-        first_matchday = MatchDay.objects.create(
-            category=category,
-            date=match_date,
-            description=f"{round_label} (ida)" if settings.playoffs_home_and_away else round_label,
-        )
-        second_matchday = None
-        if settings.playoffs_home_and_away:
-            second_matchday = MatchDay.objects.create(
-                category=category,
-                date=second_leg_date or match_date + timedelta(days=1),
-                description=f"{round_label} (vuelta)",
-            )
-        for position in range(1, (settings.teams_classified // 2) + 1):
-            home_team = ranked_teams[position - 1]
-            away_team = ranked_teams[-position]
-            first_leg, second_leg = _create_tie_matches(
-                home_team=home_team,
-                away_team=away_team,
-                match_date=match_date,
-                match_time=match_time,
-                court=court,
-                home_and_away=settings.playoffs_home_and_away,
-                second_leg_date=second_leg_date,
-                second_leg_time=second_leg_time,
-                first_matchday=first_matchday,
-                second_matchday=second_matchday,
-            )
-            PlayoffTie.objects.create(
-                playoff=playoff,
-                round=initial_round,
-                position=position,
-                home_team=home_team,
-                away_team=away_team,
-                first_leg=first_leg,
-                second_leg=second_leg,
-            )
-
-        _create_pending_rounds(playoff, settings.teams_classified, settings.third_place_match)
+        for position in range(1, settings.teams_classified // 2 + 1):
+            tie = ties[(initial_round, position)]
+            home_team, away_team = ranked_teams[position - 1], ranked_teams[-position]
+            tie.home_team, tie.away_team = home_team, away_team
+            tie.save(update_fields=["home_team", "away_team", "updated_at"])
+            _create_tie_matches(tie, category, home_team, away_team, match_date, match_time, court, settings.playoffs_home_and_away, second_leg_date, second_leg_time)
     return playoff
 
 
-def _create_tie_matches(
-    home_team,
-    away_team,
-    match_date,
-    match_time,
-    court,
-    home_and_away,
-    second_leg_date,
-    second_leg_time,
-    first_matchday,
-    second_matchday,
-):
-    if not home_and_away:
-        return Match.objects.create(
-            home_team=home_team,
-            away_team=away_team,
-            match_day=first_matchday,
-            date=match_date,
-            time=match_time,
-            court=court,
-        ), None
-
-    first_leg = Match.objects.create(
-        home_team=away_team,
-        away_team=home_team,
-        match_day=first_matchday,
-        date=match_date,
-        time=match_time,
-        court=court,
-    )
-    second_leg = Match.objects.create(
-        home_team=home_team,
-        away_team=away_team,
-        match_day=second_matchday,
-        date=second_leg_date or match_date,
-        time=second_leg_time or match_time,
-        court=court,
-    )
-    return first_leg, second_leg
-
-
-def _create_pending_rounds(playoff, teams_count, third_place_match):
+def _create_bracket(playoff, teams_count, third_place_match):
+    ties = {}
     current_count = teams_count
-    while current_count > 2:
-        current_count //= 2
+    while current_count >= 2:
         round_name = ROUND_BY_TEAM_COUNT[current_count]
-        for position in range(1, (current_count // 2) + 1):
-            PlayoffTie.objects.create(playoff=playoff, round=round_name, position=position)
+        for position in range(1, current_count // 2 + 1):
+            ties[(round_name, position)] = PlayoffTie.objects.create(playoff=playoff, round=round_name, position=position)
+        current_count //= 2
+
+    for (round_name, position), tie in ties.items():
+        next_round = NEXT_ROUND.get(round_name)
+        if next_round:
+            tie.next_tie = ties[(next_round, (position + 1) // 2)]
+            tie.next_slot = "home" if position % 2 else "away"
+            tie.save(update_fields=["next_tie", "next_slot", "updated_at"])
+
     if third_place_match and teams_count >= 4:
-        PlayoffTie.objects.create(playoff=playoff, round=PlayoffTie.THIRD_PLACE, position=1)
+        third_place = PlayoffTie.objects.create(playoff=playoff, round=PlayoffTie.THIRD_PLACE, position=1)
+        for position in (1, 2):
+            tie = ties[(PlayoffTie.SEMIFINAL, position)]
+            tie.next_tie = third_place
+            tie.next_slot = "home" if position == 1 else "away"
+            tie.save(update_fields=["next_tie", "next_slot", "updated_at"])
+        ties[(PlayoffTie.THIRD_PLACE, 1)] = third_place
+    return ties
+
+
+def _create_tie_matches(tie, category, home_team, away_team, match_date, match_time, court, home_and_away, second_leg_date, second_leg_time):
+    first_day = _get_match_day(category, match_date, tie.get_round_display() + (" (ida)" if home_and_away else ""), is_visible=True)
+    if not home_and_away:
+        match = Match.objects.create(home_team=home_team, away_team=away_team, match_day=first_day, date=match_date, time=match_time, court=court)
+        PlayoffMatch.objects.create(tie=tie, match=match, leg=PlayoffMatch.SINGLE)
+        return
+
+    second_date = second_leg_date or match_date + timedelta(days=1)
+    second_day = _get_match_day(category, second_date, tie.get_round_display() + " (vuelta)", is_visible=False)
+    first = Match.objects.create(home_team=away_team, away_team=home_team, match_day=first_day, date=match_date, time=match_time, court=court)
+    second = Match.objects.create(home_team=home_team, away_team=away_team, match_day=second_day, date=second_date, time=second_leg_time or match_time, court=court)
+    PlayoffMatch.objects.bulk_create([PlayoffMatch(tie=tie, match=first, leg=PlayoffMatch.FIRST), PlayoffMatch(tie=tie, match=second, leg=PlayoffMatch.SECOND)])
+
+
+def _get_match_day(category, date, description, is_visible=True):
+    match_day, created = MatchDay.objects.get_or_create(
+        category=category,
+        date=date,
+        defaults={"description": description, "is_visible": is_visible},
+    )
+    if not created and "(vuelta)" in description and match_day.description == description and match_day.is_visible:
+        match_day.is_visible = is_visible
+        match_day.save(update_fields=["is_visible", "updated_at"])
+    if not match_day.description:
+        match_day.description = description
+        match_day.is_visible = is_visible
+        match_day.save(update_fields=["description", "is_visible", "slug", "updated_at"])
+    return match_day
+
+
+def get_tie_matches(tie):
+    return [link.match for link in tie.match_links.select_related("match").order_by("id")]
 
 
 def get_tie_aggregate(tie):
-    """Return the regular-time goals accumulated by each seeded team in a tie."""
-    home_goals = 0
-    away_goals = 0
-    for match in (tie.first_leg, tie.second_leg):
-        if not match:
-            continue
+    home_goals = away_goals = 0
+    for match in get_tie_matches(tie):
         if match.home_team_id == tie.home_team_id:
             home_goals += match.home_score
             away_goals += match.away_score
@@ -171,40 +129,35 @@ def get_tie_aggregate(tie):
 
 
 def record_penalty_result(tie, home_penalties, away_penalties):
-    """Store a valid penalty result for an otherwise tied, completed series."""
     with transaction.atomic():
-        tie = PlayoffTie.objects.select_for_update().select_related("first_leg", "second_leg").get(pk=tie.pk)
+        tie = PlayoffTie.objects.select_for_update().select_related("playoff__settings").get(pk=tie.pk)
         _validate_completed_tie(tie)
-        home_goals, away_goals = get_tie_aggregate(tie)
-        if home_goals != away_goals:
+        if get_tie_aggregate(tie)[0] != get_tie_aggregate(tie)[1]:
             raise ValidationError("Los penales solo aplican cuando el marcador global esta empatado.")
-        if not tie.playoff.settings.penalties_on_aggregate_tie:
-            raise ValidationError("La definicion por penales no esta habilitada para estos playoffs.")
-        if home_penalties == away_penalties:
-            raise ValidationError("Los penales deben determinar un ganador.")
-        tie.home_penalties = home_penalties
-        tie.away_penalties = away_penalties
+        if not tie.playoff.settings.penalties_on_aggregate_tie or home_penalties == away_penalties:
+            raise ValidationError("El resultado de penales no es valido para estos playoffs.")
+        tie.home_penalties, tie.away_penalties = home_penalties, away_penalties
         tie.decided_by_penalties = True
         tie.save(update_fields=["home_penalties", "away_penalties", "decided_by_penalties", "updated_at"])
         return resolve_tie(tie)
 
 
 def resolve_tie(tie):
-    """Determine a completed tie winner and place teams in their next matches."""
     with transaction.atomic():
-        tie = PlayoffTie.objects.select_for_update().select_related("playoff__settings", "first_leg", "second_leg").get(pk=tie.pk)
+        tie = PlayoffTie.objects.select_for_update().select_related("playoff__settings", "next_tie").get(pk=tie.pk)
         _validate_completed_tie(tie)
         home_goals, away_goals = get_tie_aggregate(tie)
         if home_goals == away_goals:
-            if not tie.decided_by_penalties:
-                raise ValidationError("La llave esta empatada y requiere definicion por penales.")
-            winner = tie.home_team if tie.home_penalties > tie.away_penalties else tie.away_team
+            if tie.playoff.settings.sporting_advantage_on_tie:
+                winner = tie.home_team
+            elif tie.decided_by_penalties:
+                winner = tie.home_team if tie.home_penalties > tie.away_penalties else tie.away_team
+            else:
+                raise ValidationError("La llave esta empatada y requiere definicion.")
         else:
             winner = tie.home_team if home_goals > away_goals else tie.away_team
-        loser = tie.away_team if winner == tie.home_team else tie.home_team
-
         tie.winner = winner
-        tie.loser = loser
+        tie.loser = tie.away_team if winner == tie.home_team else tie.home_team
         tie.save(update_fields=["winner", "loser", "updated_at"])
         _advance_tie(tie)
     return tie
@@ -219,23 +172,9 @@ def _validate_completed_tie(tie):
 
 
 def _advance_tie(tie):
-    next_round = NEXT_ROUND.get(tie.round)
-    if next_round:
-        next_tie = PlayoffTie.objects.select_for_update().get(
-            playoff=tie.playoff,
-            round=next_round,
-            position=(tie.position + 1) // 2,
-        )
-        team_field = "home_team" if tie.position % 2 else "away_team"
-        setattr(next_tie, team_field, tie.winner)
-        next_tie.save(update_fields=[team_field, "updated_at"])
-
-    if tie.round == PlayoffTie.SEMIFINAL and tie.playoff.settings.third_place_match:
-        third_place = PlayoffTie.objects.select_for_update().get(
-            playoff=tie.playoff,
-            round=PlayoffTie.THIRD_PLACE,
-            position=1,
-        )
-        team_field = "home_team" if tie.position == 1 else "away_team"
-        setattr(third_place, team_field, tie.loser)
-        third_place.save(update_fields=[team_field, "updated_at"])
+    if not tie.next_tie or not tie.winner:
+        return
+    next_tie = PlayoffTie.objects.select_for_update().get(pk=tie.next_tie_id)
+    field = "home_team" if tie.next_slot == "home" else "away_team"
+    setattr(next_tie, field, tie.winner)
+    next_tie.save(update_fields=[field, "updated_at"])

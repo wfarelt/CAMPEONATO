@@ -227,32 +227,51 @@ img { max-width: 100%; display: block; }
 .btn-fixture:hover { background: var(--red); color: #fff; }
 
 /* --- Playoffs --- */
-.playoff-card { grid-column: 1 / -1; }
+.playoff-card { grid-column: auto; }
+.playoff-section-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.playoff-format-label { color: var(--red); font-size: .68rem; letter-spacing: 1.5px; }
+.playoff-bracket-scroll { overflow-x: auto; scrollbar-color: var(--red) #111; }
 .playoff-bracket {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 1rem; padding: 1rem;
-    overflow-x: auto;
+    --playoff-bracket-height: 360px;
+    display: flex; align-items: stretch; gap: 1.25rem; min-width: 0;
+    padding: 1.1rem 1rem 1.25rem;
 }
-.playoff-round { min-width: 0; }
+.playoff-round { flex: 1 1 auto; min-width: 0; position: relative; }
+.playoff-round:not(:last-child)::after {
+    content: ''; position: absolute; top: 50%; right: -.7rem; width: .55rem;
+    border-top: 1px solid #3a3a3a;
+}
+.playoff-auxiliary-round { max-width: 220px; margin: 0 auto .2rem; padding: 0 1rem 1rem; }
+.playoff-auxiliary-ties { display: grid; gap: .7rem; }
 .playoff-round-title {
     color: #777; font-family: var(--font-bebas); font-size: .95rem;
     letter-spacing: 1px; text-align: center; margin-bottom: .65rem;
 }
-.playoff-ties { display: grid; gap: .7rem; }
-.playoff-tie { background: #111; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.playoff-ties { display: flex; flex-direction: column; justify-content: space-around; gap: .7rem; min-height: var(--playoff-bracket-height); }
+.playoff-tie { position: relative; width: 100%; max-width: 210px; margin-inline: auto; background: #111; border: 1px solid var(--border); border-radius: 4px; overflow: visible; }
+.playoff-tie::after { content: ''; position: absolute; top: 50%; right: -.72rem; width: .65rem; border-top: 1px solid #3a3a3a; }
+.playoff-round:last-child .playoff-tie::after, .playoff-auxiliary-round .playoff-tie::after { display: none; }
+.playoff-tie-number { padding: .3rem .55rem; color: #555; border-bottom: 1px solid var(--border); font-size: .58rem; letter-spacing: 1px; }
 .playoff-team {
     display: flex; align-items: center; justify-content: space-between;
-    gap: .45rem; padding: .45rem .55rem; border-bottom: 1px solid var(--border);
-    color: #bbb; font-size: .72rem;
+    gap: .45rem; min-height: 38px; padding: .4rem .55rem; border-bottom: 1px solid var(--border);
+    color: #bbb; font-size: .72rem; line-height: 1.15;
 }
 .playoff-team:last-of-type { border-bottom: none; }
 .playoff-team-winner { color: #fff; background: color-mix(in srgb, var(--red) 14%, transparent); }
 .playoff-team strong { color: var(--red); font-family: var(--font-bebas); font-size: 1rem; }
-.playoff-team-name { display: flex; align-items: center; gap: .35rem; min-width: 0; overflow: hidden; }
-.playoff-team-name img { width: 25px; height: 25px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-.playoff-team-name { white-space: nowrap; text-overflow: ellipsis; }
+.playoff-team-name { display: flex; align-items: center; gap: .35rem; min-width: 0; max-width: calc(100% - 28px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.playoff-team-name img { width: 25px !important; height: 25px !important; max-width: 25px !important; min-width: 25px; border-radius: 50%; object-fit: cover; flex: 0 0 25px; }
 .playoff-penalties { padding: .3rem .55rem; color: #777; font-size: .65rem; }
+.playoff-qualifier { padding: .35rem .55rem; border-top: 1px solid var(--border); color: var(--red); font-size: .62rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .playoff-empty { padding: 1.5rem; color: #666; text-align: center; font-size: .85rem; }
+
+@media (max-width: 640px) {
+    .playoff-bracket { --playoff-bracket-height: 330px; min-width: 0; gap: .85rem; padding-inline: .7rem; }
+    .playoff-round { flex-basis: 145px; min-width: 145px; }
+    .playoff-team { padding-inline: .4rem; }
+    .playoff-team-name img { width: 21px; height: 21px; }
+}
 
 /* --- Standings --- */
 .standings-table { width: 100%; border-collapse: collapse; font-size: .77rem; }
@@ -377,6 +396,8 @@ img { max-width: 100%; display: block; }
     border-top: 3px solid var(--red);
     padding: 1.8rem 3rem;
     overflow: hidden;
+    width: 100%;
+    clear: both;
 }
 .footer-brush {
     position: absolute; top: 0; bottom: 0; width: 160px; pointer-events: none;
@@ -397,6 +418,7 @@ img { max-width: 100%; display: block; }
     position: relative; z-index: 1;
     max-width: 1200px; margin: 0 auto;
     display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+    min-height: 86px;
 }
 .footer-location {
     display: flex; align-items: flex-start; gap: .5rem;
@@ -405,7 +427,8 @@ img { max-width: 100%; display: block; }
 .footer-organizer { text-align: center; }
 .footer-organizer-label { font-family: var(--font-bebas); font-size: .85rem; letter-spacing: 1px; color: #ccc; }
 .footer-organizer-name { font-family: var(--font-bebas); font-size: 1.2rem; letter-spacing: 1px; color: var(--red); }
-.footer-logo img { height: 80px; width: auto; }
+.footer-logo { flex: 0 0 auto; }
+.footer-logo img { display: block; width: auto; max-width: 150px; height: 80px; object-fit: contain; }
 .footer-social { text-align: center; }
 .footer-social-label { font-family: var(--font-bebas); font-size: .85rem; letter-spacing: 1px; color: #ccc; margin-bottom: .5rem; }
 .footer-social-icons { display: flex; gap: .5rem; justify-content: center; }
@@ -423,7 +446,8 @@ img { max-width: 100%; display: block; }
 .footer-tagline span { color: var(--red); }
 
 @media (max-width: 900px) {
-    .footer-inner { flex-wrap: wrap; justify-content: center; text-align: center; }
+    .site-footer { padding: 1.5rem 1rem; }
+    .footer-inner { flex-wrap: wrap; justify-content: center; text-align: center; min-height: 0; }
     .footer-location { justify-content: center; }
     .footer-tagline { text-align: center; }
     .footer-brush { display: none; }
@@ -455,5 +479,8 @@ img { max-width: 100%; display: block; }
     .value-item:last-child { border-bottom: none; }
     .contact-inner { grid-template-columns: 1fr; gap: 2rem; }
     .form-row { grid-template-columns: 1fr; }
-    .footer { flex-direction: column; gap: .4rem; text-align: center; }
+    .site-footer { padding: 1.25rem .85rem; }
+    .footer-inner { flex-direction: column; gap: .9rem; }
+    .footer-location, .footer-organizer, .footer-logo, .footer-social, .footer-tagline { width: 100%; }
+    .footer-logo img { height: 64px; margin: 0 auto; }
 }

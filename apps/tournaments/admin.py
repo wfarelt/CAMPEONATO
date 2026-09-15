@@ -12,9 +12,9 @@ class MatchInline(admin.TabularInline):
 
 @admin.register(MatchDay)
 class MatchDayAdmin(admin.ModelAdmin):
-    list_display = ("date", "category", "description", "matches_count")
-    list_filter = ("category",)
-    fields = ("category", "date", "description")
+    list_display = ("date", "category", "description", "is_visible", "matches_count")
+    list_filter = ("category", "is_visible")
+    fields = ("category", "date", "description", "is_visible")
     inlines = [MatchInline]
 
     def matches_count(self, obj):

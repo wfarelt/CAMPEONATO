@@ -10,34 +10,63 @@
             <p class="text-sm text-[#9da6b9]">{{ championship_category_label }}</p>
             <h1 class="mt-1 text-3xl font-bold">Cuadro eliminatorio</h1>
         </div>
-        {% if settings.playoffs_home_and_away %}
+        {% if settings and settings.playoffs_home_and_away %}
             <p class="text-sm text-[#9da6b9]">Llaves a ida y vuelta</p>
-        {% else %}
+        {% elif settings %}
             <p class="text-sm text-[#9da6b9]">Llaves a partido unico</p>
         {% endif %}
     </div>
     {% if not settings or not settings.playoffs_enabled %}
-        <p class="mt-6 text-[#9da6b9]">Los playoffs no estan habilitados para esta categoria.</p>
-    {% elif not playoff %}
-        <p class="mt-6 text-[#9da6b9]">El cuadro de playoffs aun no fue generado.</p>
-        {% if user.is_authenticated and user.role == 'ORGANIZER' %}
-        <section class="mt-6 max-w-2xl rounded-lg border border-[#282e39] bg-[#1c1f27] p-5">
-            <h2 class="text-lg font-bold">Generar cuadro</h2>
-            <form class="mt-4 grid gap-4 sm:grid-cols-2" method="post" action="{% url 'generate_playoff' %}?{{ category_query }}">
-                {% csrf_token %}
-                <div>{{ generation_form.match_date.label_tag }}{{ generation_form.match_date }}</div>
-                <div>{{ generation_form.match_time.label_tag }}{{ generation_form.match_time }}</div>
-                <div>{{ generation_form.court.label_tag }}{{ generation_form.court }}</div>
-                {% if settings.playoffs_home_and_away %}
-                <div>{{ generation_form.second_leg_date.label_tag }}{{ generation_form.second_leg_date }}</div>
-                <div>{{ generation_form.second_leg_time.label_tag }}{{ generation_form.second_leg_time }}</div>
-                {% endif %}
-                <div class="flex items-end">
-                    <button class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90" type="submit">Generar playoffs</button>
+        <section class="mt-8 max-w-3xl border border-[#282e39] bg-[#1c1f27] p-6">
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-[#f0b35b]">info</span>
+                <div>
+                    <h2 class="font-semibold text-white">Playoffs no disponibles</h2>
+                    <p class="mt-1 text-sm text-[#9da6b9]">Esta categoria no tiene un cuadro habilitado. Activa la configuracion desde el panel de administracion antes de generarlo.</p>
                 </div>
-            </form>
+            </div>
         </section>
-        {% endif %}
+    {% elif not playoff %}
+        <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.8fr)]">
+            <section class="border border-[#282e39] bg-[#1c1f27] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Configuracion lista</p>
+                        <h2 class="mt-2 text-xl font-bold text-white">Generar cuadro</h2>
+                        <p class="mt-1 text-sm text-[#9da6b9]">Los equipos se toman automaticamente de las posiciones finales de {{ championship_category_label }}.</p>
+                    </div>
+                    <span class="material-symbols-outlined text-primary">account_tree</span>
+                </div>
+                {% if is_organizer %}
+                <form class="mt-6 grid gap-4 sm:grid-cols-2" method="post" action="{% url 'generate_playoff' %}?{{ category_query }}">
+                {% csrf_token %}
+                {% if generation_form.non_field_errors %}<div class="sm:col-span-2 text-sm text-red-300">{{ generation_form.non_field_errors }}</div>{% endif %}
+                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.match_date.id_for_label }}">{{ generation_form.match_date.label }}</label>{{ generation_form.match_date }}{{ generation_form.match_date.errors }}</div>
+                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.match_time.id_for_label }}">{{ generation_form.match_time.label }}</label>{{ generation_form.match_time }}{{ generation_form.match_time.errors }}</div>
+                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.court.id_for_label }}">{{ generation_form.court.label }}</label>{{ generation_form.court }}{{ generation_form.court.errors }}</div>
+                {% if settings.playoffs_home_and_away %}
+                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.second_leg_date.id_for_label }}">{{ generation_form.second_leg_date.label }}</label>{{ generation_form.second_leg_date }}{{ generation_form.second_leg_date.errors }}</div>
+                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.second_leg_time.id_for_label }}">{{ generation_form.second_leg_time.label }}</label>{{ generation_form.second_leg_time }}{{ generation_form.second_leg_time.errors }}</div>
+                {% endif %}
+                <div class="sm:col-span-2 flex items-center justify-between gap-4 border-t border-[#282e39] pt-4">
+                    <p class="text-xs text-[#9da6b9]">Se crearan las llaves y sus jornadas automaticamente.</p>
+                    <button class="inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90" type="submit"><span class="material-symbols-outlined text-[18px]">add_circle</span>Generar playoffs</button>
+                </div>
+                </form>
+                {% else %}
+                <p class="mt-6 border-t border-[#282e39] pt-4 text-sm text-[#9da6b9]">El cuadro sera generado por un organizador autorizado.</p>
+                {% endif %}
+            </section>
+            <aside class="border border-[#282e39] bg-[#14171d] p-6">
+                <h2 class="font-semibold text-white">Reglas de esta categoria</h2>
+                <dl class="mt-4 divide-y divide-[#282e39] text-sm">
+                    <div class="flex justify-between gap-4 py-3"><dt class="text-[#9da6b9]">Clasificados</dt><dd class="font-semibold text-white">{{ settings.teams_classified }} equipos</dd></div>
+                    <div class="flex justify-between gap-4 py-3"><dt class="text-[#9da6b9]">Formato</dt><dd class="font-semibold text-white">{% if settings.playoffs_home_and_away %}Ida y vuelta{% else %}Partido unico{% endif %}</dd></div>
+                    <div class="flex justify-between gap-4 py-3"><dt class="text-[#9da6b9]">Desempate</dt><dd class="font-semibold text-white">{% if settings.penalties_on_aggregate_tie %}Penales{% else %}Por configurar{% endif %}</dd></div>
+                    <div class="flex justify-between gap-4 py-3"><dt class="text-[#9da6b9]">Tercer puesto</dt><dd class="font-semibold text-white">{% if settings.third_place_match %}Si{% else %}No{% endif %}</dd></div>
+                </dl>
+            </aside>
+        </div>
     {% else %}
         <div class="mt-8 grid gap-8 lg:grid-cols-2 xl:grid-cols-4">
         {% for round in rounds %}
