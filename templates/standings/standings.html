@@ -47,7 +47,12 @@
               {{ forloop.counter }}
             </div>
           </td>
-          <td class="px-3 py-2 font-semibold">{{ team.team }}</td>
+          <td class="px-3 py-2 font-semibold">
+            {{ team.team }}
+            {% if team.points_adjustment %}
+              <span class="text-info">({% if team.points_adjustment > 0 %}+{% endif %}{{ team.points_adjustment }})</span>
+            {% endif %}
+          </td>
           <td class="px-3 py-2 text-center">{{ team.matches_played }}</td>
           <td class="px-3 py-2 text-center font-semibold text-accent-green">{{ team.won }}</td>
           <td class="px-3 py-2 text-center font-semibold text-[#9da6b9]">{{ team.drawn }}</td>
@@ -57,7 +62,9 @@
           <td class="px-3 py-2 text-center font-semibold {% if team.goal_difference >= 0 %}text-accent-green{% else %}text-red-500{% endif %}">
             {% if team.goal_difference >= 0 %}+{% endif %}{{ team.goal_difference }}
           </td>
-          <td class="px-3 py-2 text-right font-black text-primary">{{ team.points }}</td>
+          <td class="px-3 py-2 text-right font-black text-primary">
+            {{ team.points }}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -87,6 +94,9 @@
       </div>
       <div class="text-right">
         <p class="text-xl font-black text-primary">{{ team.points }}</p>
+        {% if team.points_adjustment %}
+        <p class="text-xs font-medium text-[#9da6b9]">({% if team.points_adjustment > 0 %}+{% endif %}{{ team.points_adjustment }}) ajuste</p>
+        {% endif %}
         <p class="text-[11px] text-[#9da6b9]">Puntos</p>
       </div>
     </div>
@@ -120,6 +130,50 @@
   </div>
   {% endfor %}
 </div>
+
+<!-- Point adjustment details -->
+<section class="mt-6 overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27]">
+  <div class="border-b border-[#282e39] px-4 py-3">
+    <h3 class="text-lg font-black">Detalle de ajustes de puntos</h3>
+    <p class="text-xs text-[#9da6b9]">Ajustes registrados para los equipos de esta categoría.</p>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-[#282e39] bg-[#20232c] text-[11px] uppercase tracking-wider text-[#9da6b9]">
+        <tr>
+          <th class="px-4 py-3">Fecha</th>
+          <th class="px-4 py-3">Partido</th>
+          <th class="px-4 py-3">Equipo</th>
+          <th class="px-4 py-3 text-right">Puntos</th>
+          <th class="px-4 py-3">Motivo</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-[#282e39]">
+        {% for adjustment in point_adjustments %}
+        <tr class="hover:bg-[#282e39]">
+          <td class="whitespace-nowrap px-4 py-3 text-[#9da6b9]">{{ adjustment.date|date:"d/m/Y" }}</td>
+          <td class="px-4 py-3">
+            {% if adjustment.match %}
+            {{ adjustment.match.home_team.name }} - {{ adjustment.match.away_team.name }}
+            {% else %}
+            <span class="text-[#9da6b9]">Sin partido asociado</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 font-semibold">{{ adjustment.team.name }}</td>
+          <td class="px-4 py-3 text-right font-bold {% if adjustment.points > 0 %}text-accent-green{% elif adjustment.points < 0 %}text-red-500{% endif %}">
+            {% if adjustment.points > 0 %}+{% endif %}{{ adjustment.points }}
+          </td>
+          <td class="px-4 py-3">{{ adjustment.reason }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-4 py-6 text-center text-sm text-[#9da6b9]">No hay ajustes registrados para esta categoría.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 
 <!-- Footer Note -->
 <div class="mt-6 rounded-2xl border border-[#282e39] bg-[#1c1f27] px-4 py-3">

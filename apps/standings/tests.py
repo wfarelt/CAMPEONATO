@@ -43,7 +43,12 @@ class StandingsServiceTests(TestCase):
             time=time(12, 0),
             status="finished",
         )
-        PointsAdjustment.objects.create(team=self.team_a, points=1, reason="Bonus")
+        PointsAdjustment.objects.create(
+            team=self.team_a,
+            match=Match.objects.filter(home_team=self.team_a).first(),
+            points=1,
+            reason="Bonus",
+        )
 
     def test_build_standings_applies_adjustments_and_sorting(self):
         standings = build_standings(category="seniors", include_adjustments=True)
@@ -53,12 +58,14 @@ class StandingsServiceTests(TestCase):
         self.assertEqual(standings[0]["won"], 1)
         self.assertEqual(standings[0]["drawn"], 1)
         self.assertEqual(standings[0]["goal_difference"], 1)
+        self.assertEqual(standings[0]["points_adjustment"], 1)
 
     def test_build_standings_can_skip_adjustments(self):
         standings = build_standings(category="seniors", include_adjustments=False)
         alpha = next(item for item in standings if item["team"] == "Alpha FC")
 
         self.assertEqual(alpha["points"], 4)
+        self.assertEqual(alpha["points_adjustment"], 0)
 
     def test_build_standings_filters_by_category(self):
         standings = build_standings(category="super_seniors", include_adjustments=False)
@@ -72,3 +79,19 @@ class StandingsServiceTests(TestCase):
         response = self.client.get("/tabla-posiciones/?category=seniors")
 
         self.assertContains(response, "bg-primary/60 text-white", count=4)
+
+    def test_standings_view_shows_adjustment_total_and_details(self):
+        response = self.client.get("/tabla-posiciones/?category=seniors")
+
+        self.assertContains(response, "(+1)")
+        self.assertContains(response, "Detalle de ajustes de puntos")
+        self.assertContains(response, "Alpha FC - Beta FC")
+        self.assertNotContains(response, "Alpha FC (Seniors)")
+        self.assertContains(response, "Bonus")
+
+    def test_standings_view_only_shows_adjustments_for_selected_category(self):
+        PointsAdjustment.objects.create(team=self.super_a, points=-2, reason="Sanción")
+
+        response = self.client.get("/tabla-posiciones/?category=seniors")
+
+        self.assertNotContains(response, "Sanción")

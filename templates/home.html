@@ -261,7 +261,7 @@
             <thead>
                 <tr>
                     <th style="width:26px">#</th>
-                    <th class="col-team">PROMOCIÓN</th>
+                    <th class="col-team">EQUIPO</th>
                     <th>PJ</th><th>PG</th><th>PE</th><th>PP</th>
                     <th>GF</th><th>GC</th><th>DIF</th><th>PTS</th>
                 </tr>
@@ -274,6 +274,11 @@
                         <div class="team-cell">
                             <img src="{{ row.team_logo }}" alt="{{ row.team }}">
                             <span>{{ row.team }}</span>
+                            {% if row.points_adjustment %}
+                                <small class="points-adjustment" title="Ajuste de puntos" style="color: blue;">
+                                    ({% if row.points_adjustment > 0 %}+{% endif %}{{ row.points_adjustment }})
+                                </small>
+                            {% endif %}
                         </div>
                     </td>
                     <td>{{ row.matches_played }}</td>
@@ -295,6 +300,7 @@
             <span>PE: Empatados</span><span>PP: Perdidos</span>
             <span>GF: Goles a Favor</span><span>GC: Goles en Contra</span>
             <span>DIF: Diferencia de Goles</span><span>PTS: Puntos</span>
+            <span style="color: blue;">(+/-): Ajuste de Puntos</span>
         </div>
     </section>
     {% endif %}

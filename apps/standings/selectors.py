@@ -29,6 +29,7 @@ def calculate_team_standing(team, include_adjustments=True, category=None):
 	goals_against += matches_played.filter(away_team=team).aggregate(Sum("home_score"))["home_score__sum"] or 0
 
 	points = won * 3 + drawn
+	adjustments = 0
 	if include_adjustments:
 		adjustments = team.points_adjustments.aggregate(total=Sum("points"))["total"] or 0
 		points += adjustments
@@ -46,6 +47,7 @@ def calculate_team_standing(team, include_adjustments=True, category=None):
 		"goals_against": goals_against,
 		"goal_difference": goals_for - goals_against,
 		"points": points,
+		"points_adjustment": adjustments,
 	}
 
 
