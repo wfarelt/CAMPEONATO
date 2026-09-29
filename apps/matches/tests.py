@@ -7,9 +7,10 @@ from django.test import TestCase
 
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
-from apps.playoffs.models import LeagueSettings, Playoff, PlayoffTie
+from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
 from apps.teams.models import Player, Team
 from apps.tournaments.models import MatchDay
+from apps.users.models import User
 
 
 class MatchServicesTests(TestCase):
@@ -97,6 +98,183 @@ class MatchServicesTests(TestCase):
         context = build_home_context(category="seniors")
 
         self.assertEqual([round_data["label"] for round_data in context["playoff_rounds"]], ["Final"])
+
+    def test_home_playoff_context_includes_ida_vuelta_and_penalty_scores(self):
+        settings = LeagueSettings.objects.create(category="seniors", teams_classified=4, playoffs_enabled=True)
+        playoff = Playoff.objects.create(category="seniors", settings=settings)
+        tie = PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=1,
+            home_team=self.team_a,
+            away_team=self.team_b,
+            decided_by_penalties=True,
+            home_penalties=5,
+            away_penalties=4,
+        )
+        first_leg = Match.objects.create(
+            home_team=self.team_b,
+            away_team=self.team_a,
+            home_score=1,
+            away_score=0,
+            date=date(2026, 5, 20),
+            time=time(14, 0),
+            status="finished",
+        )
+        second_leg = Match.objects.create(
+            home_team=self.team_a,
+            away_team=self.team_b,
+            home_score=2,
+            away_score=0,
+            date=date(2026, 5, 27),
+            time=time(14, 0),
+            status="finished",
+        )
+        PlayoffMatch.objects.create(tie=tie, match=first_leg, leg=PlayoffMatch.FIRST)
+        PlayoffMatch.objects.create(tie=tie, match=second_leg, leg=PlayoffMatch.SECOND)
+
+        context = build_home_context(category="seniors")
+        home_tie = context["playoff_rounds"][0]["ties"][0]
+
+        self.assertEqual(home_tie["first_leg_label"], "IDA")
+        self.assertEqual((home_tie["home_first_score"], home_tie["away_first_score"]), (0, 1))
+        self.assertEqual((home_tie["home_second_score"], home_tie["away_second_score"]), (2, 0))
+        self.assertEqual((home_tie["home_points"], home_tie["away_points"]), (3, 3))
+
+        response = self.client.get("/", {"category": "seniors"})
+        self.assertContains(response, "IDA")
+        self.assertContains(response, "VUELTA")
+        self.assertContains(response, "PENALES")
+        self.assertContains(response, "PUNTOS DE LA LLAVE: 3 - 3")
+
+    def test_home_playoff_context_matches_leg_scores_to_the_tie_teams(self):
+        settings = LeagueSettings.objects.create(category="seniors", teams_classified=4, playoffs_enabled=True)
+        playoff = Playoff.objects.create(category="seniors", settings=settings)
+        first_tie = PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=1,
+            home_team=self.team_a,
+            away_team=self.team_b,
+        )
+        second_tie = PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=2,
+            home_team=self.team_c,
+            away_team=self.team_d,
+        )
+        first_tie_match = Match.objects.create(
+            home_team=self.team_a,
+            away_team=self.team_b,
+            home_score=3,
+            away_score=1,
+            date=date(2026, 5, 20),
+            time=time(14, 0),
+            status="finished",
+        )
+        second_tie_match = Match.objects.create(
+            home_team=self.team_c,
+            away_team=self.team_d,
+            home_score=0,
+            away_score=2,
+            date=date(2026, 5, 20),
+            time=time(15, 0),
+            status="finished",
+        )
+        # Reproduce stale tie-to-match links: each first leg is attached to the other tie.
+        PlayoffMatch.objects.create(tie=first_tie, match=second_tie_match, leg=PlayoffMatch.FIRST)
+        PlayoffMatch.objects.create(tie=second_tie, match=first_tie_match, leg=PlayoffMatch.FIRST)
+
+        context = build_home_context(category="seniors")
+        first_tie_data = next(
+            tie for tie in context["playoff_rounds"][0]["ties"] if tie["home_team"] == self.team_a.name
+        )
+
+        self.assertEqual((first_tie_data["home_first_score"], first_tie_data["away_first_score"]), (3, 1))
+        self.assertEqual((first_tie_data["home_points"], first_tie_data["away_points"]), (3, 0))
+
+    def test_finishing_a_tied_playoff_match_redirects_to_penalty_entry(self):
+        settings = LeagueSettings.objects.create(category="seniors", playoffs_enabled=True)
+        playoff = Playoff.objects.create(category="seniors", settings=settings)
+        tie = PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=1,
+            home_team=self.team_a,
+            away_team=self.team_b,
+        )
+        match = Match.objects.create(
+            home_team=self.team_a,
+            away_team=self.team_b,
+            date=date(2026, 5, 20),
+            time=time(14, 0),
+            status="scheduled",
+        )
+        PlayoffMatch.objects.create(tie=tie, match=match, leg=PlayoffMatch.SINGLE)
+        organizer = User.objects.create_user(username="organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.post(
+            f"/partidos/{match.slug}/resultado/",
+            {
+                "action": "save_match",
+                "home_score": 1,
+                "away_score": 1,
+                "status": "finished",
+                "court": match.court,
+                "date": match.date.isoformat(),
+                "time": match.time.strftime("%H:%M"),
+            },
+        )
+
+        self.assertRedirects(response, "/playoffs/?category=seniors", fetch_redirect_response=False)
+        playoffs_response = self.client.get("/playoffs/?category=seniors")
+        self.assertContains(playoffs_response, "Empate en puntos: 1 - 1")
+        self.assertContains(playoffs_response, "name=\"home_penalties\"")
+
+    def test_finishing_a_decisive_playoff_match_advances_winner_automatically(self):
+        settings = LeagueSettings.objects.create(category="seniors", playoffs_enabled=True)
+        playoff = Playoff.objects.create(category="seniors", settings=settings)
+        final_tie = PlayoffTie.objects.create(playoff=playoff, round=PlayoffTie.FINAL, position=1)
+        tie = PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=1,
+            home_team=self.team_a,
+            away_team=self.team_b,
+            next_tie=final_tie,
+            next_slot="home",
+        )
+        match = Match.objects.create(
+            home_team=self.team_a,
+            away_team=self.team_b,
+            date=date(2026, 5, 20),
+            time=time(14, 0),
+            status="scheduled",
+        )
+        PlayoffMatch.objects.create(tie=tie, match=match, leg=PlayoffMatch.SINGLE)
+        organizer = User.objects.create_user(username="organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.post(
+            f"/partidos/{match.slug}/resultado/",
+            {
+                "action": "save_match",
+                "home_score": 2,
+                "away_score": 0,
+                "status": "finished",
+                "court": match.court,
+                "date": match.date.isoformat(),
+                "time": match.time.strftime("%H:%M"),
+            },
+        )
+
+        self.assertRedirects(response, "/playoffs/?category=seniors", fetch_redirect_response=False)
+        tie.refresh_from_db()
+        final_tie.refresh_from_db()
+        self.assertEqual(tie.winner, self.team_a)
+        self.assertEqual(final_tie.home_team, self.team_a)
 
     def test_build_home_context_uses_next_scheduled_matchday(self):
         self.scheduled_match.status = "finished"

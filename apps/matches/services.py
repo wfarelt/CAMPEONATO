@@ -3,8 +3,8 @@
 from django.db.models import Q, Sum, Count
 
 from apps.matches.models import Match, MatchEvent
-from apps.playoffs.models import Playoff, PlayoffTie
-from apps.playoffs.services import get_tie_aggregate, get_teams_classified
+from apps.playoffs.models import Playoff, PlayoffMatch, PlayoffTie
+from apps.playoffs.services import get_tie_match, get_tie_points, get_teams_classified
 from apps.sponsors.models import Sponsor
 from apps.standings.services import build_standings
 from apps.standings.selectors import get_last_results
@@ -269,15 +269,33 @@ def build_home_playoff_context(category):
 	for tie in playoff.ties.all():
 		if tie.round == PlayoffTie.THIRD_PLACE:
 			continue
-		home_goals, away_goals = get_tie_aggregate(tie)
+		first_leg = get_tie_match(tie, PlayoffMatch.FIRST) or get_tie_match(tie, PlayoffMatch.SINGLE)
+		second_leg = get_tie_match(tie, PlayoffMatch.SECOND)
+		home_points, away_points = get_tie_points(tie)
+
+		def score_for(match, team):
+			if not match or match.status != "finished":
+				return "—"
+			if match.home_team_id == team.id:
+				return match.home_score
+			if match.away_team_id == team.id:
+				return match.away_score
+			return "—"
+
 		ties_by_round.setdefault(tie.round, []).append(
 			{
 				"home_team": tie.home_team.name if tie.home_team else "Por definir",
 				"away_team": tie.away_team.name if tie.away_team else "Por definir",
 				"home_logo": tie.home_team.logo.url if tie.home_team and tie.home_team.logo else DEFAULT_TEAM_LOGO,
 				"away_logo": tie.away_team.logo.url if tie.away_team and tie.away_team.logo else DEFAULT_TEAM_LOGO,
-				"home_goals": home_goals,
-				"away_goals": away_goals,
+				"first_leg_label": "IDA" if second_leg else "PARTIDO",
+				"has_second_leg": second_leg is not None,
+				"home_first_score": score_for(first_leg, tie.home_team) if tie.home_team else "—",
+				"away_first_score": score_for(first_leg, tie.away_team) if tie.away_team else "—",
+				"home_second_score": score_for(second_leg, tie.home_team) if tie.home_team else "—",
+				"away_second_score": score_for(second_leg, tie.away_team) if tie.away_team else "—",
+				"home_points": home_points,
+				"away_points": away_points,
 				"winner": tie.winner.name if tie.winner else None,
 				"decided_by_penalties": tie.decided_by_penalties,
 				"home_penalties": tie.home_penalties,

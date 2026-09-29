@@ -248,27 +248,29 @@ img { max-width: 100%; display: block; }
     letter-spacing: 1px; text-align: center; margin-bottom: .65rem;
 }
 .playoff-ties { display: flex; flex-direction: column; justify-content: space-around; gap: .7rem; min-height: var(--playoff-bracket-height); }
-.playoff-tie { position: relative; width: 100%; max-width: 210px; margin-inline: auto; background: #111; border: 1px solid var(--border); border-radius: 4px; overflow: visible; }
+.playoff-tie { position: relative; width: 100%; max-width: 320px; margin-inline: auto; background: #111; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
 .playoff-tie::after { content: ''; position: absolute; top: 50%; right: -.72rem; width: .65rem; border-top: 1px solid #3a3a3a; }
 .playoff-round:last-child .playoff-tie::after, .playoff-auxiliary-round .playoff-tie::after { display: none; }
 .playoff-tie-number { padding: .3rem .55rem; color: #555; border-bottom: 1px solid var(--border); font-size: .58rem; letter-spacing: 1px; }
+.playoff-score-head, .playoff-team { display: grid; grid-template-columns: minmax(0, 1fr) 42px 50px 58px; align-items: center; }
+.playoff-score-head { padding: .25rem .45rem; color: #777; font-size: .47rem; font-weight: bold; letter-spacing: .25px; text-align: center; }
+.playoff-score-head span:first-child { text-align: left; }
 .playoff-team {
-    display: flex; align-items: center; justify-content: space-between;
     gap: .45rem; min-height: 38px; padding: .4rem .55rem; border-bottom: 1px solid var(--border);
     color: #bbb; font-size: .72rem; line-height: 1.15;
 }
 .playoff-team:last-of-type { border-bottom: none; }
 .playoff-team-winner { color: #fff; background: color-mix(in srgb, var(--red) 14%, transparent); }
-.playoff-team strong { color: var(--red); font-family: var(--font-bebas); font-size: 1rem; }
-.playoff-team-name { display: flex; align-items: center; gap: .35rem; min-width: 0; max-width: calc(100% - 28px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.playoff-team strong { color: var(--red); font-family: var(--font-bebas); font-size: 1rem; text-align: center; }
+.playoff-team-name { display: flex; align-items: center; gap: .35rem; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .playoff-team-name img { width: 25px !important; height: 25px !important; max-width: 25px !important; min-width: 25px; border-radius: 50%; object-fit: cover; flex: 0 0 25px; }
-.playoff-penalties { padding: .3rem .55rem; color: #777; font-size: .65rem; }
+.playoff-tie-points { padding: .28rem .55rem; border-top: 1px solid var(--border); color: #777; font-size: .55rem; letter-spacing: .3px; text-align: right; }
 .playoff-qualifier { padding: .35rem .55rem; border-top: 1px solid var(--border); color: var(--red); font-size: .62rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .playoff-empty { padding: 1.5rem; color: #666; text-align: center; font-size: .85rem; }
 
 @media (max-width: 640px) {
     .playoff-bracket { --playoff-bracket-height: 330px; min-width: 0; gap: .85rem; padding-inline: .7rem; }
-    .playoff-round { flex-basis: 145px; min-width: 145px; }
+    .playoff-round { flex-basis: 320px; min-width: 320px; }
     .playoff-team { padding-inline: .4rem; }
     .playoff-team-name img { width: 21px; height: 21px; }
 }
@@ -336,6 +338,7 @@ img { max-width: 100%; display: block; }
 
 /* ===== WHITE BACKGROUND — Tabla & Goleadores ===== */
 #jornada, #tabla, #goleadores { background: #fff; }
+#playoff { background: #fff; }
 
 #jornada .jornada-date { background: #f0f0f0; color: #888; }
 #jornada .court-label { background: #e8e8e8; color: #999; border-bottom: 1px solid #ddd; }
@@ -346,6 +349,20 @@ img { max-width: 100%; display: block; }
 #jornada .jornada-court-col { border-right: 1px solid #e0e0e0; }
 #jornada .btn-fixture { background: #f5f5f5; border-color: var(--red); color: var(--red); }
 #jornada .btn-fixture:hover { background: var(--red); color: #fff; }
+
+#playoff .playoff-bracket-scroll { scrollbar-color: var(--red) #f0f0f0; }
+#playoff .playoff-round-title { color: #888; }
+#playoff .playoff-round:not(:last-child)::after,
+#playoff .playoff-tie::after { border-color: #ccc; }
+#playoff .playoff-tie { background: #fff; border-color: #ddd; }
+#playoff .playoff-tie-number { color: #888; border-color: #e5e5e5; }
+#playoff .playoff-score-head { background: #f0f0f0; color: #777; }
+#playoff .playoff-team { color: #222; border-color: #ebebeb; }
+#playoff .playoff-team-winner { color: #111; background: color-mix(in srgb, var(--primary-color) 10%, white); }
+#playoff .playoff-team strong { color: var(--red); }
+#playoff .playoff-tie-points { color: #888; border-color: #e5e5e5; }
+#playoff .playoff-qualifier { border-color: #e5e5e5; }
+#playoff .playoff-format-label { color: var(--red); }
 
 #tabla .standings-table thead tr { background: #f0f0f0; }
 #tabla .standings-table th { color: #555; border-bottom: 1px solid #ddd; }

@@ -10,6 +10,7 @@ from apps.core.categories import get_request_championship_category
 from apps.matches.forms import MatchEventForm, MatchResultForm
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
+from apps.playoffs.services import get_tie_matches, get_tie_points, resolve_tie
 from apps.teams.models import Player
 from apps.notifications.services import create_and_dispatch_notification
 from apps.notifications.models import NotificationAudienceType, NotificationCategory
@@ -139,6 +140,31 @@ def match_result_view(request, match_slug):
                     except Exception as exc:  # pragma: no cover - defensive logging
                         logger.exception("Failed to dispatch match-finished notification: %s", exc)
                         # continue without failing the request
+
+                playoff_link = getattr(match, "playoff_link", None)
+                if playoff_link:
+                    tie = playoff_link.tie
+                    tie_matches = get_tie_matches(tie)
+                    if tie_matches and all(tie_match.status == "finished" for tie_match in tie_matches):
+                        home_points, away_points = get_tie_points(tie)
+                        if (
+                            home_points == away_points
+                            and tie.playoff.settings.penalties_on_aggregate_tie
+                            and not tie.playoff.settings.sporting_advantage_on_tie
+                        ):
+                            messages.warning(
+                                request,
+                                "La llave quedó empatada en puntos. Registra los penales desde el cuadro de playoffs.",
+                            )
+                            return redirect(f"{reverse('playoffs')}?category={category}")
+                        try:
+                            resolved_tie = resolve_tie(tie)
+                        except ValidationError as error:
+                            for error_message in error.messages:
+                                messages.error(request, error_message)
+                            return redirect(f"{reverse('playoffs')}?category={category}")
+                        messages.success(request, f"Llave definida. Clasifica {resolved_tie.winner.name}.")
+                        return redirect(f"{reverse('playoffs')}?category={category}")
 
                 return redirect("matches")
 

@@ -14,6 +14,7 @@ from apps.tournaments.models import MatchDay
 
 ROUND_BY_TEAM_COUNT = {16: PlayoffTie.ROUND_OF_16, 8: PlayoffTie.QUARTERFINAL, 4: PlayoffTie.SEMIFINAL, 2: PlayoffTie.FINAL}
 NEXT_ROUND = {PlayoffTie.ROUND_OF_16: PlayoffTie.QUARTERFINAL, PlayoffTie.QUARTERFINAL: PlayoffTie.SEMIFINAL, PlayoffTie.SEMIFINAL: PlayoffTie.FINAL}
+SCHEDULABLE_ROUNDS = [PlayoffTie.ROUND_OF_16, PlayoffTie.QUARTERFINAL, PlayoffTie.SEMIFINAL, PlayoffTie.FINAL]
 
 
 def get_teams_classified(category):
@@ -67,8 +68,10 @@ def _create_bracket(playoff, teams_count, third_place_match):
     for (round_name, position), tie in ties.items():
         next_round = NEXT_ROUND.get(round_name)
         if next_round:
-            tie.next_tie = ties[(next_round, (position + 1) // 2)]
-            tie.next_slot = "home" if position % 2 else "away"
+            ties_in_round = sum(1 for key in ties if key[0] == round_name)
+            next_position, next_slot = _bracket_destination(position, ties_in_round)
+            tie.next_tie = ties[(next_round, next_position)]
+            tie.next_slot = next_slot
             tie.save(update_fields=["next_tie", "next_slot", "updated_at"])
 
     if third_place_match and teams_count >= 4:
@@ -96,6 +99,132 @@ def _create_tie_matches(tie, category, home_team, away_team, match_date, match_t
     PlayoffMatch.objects.bulk_create([PlayoffMatch(tie=tie, match=first, leg=PlayoffMatch.FIRST), PlayoffMatch(tie=tie, match=second, leg=PlayoffMatch.SECOND)])
 
 
+def _bracket_destination(position, ties_in_round):
+    """Pair outer and inner bracket ties: 1 vs N, 2 vs N-1, and so on."""
+    return min(position, ties_in_round + 1 - position), "home" if position <= ties_in_round // 2 else "away"
+
+
+def get_next_schedulable_round(playoff):
+    """Return the earliest populated round whose fixtures have not been created."""
+    for round_code in SCHEDULABLE_ROUNDS:
+        ties = list(playoff.ties.filter(round=round_code).prefetch_related("match_links"))
+        if not ties:
+            continue
+        if any(tie.home_team_id is None or tie.away_team_id is None for tie in ties):
+            return None
+        tie_has_matches = [bool(tie.match_links.all()) for tie in ties]
+        if not any(tie_has_matches):
+            return round_code
+        if not all(tie_has_matches):
+            return None
+    return None
+
+
+def sync_playoff_advancement(playoff):
+    """Resolve finished ties and backfill the next-round slots for existing brackets."""
+    for round_code in SCHEDULABLE_ROUNDS:
+        stage_ties = list(
+            playoff.ties.filter(round=round_code)
+            .select_related("home_team", "away_team", "winner", "playoff__settings")
+            .order_by("position")
+        )
+        if not stage_ties:
+            continue
+        for tie_index, tie in enumerate(stage_ties):
+            matches = get_tie_matches(tie)
+            if tie.winner_id is None and matches and all(match.status == "finished" for match in matches):
+                home_points, away_points = get_tie_points(tie)
+                if home_points != away_points or tie.playoff.settings.sporting_advantage_on_tie or tie.decided_by_penalties:
+                    tie = resolve_tie(tie)
+                    stage_ties[tie_index] = tie
+
+        next_round = NEXT_ROUND.get(round_code)
+        if not next_round:
+            continue
+
+        next_ties = list(playoff.ties.filter(round=next_round).order_by("position"))
+        if not next_ties:
+            continue
+
+        linked_matches = [
+            link.match
+            for next_tie in next_ties
+            for link in next_tie.match_links.select_related("match")
+        ]
+        # Never rewrite a round once one of its games has been completed.
+        if any(match.status != "scheduled" for match in linked_matches):
+            continue
+
+        # Existing brackets may have winners routed with the old sequential pairing
+        # (1 vs 2, 3 vs 4). Rebuild empty next-round slots using bracket pairing
+        # (1 vs 4, 2 vs 3) before the organizer schedules fixtures.
+        for next_tie in next_ties:
+            next_tie.home_team = None
+            next_tie.away_team = None
+            next_tie.save(update_fields=["home_team", "away_team", "updated_at"])
+
+        tie_count = len(stage_ties)
+        for tie in stage_ties:
+            if not tie.winner_id:
+                continue
+            next_position, slot = _bracket_destination(tie.position, tie_count)
+            next_tie = next((item for item in next_ties if item.position == next_position), None)
+            if not next_tie:
+                continue
+            slot = f"{slot}_team"
+            setattr(next_tie, slot, tie.winner)
+            next_tie.save(update_fields=[slot, "updated_at"])
+
+        # If this round was already scheduled, update its unplayed fixtures to match
+        # the corrected bracket pairings while preserving dates, courts and matchdays.
+        for next_tie in next_ties:
+            for link in next_tie.match_links.select_related("match"):
+                match = link.match
+                if link.leg == PlayoffMatch.FIRST:
+                    match.home_team = next_tie.away_team
+                    match.away_team = next_tie.home_team
+                else:
+                    match.home_team = next_tie.home_team
+                    match.away_team = next_tie.away_team
+                match.save(update_fields=["home_team", "away_team"])
+
+
+def schedule_playoff_round(
+    playoff,
+    round_code,
+    match_date,
+    match_time,
+    court=Match.COURT_1,
+    home_and_away=False,
+    second_leg_date=None,
+    second_leg_time=None,
+):
+    """Create matchday fixtures for the next fully qualified playoff round."""
+    if round_code not in SCHEDULABLE_ROUNDS or get_next_schedulable_round(playoff) != round_code:
+        raise ValidationError("Esta ronda todavía no está lista para programarse.")
+    if home_and_away and (not second_leg_date or not second_leg_time):
+        raise ValidationError("Indica fecha y hora para el partido de vuelta.")
+    if home_and_away and second_leg_date <= match_date:
+        raise ValidationError("La fecha de vuelta debe ser posterior a la fecha de ida.")
+
+    with transaction.atomic():
+        ties = list(playoff.ties.filter(round=round_code).select_related("home_team", "away_team"))
+        for tie in ties:
+            _create_tie_matches(
+                tie,
+                playoff.category,
+                tie.home_team,
+                tie.away_team,
+                match_date,
+                match_time,
+                court,
+                home_and_away,
+                second_leg_date,
+                second_leg_time,
+            )
+    return ties
+
+
 def _get_match_day(category, date, description, is_visible=True):
     match_day, created = MatchDay.objects.get_or_create(
         category=category,
@@ -113,7 +242,34 @@ def _get_match_day(category, date, description, is_visible=True):
 
 
 def get_tie_matches(tie):
-    return [link.match for link in tie.match_links.select_related("match").order_by("id")]
+    first_match = get_tie_match(tie, PlayoffMatch.FIRST) or get_tie_match(tie, PlayoffMatch.SINGLE)
+    second_match = get_tie_match(tie, PlayoffMatch.SECOND)
+    return [match for match in (first_match, second_match) if match]
+
+
+def get_tie_match(tie, leg):
+    """Resolve a leg only when its match actually contains the teams in this tie."""
+    linked_matches = {link.leg: link.match for link in tie.match_links.all()}
+    match = linked_matches.get(leg)
+    if match and _match_has_tie_teams(match, tie):
+        return match
+    if not tie.home_team_id or not tie.away_team_id:
+        return None
+
+    # Team assignments can be edited after the bracket fixtures are generated.
+    # In that case, another tie's leg link may now own the fixture for this pairing.
+    for link in PlayoffMatch.objects.filter(
+        tie__playoff_id=tie.playoff_id,
+        tie__round=tie.round,
+        leg=leg,
+    ).exclude(tie_id=tie.pk).select_related("match"):
+        if _match_has_tie_teams(link.match, tie):
+            return link.match
+    return None
+
+
+def _match_has_tie_teams(match, tie):
+    return {match.home_team_id, match.away_team_id} == {tie.home_team_id, tie.away_team_id}
 
 
 def get_tie_aggregate(tie):
@@ -128,12 +284,30 @@ def get_tie_aggregate(tie):
     return home_goals, away_goals
 
 
+def get_tie_points(tie):
+    """Return the points earned by each team across completed matches in a tie."""
+    home_points = away_points = 0
+    for match in get_tie_matches(tie):
+        if match.status != "finished":
+            continue
+        if match.home_score == match.away_score:
+            home_points += 1
+            away_points += 1
+        elif (match.home_team_id == tie.home_team_id and match.home_score > match.away_score) or (
+            match.away_team_id == tie.home_team_id and match.away_score > match.home_score
+        ):
+            home_points += 3
+        else:
+            away_points += 3
+    return home_points, away_points
+
+
 def record_penalty_result(tie, home_penalties, away_penalties):
     with transaction.atomic():
         tie = PlayoffTie.objects.select_for_update().select_related("playoff__settings").get(pk=tie.pk)
         _validate_completed_tie(tie)
-        if get_tie_aggregate(tie)[0] != get_tie_aggregate(tie)[1]:
-            raise ValidationError("Los penales solo aplican cuando el marcador global esta empatado.")
+        if get_tie_points(tie)[0] != get_tie_points(tie)[1]:
+            raise ValidationError("Los penales solo aplican cuando los equipos empatan en puntos.")
         if not tie.playoff.settings.penalties_on_aggregate_tie or home_penalties == away_penalties:
             raise ValidationError("El resultado de penales no es valido para estos playoffs.")
         tie.home_penalties, tie.away_penalties = home_penalties, away_penalties
@@ -146,16 +320,16 @@ def resolve_tie(tie):
     with transaction.atomic():
         tie = PlayoffTie.objects.select_for_update().select_related("playoff__settings", "next_tie").get(pk=tie.pk)
         _validate_completed_tie(tie)
-        home_goals, away_goals = get_tie_aggregate(tie)
-        if home_goals == away_goals:
+        home_points, away_points = get_tie_points(tie)
+        if home_points == away_points:
             if tie.playoff.settings.sporting_advantage_on_tie:
                 winner = tie.home_team
             elif tie.decided_by_penalties:
                 winner = tie.home_team if tie.home_penalties > tie.away_penalties else tie.away_team
             else:
-                raise ValidationError("La llave esta empatada y requiere definicion.")
+                raise ValidationError("La llave esta empatada en puntos y requiere definicion por penales.")
         else:
-            winner = tie.home_team if home_goals > away_goals else tie.away_team
+            winner = tie.home_team if home_points > away_points else tie.away_team
         tie.winner = winner
         tie.loser = tie.away_team if winner == tie.home_team else tie.home_team
         tie.save(update_fields=["winner", "loser", "updated_at"])
@@ -164,7 +338,7 @@ def resolve_tie(tie):
 
 
 def _validate_completed_tie(tie):
-    matches = [match for match in (tie.first_leg, tie.second_leg) if match]
+    matches = get_tie_matches(tie)
     if not tie.home_team_id or not tie.away_team_id or not matches:
         raise ValidationError("La llave debe tener equipos y partidos asignados.")
     if any(match.status != "finished" for match in matches):
