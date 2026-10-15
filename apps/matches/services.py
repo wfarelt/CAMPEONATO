@@ -267,8 +267,6 @@ def build_home_playoff_context(category):
 	]
 	ties_by_round = {}
 	for tie in playoff.ties.all():
-		if tie.round == PlayoffTie.THIRD_PLACE:
-			continue
 		first_leg = get_tie_match(tie, PlayoffMatch.FIRST) or get_tie_match(tie, PlayoffMatch.SINGLE)
 		second_leg = get_tie_match(tie, PlayoffMatch.SECOND)
 		home_points, away_points = get_tie_points(tie)
@@ -312,7 +310,17 @@ def build_home_playoff_context(category):
 		PlayoffTie.FINAL,
 	)
 	label = dict(main_rounds)[current_round]
-	return [{"label": label, "ties": ties_by_round.get(current_round, []), "is_auxiliary": False}]
+	rounds = [{"label": label, "ties": ties_by_round.get(current_round, []), "is_auxiliary": False}]
+	third_place_ties = ties_by_round.get(PlayoffTie.THIRD_PLACE, [])
+	if third_place_ties:
+		rounds.append(
+			{
+				"label": dict(PlayoffTie.ROUND_CHOICES)[PlayoffTie.THIRD_PLACE],
+				"ties": third_place_ties,
+				"is_auxiliary": True,
+			}
+		)
+	return rounds
 
 
 def build_matches_context(category, selected_matchday_slug=None):

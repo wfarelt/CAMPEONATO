@@ -18,6 +18,9 @@
       left: 0;
       width: 100%;
     }
+    body.print-without-player-numbers #planilla-print .print-player-number {
+      visibility: hidden !important;
+    }
   }
 </style>
 {% endblock %}
@@ -47,7 +50,7 @@
         {% endif %}
         <button
           type="button"
-          onclick="window.print()"
+          id="open-print-modal"
           class="inline-flex items-center gap-2 rounded-xl border border-[#282e39] bg-[#101622] px-4 py-2 text-sm font-bold text-[#9da6b9] transition hover:border-primary hover:text-white"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -98,6 +101,25 @@
     </div>
     {% endif %}
   </section>
+</div>
+
+<div id="print-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="print-modal-title">
+  <div class="w-full max-w-md rounded-2xl border border-[#282e39] bg-[#1c1f27] p-6 shadow-2xl">
+    <h2 id="print-modal-title" class="text-xl font-bold text-white">Imprimir planilla</h2>
+    <p class="mt-2 text-sm text-[#9da6b9]">¿Deseas incluir los números de camiseta de los jugadores?</p>
+    <label class="mt-5 flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-[#282e39] bg-[#101622] p-4">
+      <span>
+        <span class="block text-sm font-semibold text-white">Imprimir con números</span>
+        <span class="mt-1 block text-xs text-[#9da6b9]">Déjalo desactivado para completar la columna manualmente.</span>
+      </span>
+      <input id="include-player-numbers" type="checkbox" class="peer sr-only">
+      <span class="relative h-6 w-11 shrink-0 rounded-full bg-[#3d4f6e] transition peer-checked:bg-primary after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5"></span>
+    </label>
+    <div class="mt-6 flex justify-end gap-3">
+      <button type="button" id="close-print-modal" class="rounded-xl px-4 py-2 text-sm font-bold text-[#9da6b9] transition hover:bg-[#282e39] hover:text-white">Cancelar</button>
+      <button type="button" id="confirm-print" class="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90">Imprimir</button>
+    </div>
+  </div>
 </div>
 
 <!-- Planilla de juego — solo impresión -->
@@ -163,7 +185,7 @@
           {% for player in home_players %}
           <tr>
             <td style="border:1px solid #000; padding:2px; height:16px;">{{ player.ci|default:"" }}</td>
-            <td style="border:1px solid #000; padding:2px; text-align:center;"></td>
+            <td style="border:1px solid #000; padding:2px; text-align:center;"><span class="print-player-number">{{ player.number|default:"" }}</span></td>
             <td style="border:1px solid #000; padding:2px;">{{ player.name }}{% if player.is_reinforcement %} <strong>R</strong>{% endif %}{% if player.is_sub35 %} <strong>SUB35</strong>{% endif %}</td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
@@ -203,7 +225,7 @@
           {% for player in away_players %}
           <tr>
             <td style="border:1px solid #000; padding:2px; height:16px;">{{ player.ci|default:"" }}</td>
-            <td style="border:1px solid #000; padding:2px; text-align:center;"></td>
+            <td style="border:1px solid #000; padding:2px; text-align:center;"><span class="print-player-number">{{ player.number|default:"" }}</span></td>
             <td style="border:1px solid #000; padding:2px;">{{ player.name }}{% if player.is_reinforcement %} <strong>R</strong>{% endif %}{% if player.is_sub35 %} <strong>SUB35</strong>{% endif %}</td>
             <td style="border:1px solid #000; padding:2px;"></td>
             <td style="border:1px solid #000; padding:2px;"></td>
@@ -289,4 +311,50 @@
     </tr>
   </table>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const openButton = document.getElementById("open-print-modal");
+    const modal = document.getElementById("print-modal");
+    const closeButton = document.getElementById("close-print-modal");
+    const confirmButton = document.getElementById("confirm-print");
+    const includeNumbers = document.getElementById("include-player-numbers");
+
+    if (!openButton || !modal || !closeButton || !confirmButton || !includeNumbers) {
+      return;
+    }
+
+    const closeModal = () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      openButton.focus();
+    };
+
+    openButton.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      includeNumbers.focus();
+    });
+
+    closeButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeModal();
+      }
+    });
+    confirmButton.addEventListener("click", () => {
+      document.body.classList.toggle("print-without-player-numbers", !includeNumbers.checked);
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      window.print();
+    });
+  })();
+</script>
 {% endblock %}

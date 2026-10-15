@@ -95,17 +95,17 @@
                 <div class="space-y-4">
                 {% for item in round.ties %}
                     <article class="overflow-hidden rounded-lg border border-[#282e39] bg-[#1c1f27]">
-                        <div class="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_3.5rem] items-center gap-2 border-b border-[#282e39] bg-[#14171d] px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-[#9da6b9]">
-                            <span></span><span>{{ item.first_leg_label }}</span><span>{% if item.has_second_leg %}Vuelta{% else %}—{% endif %}</span><span>Penales</span>
+                        <div class="grid grid-cols-[minmax(0,1fr)_2rem_2rem_2.5rem] items-center gap-1 border-b border-[#282e39] bg-[#14171d] px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-[#9da6b9]">
+                            <span></span><span title="Ida">{{ item.first_leg_label }}</span><span title="Vuelta">{% if item.has_second_leg %}Vta.{% else %}—{% endif %}</span><span title="Penales">Pen.</span>
                         </div>
-                        <div class="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_3.5rem] items-center gap-2 border-b border-[#282e39] px-4 py-3 text-center">
-                            <span class="truncate text-left text-sm">{{ item.tie.home_team|default:"Por definir" }}</span>
+                        <div class="grid grid-cols-[minmax(0,1fr)_2rem_2rem_2.5rem] items-center gap-1 border-b border-[#282e39] px-3 py-3 text-center">
+                            <span class="truncate text-left text-sm">{% if item.tie.home_team %}{{ item.tie.home_team.name }}{% else %}Por definir{% endif %}</span>
                             <strong class="text-primary">{{ item.home_first_score }}</strong>
                             <strong class="text-primary">{% if item.has_second_leg %}{{ item.home_second_score }}{% else %}—{% endif %}</strong>
                             <strong class="text-primary">{% if item.tie.decided_by_penalties %}{{ item.tie.home_penalties }}{% else %}—{% endif %}</strong>
                         </div>
-                        <div class="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_3.5rem] items-center gap-2 px-4 py-3 text-center">
-                            <span class="truncate text-left text-sm">{{ item.tie.away_team|default:"Por definir" }}</span>
+                        <div class="grid grid-cols-[minmax(0,1fr)_2rem_2rem_2.5rem] items-center gap-1 px-3 py-3 text-center">
+                            <span class="truncate text-left text-sm">{% if item.tie.away_team %}{{ item.tie.away_team.name }}{% else %}Por definir{% endif %}</span>
                             <strong class="text-primary">{{ item.away_first_score }}</strong>
                             <strong class="text-primary">{% if item.has_second_leg %}{{ item.away_second_score }}{% else %}—{% endif %}</strong>
                             <strong class="text-primary">{% if item.tie.decided_by_penalties %}{{ item.tie.away_penalties }}{% else %}—{% endif %}</strong>

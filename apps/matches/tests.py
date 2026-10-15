@@ -6,7 +6,7 @@ from django.test import override_settings
 from django.test import TestCase
 
 from apps.matches.models import Match, MatchEvent
-from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
+from apps.matches.services import build_home_context, build_home_playoff_context, build_matches_context, build_statistics_context
 from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
 from apps.teams.models import Player, Team
 from apps.tournaments.models import MatchDay
@@ -98,6 +98,39 @@ class MatchServicesTests(TestCase):
         context = build_home_context(category="seniors")
 
         self.assertEqual([round_data["label"] for round_data in context["playoff_rounds"]], ["Final"])
+
+    def test_home_playoff_context_includes_third_place_tie(self):
+        settings = LeagueSettings.objects.create(category="seniors", teams_classified=4, playoffs_enabled=True)
+        playoff = Playoff.objects.create(category="seniors", settings=settings)
+        PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=1,
+            home_team=self.team_a,
+            away_team=self.team_b,
+        )
+        PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.SEMIFINAL,
+            position=2,
+            home_team=self.team_c,
+            away_team=self.team_d,
+        )
+        PlayoffTie.objects.create(playoff=playoff, round=PlayoffTie.FINAL, position=1)
+        third_place_tie = PlayoffTie.objects.create(
+            playoff=playoff,
+            round=PlayoffTie.THIRD_PLACE,
+            position=1,
+            home_team=self.team_b,
+            away_team=self.team_d,
+        )
+
+        rounds = build_home_playoff_context("seniors")
+
+        self.assertEqual([round["label"] for round in rounds], ["Semifinal", "Tercer puesto"])
+        self.assertFalse(rounds[0]["is_auxiliary"])
+        self.assertTrue(rounds[1]["is_auxiliary"])
+        self.assertEqual(rounds[1]["ties"][0]["home_team"], third_place_tie.home_team.name)
 
     def test_home_playoff_context_includes_ida_vuelta_and_penalty_scores(self):
         settings = LeagueSettings.objects.create(category="seniors", teams_classified=4, playoffs_enabled=True)
