@@ -49,6 +49,7 @@ class PlayerForm(forms.ModelForm):
             "is_sub35",
             "number",
             "position",
+            "goals_scored",
             "is_reinforcement",
         ]
         widgets = {
@@ -59,6 +60,7 @@ class PlayerForm(forms.ModelForm):
             "photo": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "number": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Numero de camiseta (opcional)"}),
             "position": forms.Select(attrs={"class": "form-control"}),
+            "goals_scored": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
             "is_sub35": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_reinforcement": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
@@ -66,6 +68,11 @@ class PlayerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+
+        if getattr(user, "role", None) != "ORGANIZER":
+            self.fields.pop("goals_scored", None)
+        else:
+            self.fields["goals_scored"].required = False
 
         config_keys = {
             "graduation_year": "player_field_graduation_year",
