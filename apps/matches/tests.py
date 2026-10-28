@@ -172,13 +172,13 @@ class MatchServicesTests(TestCase):
         self.assertEqual(home_tie["first_leg_label"], "IDA")
         self.assertEqual((home_tie["home_first_score"], home_tie["away_first_score"]), (0, 1))
         self.assertEqual((home_tie["home_second_score"], home_tie["away_second_score"]), (2, 0))
-        self.assertEqual((home_tie["home_points"], home_tie["away_points"]), (3, 3))
+        self.assertEqual((home_tie["home_aggregate"], home_tie["away_aggregate"]), (2, 1))
 
         response = self.client.get("/", {"category": "seniors"})
         self.assertContains(response, "IDA")
         self.assertContains(response, "VUELTA")
         self.assertContains(response, "PENALES")
-        self.assertContains(response, "PUNTOS DE LA LLAVE: 3 - 3")
+        self.assertContains(response, "GLOBAL: 2 - 1")
 
     def test_home_playoff_context_matches_leg_scores_to_the_tie_teams(self):
         settings = LeagueSettings.objects.create(category="seniors", teams_classified=4, playoffs_enabled=True)
@@ -225,7 +225,7 @@ class MatchServicesTests(TestCase):
         )
 
         self.assertEqual((first_tie_data["home_first_score"], first_tie_data["away_first_score"]), (3, 1))
-        self.assertEqual((first_tie_data["home_points"], first_tie_data["away_points"]), (3, 0))
+        self.assertEqual((first_tie_data["home_aggregate"], first_tie_data["away_aggregate"]), (3, 1))
 
     def test_finishing_a_tied_playoff_match_redirects_to_penalty_entry(self):
         settings = LeagueSettings.objects.create(category="seniors", playoffs_enabled=True)
@@ -263,7 +263,7 @@ class MatchServicesTests(TestCase):
 
         self.assertRedirects(response, "/playoffs/?category=seniors", fetch_redirect_response=False)
         playoffs_response = self.client.get("/playoffs/?category=seniors")
-        self.assertContains(playoffs_response, "Empate en puntos: 1 - 1")
+        self.assertContains(playoffs_response, "Empate global: 1 - 1")
         self.assertContains(playoffs_response, "name=\"home_penalties\"")
 
     def test_finishing_a_decisive_playoff_match_advances_winner_automatically(self):

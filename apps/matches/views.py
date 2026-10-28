@@ -10,7 +10,7 @@ from apps.core.categories import get_request_championship_category
 from apps.matches.forms import MatchEventForm, MatchResultForm
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
-from apps.playoffs.services import get_tie_matches, get_tie_points, resolve_tie
+from apps.playoffs.services import get_tie_aggregate, get_tie_matches, resolve_tie
 from apps.teams.models import Player
 from apps.notifications.services import create_and_dispatch_notification
 from apps.notifications.models import NotificationAudienceType, NotificationCategory
@@ -146,15 +146,15 @@ def match_result_view(request, match_slug):
                     tie = playoff_link.tie
                     tie_matches = get_tie_matches(tie)
                     if tie_matches and all(tie_match.status == "finished" for tie_match in tie_matches):
-                        home_points, away_points = get_tie_points(tie)
+                        home_goals, away_goals = get_tie_aggregate(tie)
                         if (
-                            home_points == away_points
+                            home_goals == away_goals
                             and tie.playoff.settings.penalties_on_aggregate_tie
                             and not tie.playoff.settings.sporting_advantage_on_tie
                         ):
                             messages.warning(
                                 request,
-                                "La llave quedó empatada en puntos. Registra los penales desde el cuadro de playoffs.",
+                                "La llave quedó empatada en el marcador global. Registra los penales desde el cuadro de playoffs.",
                             )
                             return redirect(f"{reverse('playoffs')}?category={category}")
                         try:

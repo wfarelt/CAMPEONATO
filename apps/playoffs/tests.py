@@ -8,8 +8,8 @@ from apps.matches.models import Match
 from apps.playoffs.models import LeagueSettings, PlayoffMatch, PlayoffTie
 from apps.playoffs.services import (
     generate_playoff,
+    get_tie_aggregate,
     get_next_schedulable_round,
-    get_tie_points,
     record_penalty_result,
     resolve_tie,
 )
@@ -96,7 +96,7 @@ class PlayoffGenerationTests(TestCase):
         self.client.force_login(organizer)
 
         bracket_response = self.client.get(reverse("playoffs"), {"category": "seniors"})
-        self.assertContains(bracket_response, "Empate en puntos: 3 - 3")
+        self.assertContains(bracket_response, "Empate global: 1 - 1")
         self.assertContains(bracket_response, "Registra los penales")
 
         response = self.client.post(
@@ -127,7 +127,7 @@ class PlayoffGenerationTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_points_tie_requires_penalties_even_when_aggregate_goals_are_not_tied(self):
+    def test_aggregate_winner_advances_when_match_points_are_tied(self):
         self.settings.playoffs_home_and_away = True
         self.settings.save(update_fields=["playoffs_home_and_away"])
         playoff = generate_playoff("seniors", date(2026, 6, 1), time(10, 0))
@@ -135,21 +135,52 @@ class PlayoffGenerationTests(TestCase):
         first_leg = tie.first_leg
         second_leg = tie.second_leg
 
-        # The tie's home team wins the first leg 5-0; the away team wins the return 1-0.
-        first_leg.home_score, first_leg.away_score = 0, 5
+        # The away team wins the first leg 5-0; the home team wins the return 1-0.
+        first_leg.home_score, first_leg.away_score = 5, 0
         first_leg.status = "finished"
         first_leg.save()
-        second_leg.home_score, second_leg.away_score = 0, 1
+        second_leg.home_score, second_leg.away_score = 1, 0
         second_leg.status = "finished"
         second_leg.save()
 
-        self.assertEqual(get_tie_points(tie), (3, 3))
+        self.assertEqual(get_tie_aggregate(tie), (1, 5))
+        resolved_tie = resolve_tie(tie)
+        self.assertEqual(resolved_tie.winner, tie.away_team)
+
+    def test_aggregate_tie_requires_penalties(self):
+        self.settings.playoffs_home_and_away = True
+        self.settings.save(update_fields=["playoffs_home_and_away"])
+        playoff = generate_playoff("seniors", date(2026, 6, 1), time(10, 0))
+        tie = playoff.ties.get(round=PlayoffTie.QUARTERFINAL, position=1)
+        first_leg, second_leg = tie.first_leg, tie.second_leg
+
+        first_leg.home_score, first_leg.away_score = 1, 0
+        first_leg.status = "finished"
+        first_leg.save()
+        second_leg.home_score, second_leg.away_score = 1, 0
+        second_leg.status = "finished"
+        second_leg.save()
+
+        self.assertEqual(get_tie_aggregate(tie), (1, 1))
         with self.assertRaises(ValidationError):
             resolve_tie(tie)
 
         resolved_tie = record_penalty_result(tie, 5, 4)
-
         self.assertEqual(resolved_tie.winner, tie.home_team)
+
+    def test_generation_is_blocked_while_regular_matches_are_pending(self):
+        Match.objects.create(
+            home_team=self.teams[0],
+            away_team=self.teams[1],
+            date=date(2026, 5, 30),
+            time=time(10, 0),
+            status="scheduled",
+        )
+
+        with self.assertRaises(ValidationError):
+            generate_playoff("seniors", date(2026, 6, 1), time(10, 0))
+
+        self.assertFalse(PlayoffTie.objects.filter(playoff__category="seniors").exists())
 
     def test_settings_require_a_power_of_two(self):
         self.settings.teams_classified = 6

@@ -31,6 +31,14 @@ def generate_playoff(category, match_date, match_time, court=Match.COURT_1, seco
     settings.full_clean()
     if not settings.playoffs_enabled:
         raise ValidationError("Los playoffs no estan habilitados para esta categoria.")
+    pending_matches = Match.objects.filter(
+        home_team__category=category,
+        away_team__category=category,
+        status="scheduled",
+        playoff_link__isnull=True,
+    )
+    if pending_matches.exists():
+        raise ValidationError("No se pueden generar los playoffs: aún hay partidos de la fase regular pendientes.")
     if Playoff.objects.filter(category=category, is_active=True).exists():
         raise ValidationError("Ya existe un cuadro activo de playoffs para esta categoria.")
 
@@ -133,8 +141,8 @@ def sync_playoff_advancement(playoff):
         for tie_index, tie in enumerate(stage_ties):
             matches = get_tie_matches(tie)
             if tie.winner_id is None and matches and all(match.status == "finished" for match in matches):
-                home_points, away_points = get_tie_points(tie)
-                if home_points != away_points or tie.playoff.settings.sporting_advantage_on_tie or tie.decided_by_penalties:
+                home_goals, away_goals = get_tie_aggregate(tie)
+                if home_goals != away_goals or tie.playoff.settings.sporting_advantage_on_tie or tie.decided_by_penalties:
                     tie = resolve_tie(tie)
                     stage_ties[tie_index] = tie
 
@@ -273,8 +281,11 @@ def _match_has_tie_teams(match, tie):
 
 
 def get_tie_aggregate(tie):
+    """Return completed aggregate goals oriented to the tie's home and away teams."""
     home_goals = away_goals = 0
     for match in get_tie_matches(tie):
+        if match.status != "finished":
+            continue
         if match.home_team_id == tie.home_team_id:
             home_goals += match.home_score
             away_goals += match.away_score
@@ -306,8 +317,8 @@ def record_penalty_result(tie, home_penalties, away_penalties):
     with transaction.atomic():
         tie = PlayoffTie.objects.select_for_update().select_related("playoff__settings").get(pk=tie.pk)
         _validate_completed_tie(tie)
-        if get_tie_points(tie)[0] != get_tie_points(tie)[1]:
-            raise ValidationError("Los penales solo aplican cuando los equipos empatan en puntos.")
+        if get_tie_aggregate(tie)[0] != get_tie_aggregate(tie)[1]:
+            raise ValidationError("Los penales solo aplican cuando el marcador global está empatado.")
         if not tie.playoff.settings.penalties_on_aggregate_tie or home_penalties == away_penalties:
             raise ValidationError("El resultado de penales no es valido para estos playoffs.")
         tie.home_penalties, tie.away_penalties = home_penalties, away_penalties
@@ -320,16 +331,16 @@ def resolve_tie(tie):
     with transaction.atomic():
         tie = PlayoffTie.objects.select_for_update().select_related("playoff__settings", "next_tie").get(pk=tie.pk)
         _validate_completed_tie(tie)
-        home_points, away_points = get_tie_points(tie)
-        if home_points == away_points:
+        home_goals, away_goals = get_tie_aggregate(tie)
+        if home_goals == away_goals:
             if tie.playoff.settings.sporting_advantage_on_tie:
                 winner = tie.home_team
             elif tie.decided_by_penalties:
                 winner = tie.home_team if tie.home_penalties > tie.away_penalties else tie.away_team
             else:
-                raise ValidationError("La llave esta empatada en puntos y requiere definicion por penales.")
+                raise ValidationError("La llave está empatada en el marcador global y requiere definición por penales.")
         else:
-            winner = tie.home_team if home_points > away_points else tie.away_team
+            winner = tie.home_team if home_goals > away_goals else tie.away_team
         tie.winner = winner
         tie.loser = tie.away_team if winner == tie.home_team else tie.home_team
         tie.save(update_fields=["winner", "loser", "updated_at"])

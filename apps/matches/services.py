@@ -4,7 +4,7 @@ from django.db.models import Q, Sum, Count
 
 from apps.matches.models import Match, MatchEvent
 from apps.playoffs.models import Playoff, PlayoffMatch, PlayoffTie
-from apps.playoffs.services import get_tie_match, get_tie_points, get_teams_classified
+from apps.playoffs.services import get_tie_aggregate, get_tie_match, get_teams_classified
 from apps.sponsors.models import Sponsor
 from apps.standings.services import build_standings
 from apps.standings.selectors import get_last_results
@@ -269,7 +269,7 @@ def build_home_playoff_context(category):
 	for tie in playoff.ties.all():
 		first_leg = get_tie_match(tie, PlayoffMatch.FIRST) or get_tie_match(tie, PlayoffMatch.SINGLE)
 		second_leg = get_tie_match(tie, PlayoffMatch.SECOND)
-		home_points, away_points = get_tie_points(tie)
+		home_goals, away_goals = get_tie_aggregate(tie)
 
 		def score_for(match, team):
 			if not match or match.status != "finished":
@@ -292,8 +292,8 @@ def build_home_playoff_context(category):
 				"away_first_score": score_for(first_leg, tie.away_team) if tie.away_team else "—",
 				"home_second_score": score_for(second_leg, tie.home_team) if tie.home_team else "—",
 				"away_second_score": score_for(second_leg, tie.away_team) if tie.away_team else "—",
-				"home_points": home_points,
-				"away_points": away_points,
+				"home_aggregate": home_goals,
+				"away_aggregate": away_goals,
 				"winner": tie.winner.name if tie.winner else None,
 				"decided_by_penalties": tie.decided_by_penalties,
 				"home_penalties": tie.home_penalties,

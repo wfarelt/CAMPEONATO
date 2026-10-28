@@ -1,6 +1,6 @@
 from django import forms
 from django.db.models import Q
-from django.forms import inlineformset_factory
+from django.forms import BaseInlineFormSet, inlineformset_factory
 
 from apps.core.categories import DEFAULT_CHAMPIONSHIP_CATEGORY, normalize_championship_category
 from apps.matches.models import Match
@@ -55,11 +55,34 @@ class MatchForm(forms.ModelForm):
         return cleaned_data
 
 
+class MatchDayMatchFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+
+        assigned_team_ids = set()
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
+                continue
+
+            for field_name in ("home_team", "away_team"):
+                team = form.cleaned_data.get(field_name)
+                if team is None:
+                    continue
+                if team.pk in assigned_team_ids:
+                    raise forms.ValidationError(
+                        "Un equipo no puede aparecer en más de un partido de la misma jornada."
+                    )
+                assigned_team_ids.add(team.pk)
+
+
 def get_match_formset_class(extra=1):
     return inlineformset_factory(
         MatchDay,
         Match,
         form=MatchForm,
+        formset=MatchDayMatchFormSet,
         extra=extra,
         can_delete=True,
     )

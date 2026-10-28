@@ -8,9 +8,9 @@ from apps.playoffs.forms import PlayoffGenerationForm, PlayoffPenaltiesForm, Pla
 from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
 from apps.playoffs.services import (
     generate_playoff,
+    get_tie_aggregate,
     get_tie_match,
     get_tie_matches,
-    get_tie_points,
     get_next_schedulable_round,
     record_penalty_result,
     schedule_playoff_round,
@@ -50,7 +50,7 @@ def playoffs_view(request):
             matches = get_tie_matches(tie)
             first_leg = get_tie_match(tie, PlayoffMatch.FIRST) or get_tie_match(tie, PlayoffMatch.SINGLE)
             second_leg = get_tie_match(tie, PlayoffMatch.SECOND)
-            home_points, away_points = get_tie_points(tie)
+            home_goals, away_goals = get_tie_aggregate(tie)
 
             def score_for(match, team):
                 if not match or match.status != "finished" or not team:
@@ -64,7 +64,7 @@ def playoffs_view(request):
             needs_penalties = (
                 bool(matches)
                 and all(match.status == "finished" for match in matches)
-                and home_points == away_points
+                and home_goals == away_goals
                 and tie.winner_id is None
                 and playoff.settings.penalties_on_aggregate_tie
                 and not playoff.settings.sporting_advantage_on_tie
@@ -79,8 +79,8 @@ def playoffs_view(request):
                     "home_second_score": score_for(second_leg, tie.home_team),
                     "away_second_score": score_for(second_leg, tie.away_team),
                     "matches": matches,
-                    "home_points": home_points,
-                    "away_points": away_points,
+                    "home_aggregate": home_goals,
+                    "away_aggregate": away_goals,
                     "needs_penalties": needs_penalties,
                     "penalties_form": PlayoffPenaltiesForm(),
                 }
@@ -186,13 +186,13 @@ def record_playoff_penalties_view(request, tie_id):
 
     form = PlayoffPenaltiesForm(request.POST)
     matches = get_tie_matches(tie)
-    home_points, away_points = get_tie_points(tie)
+    home_goals, away_goals = get_tie_aggregate(tie)
     if not matches or any(match.status != "finished" for match in matches):
         messages.error(request, "Finaliza todos los partidos de la llave antes de registrar los penales.")
     elif tie.winner_id:
         messages.error(request, "Esta llave ya tiene un equipo clasificado.")
-    elif home_points != away_points:
-        messages.error(request, "Solo se registran penales cuando la llave queda empatada en puntos.")
+    elif home_goals != away_goals:
+        messages.error(request, "Solo se registran penales cuando el marcador global de la llave está empatado.")
     elif not form.is_valid():
         for error in form.non_field_errors():
             messages.error(request, error)

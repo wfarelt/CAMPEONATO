@@ -230,7 +230,7 @@
                             <strong>{% if tie.has_second_leg %}{{ tie.away_second_score }}{% else %}—{% endif %}</strong>
                             <strong>{% if tie.decided_by_penalties %}{{ tie.away_penalties }}{% else %}—{% endif %}</strong>
                         </div>
-                        <div class="playoff-tie-points">PUNTOS DE LA LLAVE: {{ tie.home_points }} - {{ tie.away_points }}</div>
+                        <div class="playoff-tie-points">GLOBAL: {{ tie.home_aggregate }} - {{ tie.away_aggregate }}</div>
                         {% if tie.winner %}<div class="playoff-qualifier">CLASIFICA {{ tie.winner }}</div>{% endif %}
                     </article>
                     {% endfor %}
@@ -250,7 +250,7 @@
                     <div class="playoff-score-head"><span></span><span>{{ tie.first_leg_label }}</span><span>{% if tie.has_second_leg %}VUELTA{% else %}—{% endif %}</span><span>PENALES</span></div>
                     <div class="playoff-team{% if tie.winner == tie.home_team %} playoff-team-winner{% endif %}"><span class="playoff-team-name"><img src="{{ tie.home_logo }}" alt="{{ tie.home_team }}">{{ tie.home_team }}</span><strong>{{ tie.home_first_score }}</strong><strong>{% if tie.has_second_leg %}{{ tie.home_second_score }}{% else %}—{% endif %}</strong><strong>{% if tie.decided_by_penalties %}{{ tie.home_penalties }}{% else %}—{% endif %}</strong></div>
                     <div class="playoff-team{% if tie.winner == tie.away_team %} playoff-team-winner{% endif %}"><span class="playoff-team-name"><img src="{{ tie.away_logo }}" alt="{{ tie.away_team }}">{{ tie.away_team }}</span><strong>{{ tie.away_first_score }}</strong><strong>{% if tie.has_second_leg %}{{ tie.away_second_score }}{% else %}—{% endif %}</strong><strong>{% if tie.decided_by_penalties %}{{ tie.away_penalties }}{% else %}—{% endif %}</strong></div>
-                    <div class="playoff-tie-points">PUNTOS DE LA LLAVE: {{ tie.home_points }} - {{ tie.away_points }}</div>
+                    <div class="playoff-tie-points">GLOBAL: {{ tie.home_aggregate }} - {{ tie.away_aggregate }}</div>
                     {% if tie.winner %}<div class="playoff-qualifier">CLASIFICA {{ tie.winner }}</div>{% endif %}
                 </article>
             {% endfor %}

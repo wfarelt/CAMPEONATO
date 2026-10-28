@@ -124,3 +124,29 @@ class MatchRecommendationTests(TestCase):
         formset = formset_class(initial=initial_matches)
 
         self.assertGreaterEqual(formset.total_form_count(), 2)
+
+    def test_matchday_formset_rejects_reusing_a_team(self):
+        formset_class = get_match_formset_class(extra=2)
+        formset = formset_class(
+            data={
+                "matches-TOTAL_FORMS": "2",
+                "matches-INITIAL_FORMS": "0",
+                "matches-MIN_NUM_FORMS": "0",
+                "matches-MAX_NUM_FORMS": "1000",
+                "matches-0-home_team": str(self.team_a.pk),
+                "matches-0-away_team": str(self.team_b.pk),
+                "matches-0-court": str(Match.COURT_1),
+                "matches-0-time": "10:00",
+                "matches-1-home_team": str(self.team_a.pk),
+                "matches-1-away_team": str(self.team_c.pk),
+                "matches-1-court": str(Match.COURT_2),
+                "matches-1-time": "11:00",
+            },
+            form_kwargs={"category": "seniors"},
+        )
+
+        self.assertFalse(formset.is_valid())
+        self.assertIn(
+            "Un equipo no puede aparecer en más de un partido de la misma jornada.",
+            formset.non_form_errors(),
+        )
