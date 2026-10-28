@@ -1,10 +1,13 @@
 from datetime import date, time
 
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from apps.matches.models import Match
 from apps.teams.models import Team
 from apps.tournaments.forms import get_match_formset_class
+from apps.tournaments.models import MatchDay, Tournament, TournamentTeam
 from apps.tournaments.services import recommend_matches_for_matchday
 
 
@@ -150,3 +153,40 @@ class MatchRecommendationTests(TestCase):
             "Un equipo no puede aparecer en más de un partido de la misma jornada.",
             formset.non_form_errors(),
         )
+class TournamentModelTests(TestCase):
+    def setUp(self):
+        self.team = Team.objects.create(name="Season Team", coach="Coach", category="seniors")
+        self.tournament = Tournament.objects.create(
+            name="Liga Seniors",
+            season="2026",
+            category="seniors",
+        )
+
+    def test_tournament_team_membership_requires_matching_category(self):
+        self.team.category = "super_seniors"
+        self.team.save(update_fields=["category"])
+        membership = TournamentTeam(tournament=self.tournament, team=self.team)
+
+        with self.assertRaises(ValidationError):
+            membership.full_clean()
+
+    def test_tournament_team_membership_is_unique(self):
+        TournamentTeam.objects.create(tournament=self.tournament, team=self.team)
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            TournamentTeam.objects.create(tournament=self.tournament, team=self.team)
+
+    def test_matchday_requires_tournament_category_to_match(self):
+        tournament = Tournament.objects.create(
+            name="Liga Super Seniors",
+            season="2026",
+            category="super_seniors",
+        )
+        matchday = MatchDay(
+            tournament=tournament,
+            category="seniors",
+            date=date(2026, 6, 1),
+        )
+
+        with self.assertRaises(ValidationError):
+            matchday.full_clean()

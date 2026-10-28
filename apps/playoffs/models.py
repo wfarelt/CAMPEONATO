@@ -35,6 +35,14 @@ class LeagueSettings(models.Model):
 
 
 class Playoff(models.Model):
+    tournament = models.ForeignKey(
+        "tournaments.Tournament",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="playoffs",
+        verbose_name="Campeonato",
+    )
     category = models.CharField(max_length=20, choices=CHAMPIONSHIP_CATEGORY_CHOICES)
     settings = models.ForeignKey(LeagueSettings, on_delete=models.PROTECT, related_name="playoffs")
     is_active = models.BooleanField(default=True)
@@ -60,6 +68,8 @@ class Playoff(models.Model):
         super().clean()
         if self.settings_id and self.settings.category != self.category:
             raise ValidationError({"settings": "La configuracion debe pertenecer a la misma categoria."})
+        if self.tournament_id and self.tournament.category != self.category:
+            raise ValidationError({"tournament": "El campeonato debe pertenecer a la misma categoria del cuadro."})
 
 
 class PlayoffTie(models.Model):

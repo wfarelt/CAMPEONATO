@@ -8,8 +8,8 @@ Aplicación web para administrar torneos deportivos, permitiendo gestionar equip
 
 ## 🚀 Requisitos Previos
 
-- Python 3.8+
-- Django 3.2+
+- Python 3.10+
+- Django 5.1.4 (instalado desde `requirements.txt`)
 - SQLite3
 
 ## 📦 Instalación
@@ -24,8 +24,8 @@ cd CAMPEONATO
 ```bash
 python -m venv venv
 source venv/Scripts/activate  # En Windows
-# o
-source venv/bin/activate  # En Linux/Mac
+# En Linux/macOS:
+source venv/bin/activate
 ```
 
 ### 3. Instalar dependencias
@@ -151,17 +151,12 @@ python manage.py test
 
 Para reportar problemas o sugerencias, crear un issue en el repositorio.
 
+## 🔐 Seguridad
+
+- No almacenes contraseñas, claves ni otros secretos en este archivo o en el repositorio.
+- Si una credencial publicada anteriormente aquí fue real o se reutilizó en algún entorno, cámbiala inmediatamente y revisa las cuentas afectadas.
+- Configura `SECRET_KEY` y los demás valores sensibles mediante variables de entorno.
+
 ## 📄 Licencia
 
-Este proyecto está bajo licencia [Especificar licencia]
-
-
-admin → ADMIN (superusuario)
-organizer → ORGANIZER
-team_manager → TEAM_MANAGER
-referee → REFEREE
-player → PLAYER
-
-Credencial temporal usada para todos:
-
-Password: Admin123*
+Este proyecto está bajo licencia [Especificar licencia].

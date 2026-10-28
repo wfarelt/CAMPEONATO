@@ -18,8 +18,8 @@ class PlayoffTieInline(admin.TabularInline):
 
 @admin.register(Playoff)
 class PlayoffAdmin(admin.ModelAdmin):
-    list_display = ("category", "settings", "is_active", "created_at")
-    list_filter = ("category", "is_active")
+    list_display = ("tournament", "category", "settings", "is_active", "created_at")
+    list_filter = ("tournament", "category", "is_active")
     inlines = [PlayoffTieInline]
 
 
