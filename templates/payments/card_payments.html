@@ -184,11 +184,13 @@
                   {% endif %}
                 </td>
                 <td class="px-6 py-4 text-center no-print">
+                  {% if event.can_manage_payment %}
                   <a href="{% url 'register_card_payment' event.id %}?{{ category_query }}"
                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/20 text-primary border border-primary/30 hover:bg-primary hover:text-white transition">
                     <span class="material-symbols-outlined" style="font-size:14px">payment</span>
                     {% if event.card_payment.pk %}Editar{% else %}Registrar{% endif %}
                   </a>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}

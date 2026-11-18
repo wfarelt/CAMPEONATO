@@ -1,5 +1,6 @@
 """Tournaments domain models."""
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
@@ -29,6 +30,13 @@ class Tournament(models.Model):
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=SETUP)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+	organizers = models.ManyToManyField(
+		settings.AUTH_USER_MODEL,
+		blank=True,
+		related_name="organized_tournaments",
+		limit_choices_to={"role": "ORGANIZER"},
+		verbose_name="Organizadores autorizados",
+	)
 	teams = models.ManyToManyField(
 		"teams.Team",
 		through="TournamentTeam",
@@ -122,7 +130,16 @@ class MatchDay(models.Model):
 	class Meta:
 		ordering = ["-date"]
 		constraints = [
-			models.UniqueConstraint(fields=["category", "date"], name="unique_matchday_date_per_category"),
+			models.UniqueConstraint(
+				fields=["category", "date"],
+				condition=models.Q(tournament__isnull=True),
+				name="unique_legacy_matchday_date_per_category",
+			),
+			models.UniqueConstraint(
+				fields=["tournament", "date"],
+				condition=models.Q(tournament__isnull=False),
+				name="unique_matchday_date_per_tournament",
+			),
 		]
 		verbose_name = "Match Day"
 		verbose_name_plural = "Match Days"

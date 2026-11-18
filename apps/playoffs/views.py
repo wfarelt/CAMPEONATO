@@ -1,10 +1,12 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.shortcuts import redirect, render
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
-from apps.core.categories import get_request_championship_category
-from apps.playoffs.forms import PlayoffGenerationForm, PlayoffPenaltiesForm, PlayoffRoundScheduleForm
+from apps.core.categories import get_request_championship_category, get_request_tournament
+from apps.playoffs.forms import PlayoffGenerationForm, PlayoffPenaltiesForm, PlayoffRoundScheduleForm, PlayoffSettingsForm
 from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
 from apps.playoffs.services import (
     generate_playoff,
@@ -12,11 +14,16 @@ from apps.playoffs.services import (
     get_tie_match,
     get_tie_matches,
     get_next_schedulable_round,
+    has_conflicting_downstream_slot,
+    calculate_tie_winner,
+    confirm_tie_result_change,
+    has_played_downstream_match,
+    get_league_settings,
     record_penalty_result,
     schedule_playoff_round,
     sync_playoff_advancement,
 )
-from apps.users.permissions import organizer_required
+from apps.users.permissions import can_manage_tournament, organizer_required
 
 ROUND_SCHEDULE_LABELS = {
     PlayoffTie.ROUND_OF_16: "octavos de final",
@@ -26,10 +33,51 @@ ROUND_SCHEDULE_LABELS = {
 }
 
 
+@login_required
+@organizer_required
+def playoff_settings_view(request):
+    category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
+    if tournament is None or not can_manage_tournament(request.user, tournament):
+        return HttpResponseForbidden("Selecciona un campeonato que tengas permiso para administrar.")
+
+    settings = get_league_settings(category, tournament=tournament)
+    settings_locked = Playoff.objects.filter(tournament=tournament, is_active=True).exists()
+    if request.method == "POST" and settings_locked:
+        messages.error(request, "No se puede cambiar la configuración mientras haya un cuadro activo.")
+        return redirect(f"{reverse('playoffs')}?category={category}&tournament={tournament.pk}")
+
+    form = PlayoffSettingsForm(request.POST or None, instance=settings)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "La configuración de playoffs se guardó para esta temporada.")
+        return redirect(f"{reverse('playoffs')}?category={category}&tournament={tournament.pk}")
+
+    return render(
+        request,
+        "playoffs/settings.html",
+        {
+            "form": form,
+            "tournament": tournament,
+            "settings_locked": settings_locked,
+        },
+    )
+
+
 def playoffs_view(request):
     category = get_request_championship_category(request)
-    settings = LeagueSettings.objects.filter(category=category).first()
-    playoff = Playoff.objects.filter(category=category, is_active=True).select_related("settings").prefetch_related(
+    tournament = get_request_tournament(request, category)
+    settings = LeagueSettings.objects.filter(category=category, tournament=tournament).first()
+    if settings is None and tournament is not None:
+        settings = LeagueSettings.objects.filter(category=category, tournament__isnull=True).first()
+    if settings is None:
+        settings = LeagueSettings(category=category, tournament=tournament)
+    playoff_query = Playoff.objects.filter(category=category, is_active=True)
+    if tournament is not None:
+        playoff_query = playoff_query.filter(tournament=tournament)
+    else:
+        playoff_query = playoff_query.filter(tournament__isnull=True)
+    playoff = playoff_query.select_related("settings", "tournament").prefetch_related(
         "ties__home_team",
         "ties__away_team",
         "ties__match_links__match",
@@ -69,6 +117,12 @@ def playoffs_view(request):
                 and playoff.settings.penalties_on_aggregate_tie
                 and not playoff.settings.sporting_advantage_on_tie
             )
+            calculated_winner = calculate_tie_winner(tie)
+            winner_changed = bool(
+                tie.winner_id
+                and (calculated_winner is None or calculated_winner.pk != tie.winner_id)
+            )
+            winner_changed = winner_changed or has_conflicting_downstream_slot(tie, calculated_winner)
             ties_by_round.setdefault(tie.round, []).append(
                 {
                     "tie": tie,
@@ -82,6 +136,9 @@ def playoffs_view(request):
                     "home_aggregate": home_goals,
                     "away_aggregate": away_goals,
                     "needs_penalties": needs_penalties,
+                    "winner_changed": winner_changed,
+                    "downstream_locked": has_played_downstream_match(tie) if winner_changed else False,
+                    "calculated_winner": calculated_winner,
                     "penalties_form": PlayoffPenaltiesForm(),
                 }
             )
@@ -95,9 +152,13 @@ def playoffs_view(request):
         {
             "settings": settings,
             "playoff": playoff,
+            "selected_tournament": tournament,
             "rounds": rounds,
             "generation_form": PlayoffGenerationForm(),
-            "is_organizer": getattr(request.user, "role", None) == "ORGANIZER",
+            "is_organizer": (
+                getattr(request.user, "role", None) == "ORGANIZER"
+                and (tournament is None or can_manage_tournament(request.user, tournament))
+            ),
             "next_schedulable_round": get_next_schedulable_round(playoff) if playoff else None,
             "next_schedulable_round_label": ROUND_SCHEDULE_LABELS.get(get_next_schedulable_round(playoff)) if playoff else None,
         },
@@ -105,10 +166,53 @@ def playoffs_view(request):
 
 
 @organizer_required
+def confirm_playoff_result_change_view(request, tie_id):
+    if request.method != "POST":
+        return redirect(reverse("playoffs"))
+
+    category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
+    tie = PlayoffTie.objects.select_related("playoff__settings", "playoff__tournament").filter(
+        pk=tie_id,
+        playoff__category=category,
+        playoff__is_active=True,
+    ).first()
+    redirect_url = f"{reverse('playoffs')}?category={category}"
+    if tournament is not None:
+        redirect_url += f"&tournament={tournament.pk}"
+    if tie and tie.playoff.tournament_id != (tournament.pk if tournament else None):
+        tie = None
+    if tie and tie.playoff.tournament_id and not can_manage_tournament(request.user, tie.playoff.tournament):
+        return HttpResponseForbidden("No tienes permisos para administrar esta temporada.")
+    if not tie:
+        messages.error(request, "No se encontró la llave para revisar el cambio de resultado.")
+        return redirect(redirect_url)
+
+    try:
+        updated_tie = confirm_tie_result_change(tie)
+    except ValidationError as error:
+        for error_message in error.messages:
+            messages.error(request, error_message)
+    else:
+        if updated_tie.winner:
+            messages.success(request, f"Cuadro actualizado. Clasifica {updated_tie.winner.name}.")
+        else:
+            messages.warning(request, "La clasificación anterior fue invalidada. Define la llave según el reglamento.")
+    return redirect(redirect_url)
+
+
+@organizer_required
 def schedule_playoff_round_view(request, round_code):
     category = get_request_championship_category(request)
-    playoff = Playoff.objects.filter(category=category, is_active=True).select_related("settings").first()
+    tournament = get_request_tournament(request, category)
+    if tournament is not None and not can_manage_tournament(request.user, tournament):
+        return HttpResponseForbidden("No tienes permisos para administrar esta temporada.")
+    playoff_query = Playoff.objects.filter(category=category, is_active=True)
+    playoff_query = playoff_query.filter(tournament=tournament) if tournament else playoff_query.filter(tournament__isnull=True)
+    playoff = playoff_query.select_related("settings", "tournament").first()
     redirect_url = f"{reverse('playoffs')}?category={category}"
+    if tournament:
+        redirect_url += f"&tournament={tournament.pk}"
     if not playoff:
         messages.error(request, "No hay un cuadro activo para programar.")
         return redirect(redirect_url)
@@ -174,12 +278,19 @@ def record_playoff_penalties_view(request, tie_id):
         return redirect(reverse("playoffs"))
 
     category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
     tie = PlayoffTie.objects.select_related("playoff__settings").filter(
         pk=tie_id,
         playoff__category=category,
         playoff__is_active=True,
     ).first()
     redirect_url = f"{reverse('playoffs')}?category={category}"
+    if tournament:
+        redirect_url += f"&tournament={tournament.pk}"
+    if tie and tie.playoff.tournament_id != (tournament.pk if tournament else None):
+        tie = None
+    if tie and tie.playoff.tournament_id and not can_manage_tournament(request.user, tie.playoff.tournament):
+        return HttpResponseForbidden("No tienes permisos para administrar esta temporada.")
     if not tie:
         messages.error(request, "No se encontró la llave activa para registrar los penales.")
         return redirect(redirect_url)
@@ -221,10 +332,16 @@ def generate_playoff_view(request):
         return redirect(reverse("playoffs"))
 
     category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
+    redirect_url = f"{reverse('playoffs')}?category={category}"
+    if tournament:
+        redirect_url += f"&tournament={tournament.pk}"
+        if not can_manage_tournament(request.user, tournament):
+            return HttpResponseForbidden("No tienes permisos para administrar esta temporada.")
     form = PlayoffGenerationForm(request.POST)
     if form.is_valid():
         try:
-            generate_playoff(category=category, **form.cleaned_data)
+            generate_playoff(category=category, tournament=tournament, **form.cleaned_data)
         except ValidationError as error:
             for message in error.messages:
                 messages.error(request, message)
@@ -233,4 +350,4 @@ def generate_playoff_view(request):
     else:
         messages.error(request, "Revisa la fecha, hora y cancha para generar el cuadro.")
 
-    return redirect(f"{reverse('playoffs')}?category={category}")
+    return redirect(redirect_url)

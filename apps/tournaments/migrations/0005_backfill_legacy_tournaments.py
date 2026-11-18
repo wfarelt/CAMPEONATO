@@ -46,16 +46,19 @@ def create_legacy_tournaments(apps, schema_editor):
 
 
 def reverse_legacy_tournament_links(apps, schema_editor):
-    Tournament = apps.get_model("tournaments", "Tournament")
     TournamentTeam = apps.get_model("tournaments", "TournamentTeam")
     MatchDay = apps.get_model("tournaments", "MatchDay")
     database = schema_editor.connection.alias
-    legacy_ids = Tournament.objects.using(database).filter(name__startswith="Campeonato ").values_list(
-        "pk", flat=True
-    )
+    generated_names = [f"Campeonato {label} " for label in CATEGORY_LABELS.values()]
+    legacy_ids = set()
+    for prefix in generated_names:
+        legacy_ids.update(
+            MatchDay.objects.using(database)
+            .filter(tournament__name__startswith=prefix)
+            .values_list("tournament_id", flat=True)
+        )
     MatchDay.objects.using(database).filter(tournament_id__in=legacy_ids).update(tournament=None)
     TournamentTeam.objects.using(database).filter(tournament_id__in=legacy_ids).delete()
-    Tournament.objects.using(database).filter(pk__in=legacy_ids).delete()
 
 
 class Migration(migrations.Migration):

@@ -25,12 +25,6 @@ def assign_legacy_tournaments(apps, schema_editor):
             Playoff.objects.using(database).filter(pk=playoff_id).update(tournament_id=tournament_id)
 
 
-def remove_legacy_tournament_links(apps, schema_editor):
-    Playoff = apps.get_model("playoffs", "Playoff")
-    database = schema_editor.connection.alias
-    Playoff.objects.using(database).update(tournament=None)
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -39,5 +33,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(assign_legacy_tournaments, remove_legacy_tournament_links),
+        migrations.RunPython(assign_legacy_tournaments, migrations.RunPython.noop),
     ]

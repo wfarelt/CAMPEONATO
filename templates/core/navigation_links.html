@@ -1,0 +1,51 @@
+{% if bottom_nav %}
+{% if user.role == 'ORGANIZER' %}
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'settings' %}active{% endif %}" href="{% url 'settings' %}?{{ category_query }}">
+  <i class="bi bi-gear" aria-hidden="true"></i><span>Configuración</span>
+</a>
+{% endif %}
+{% else %}
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+  <i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span>
+</a>
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'home' %}active{% endif %}" href="{% url 'home' %}?{{ category_query }}">
+  <i class="bi bi-house-door" aria-hidden="true"></i><span>Inicio</span>
+</a>
+{% if user.is_authenticated %}
+{% if user.role == 'ORGANIZER' %}
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'tournaments_list' or current_url == 'tournament_create' or current_url == 'tournament_edit' %}active{% endif %}" href="{% url 'tournaments_list' %}?{{ category_query }}">
+  <i class="bi bi-trophy" aria-hidden="true"></i><span>Campeonatos</span>
+</a>
+{% endif %}
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'teams' or current_url == 'team' %}active{% endif %}" href="{% url 'teams' %}?{{ category_query }}">
+  <i class="bi bi-people" aria-hidden="true"></i><span>Equipos</span>
+</a>
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'matches' or current_url == 'matchdays_list' or current_url == 'matchday_detail' or current_url == 'create_matchday' or current_url == 'edit_matchday' %}active{% endif %}" href="{% url 'matches' %}?{{ category_query }}">
+  <i class="bi bi-calendar3" aria-hidden="true"></i><span>Partidos</span>
+</a>
+{% endif %}
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'standings' %}active{% endif %}" href="{% url 'standings' %}?{{ category_query }}">
+  <i class="bi bi-list-ol" aria-hidden="true"></i><span>Posiciones</span>
+</a>
+{% if playoffs_enabled %}
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'playoffs' %}active{% endif %}" href="{% url 'playoffs' %}?{{ category_query }}">
+  <i class="bi bi-diagram-3" aria-hidden="true"></i><span>Playoffs</span>
+</a>
+{% endif %}
+{% if user.is_authenticated and user.role != 'PLAYER' %}
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'statistics' %}active{% endif %}" href="{% url 'statistics' %}?{{ category_query }}">
+  <i class="bi bi-bar-chart" aria-hidden="true"></i><span>Estadísticas</span>
+</a>
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'notifications_inbox' or current_url == 'notifications_create' %}active{% endif %}" href="{% url 'notifications_inbox' %}?{{ category_query }}">
+  <i class="bi bi-bell" aria-hidden="true"></i><span>Notificaciones</span>
+</a>
+{% if user.role == 'ORGANIZER' %}
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'sponsors' or current_url == 'sponsor_create' or current_url == 'sponsor_edit' or current_url == 'sponsor_delete' %}active{% endif %}" href="{% url 'sponsors' %}?{{ category_query }}">
+  <i class="bi bi-handshake" aria-hidden="true"></i><span>Auspiciadores</span>
+</a>
+<a class="app-nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-3 {% if current_url == 'card_payments' or current_url == 'register_card_payment' %}active{% endif %}" href="{% url 'card_payments' %}?{{ category_query }}">
+  <i class="bi bi-credit-card" aria-hidden="true"></i><span>Pagos Tarjetas</span>
+</a>
+{% endif %}
+{% endif %}
+{% endif %}

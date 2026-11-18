@@ -28,13 +28,15 @@ def _get_image_url_or_default(image_field, default_url):
 	return default_url
 
 
-def get_top_scoring_teams(category, limit=5):
+def get_top_scoring_teams(category, limit=5, tournament=None):
 	"""Return teams ordered by goals scored in finished matches."""
 	finished_matches = Match.objects.filter(
 		home_team__category=category,
 		away_team__category=category,
 		status="finished",
 	).select_related("home_team", "away_team")
+	if tournament is not None:
+		finished_matches = finished_matches.filter(match_day__tournament=tournament)
 
 	teams_data = {}
 
@@ -70,13 +72,15 @@ def get_top_scoring_teams(category, limit=5):
 	return sorted_teams
 
 
-def get_best_goalkeepers(category, limit=5):
+def get_best_goalkeepers(category, limit=5, tournament=None):
 	"""Retorna equipos con menos goles recibidos (mejores arqueros)."""
 	finished_matches = Match.objects.filter(
 		home_team__category=category,
 		away_team__category=category,
 		status="finished"
 	).select_related("home_team", "away_team")
+	if tournament is not None:
+		finished_matches = finished_matches.filter(match_day__tournament=tournament)
 	
 	teams_data = {}
 	
@@ -103,13 +107,25 @@ def get_best_goalkeepers(category, limit=5):
 	return sorted_teams
 
 
-def get_top_scorers(category, limit=10):
+def get_top_scorers(category, limit=10, tournament=None):
 	"""Return top goal scorers from players in the selected category."""
-	top_players = (
-		Player.objects.filter(team__category=category)
-		.select_related("team")
-		.order_by("-goals_scored", "name")[:limit]
-	)
+	players = Player.objects.filter(team__category=category).select_related("team")
+	if tournament is not None:
+		players = players.filter(team__tournament_memberships__tournament=tournament)
+		tournament_goal_counts = dict(
+			MatchEvent.objects.filter(
+				match__match_day__tournament=tournament,
+				match__status="finished",
+				event_type=MatchEvent.GOAL,
+				player__team__category=category,
+			)
+			.values("player_id")
+			.annotate(total=Count("id"))
+			.values_list("player_id", "total")
+		)
+		top_players = sorted(players, key=lambda player: (-tournament_goal_counts.get(player.pk, 0), player.name))[:limit]
+	else:
+		top_players = players.order_by("-goals_scored", "name")[:limit]
 
 	ranking = []
 	for position, player in enumerate(top_players, start=1):
@@ -120,15 +136,20 @@ def get_top_scorers(category, limit=10):
 				"team_name": player.team.name,
 				"team_logo": player.team.logo.url if player.team.logo else DEFAULT_TEAM_LOGO,
 				"player_photo": _get_image_url_or_default(player.photo, DEFAULT_TEAM_LOGO),
-				"goals": player.goals_scored,
+				"goals": tournament_goal_counts.get(player.pk, 0) if tournament is not None else player.goals_scored,
 			}
 		)
 
 	return ranking
 
 
-def build_home_context(category):
-	matchdays = MatchDay.objects.filter(category=category, is_visible=True).prefetch_related("matches__home_team", "matches__away_team")
+def build_home_context(category, tournament=None):
+	matchdays = MatchDay.objects.filter(category=category, is_visible=True)
+	category_matches = Match.objects.filter(home_team__category=category, away_team__category=category)
+	if tournament is not None:
+		matchdays = matchdays.filter(tournament=tournament)
+		category_matches = category_matches.filter(match_day__tournament=tournament)
+	matchdays = matchdays.prefetch_related("matches__home_team", "matches__away_team")
 	scheduled_matchday_id = Match.objects.filter(
 		home_team__category=category,
 		away_team__category=category,
@@ -136,9 +157,16 @@ def build_home_context(category):
 		match_day__isnull=False,
 		match_day__is_visible=True,
 	).order_by("date", "match_day_id").values_list("match_day_id", flat=True).first()
+	if tournament is not None:
+		scheduled_matchday_id = Match.objects.filter(
+			home_team__category=category,
+			away_team__category=category,
+			status="scheduled",
+			match_day__tournament=tournament,
+			match_day__is_visible=True,
+		).order_by("date", "match_day_id").values_list("match_day_id", flat=True).first()
 	next_matchday = matchdays.filter(id=scheduled_matchday_id).first() if scheduled_matchday_id else None
 	latest_matchday = next_matchday or matchdays.first()
-	category_matches = Match.objects.filter(home_team__category=category, away_team__category=category)
 	finished_matches = category_matches.filter(status="finished")
 	scheduled_matches = category_matches.filter(status="scheduled")
 	goals_data = finished_matches.aggregate(home_goals=Sum("home_score"), away_goals=Sum("away_score"))
@@ -201,12 +229,12 @@ def build_home_context(category):
 			"is_finished": is_finished,
 		}
 
-	quick_standings = build_standings(category=category, include_adjustments=True)[:5]
-	full_standings = build_standings(category=category, include_adjustments=True)
-	teams_classified = get_teams_classified(category)
-	playoff_rounds = build_home_playoff_context(category)
-	top_scorers = get_top_scorers(category=category, limit=10)
-	top_scoring_teams = get_top_scoring_teams(category=category, limit=5)
+	quick_standings = build_standings(category=category, include_adjustments=True, tournament=tournament)[:5]
+	full_standings = build_standings(category=category, include_adjustments=True, tournament=tournament)
+	teams_classified = get_teams_classified(category, tournament=tournament)
+	playoff_rounds = build_home_playoff_context(category, tournament=tournament)
+	top_scorers = get_top_scorers(category=category, limit=10, tournament=tournament)
+	top_scoring_teams = get_top_scoring_teams(category=category, limit=5, tournament=tournament)
 	sponsors = list(Sponsor.objects.filter(is_active=True).only("name", "image").order_by("name"))
 
 	matches_by_court = []
@@ -251,8 +279,11 @@ def build_home_context(category):
 	}
 
 
-def build_home_playoff_context(category):
-	playoff = Playoff.objects.filter(category=category, is_active=True).prefetch_related(
+def build_home_playoff_context(category, tournament=None):
+	playoffs = Playoff.objects.filter(category=category, is_active=True)
+	if tournament is not None:
+		playoffs = playoffs.filter(tournament=tournament)
+	playoff = playoffs.prefetch_related(
 		"ties__home_team",
 		"ties__away_team",
 		"ties__match_links__match",
@@ -284,6 +315,8 @@ def build_home_playoff_context(category):
 			{
 				"home_team": tie.home_team.name if tie.home_team else "Por definir",
 				"away_team": tie.away_team.name if tie.away_team else "Por definir",
+				"is_bye": tie.is_bye,
+				"bye_team": tie.winner.name if tie.is_bye and tie.winner else None,
 				"home_logo": tie.home_team.logo.url if tie.home_team and tie.home_team.logo else DEFAULT_TEAM_LOGO,
 				"away_logo": tie.away_team.logo.url if tie.away_team and tie.away_team.logo else DEFAULT_TEAM_LOGO,
 				"first_leg_label": "IDA" if second_leg else "PARTIDO",
@@ -323,14 +356,17 @@ def build_home_playoff_context(category):
 	return rounds
 
 
-def build_matches_context(category, selected_matchday_slug=None):
+def build_matches_context(category, selected_matchday_slug=None, tournament=None):
 	matches_scope = Match.objects.filter(
 		home_team__category=category,
 		away_team__category=category,
 	).filter(Q(match_day__isnull=True) | Q(match_day__is_visible=True))
+	matchdays = MatchDay.objects.filter(category=category, is_visible=True)
+	if tournament is not None:
+		matches_scope = matches_scope.filter(match_day__tournament=tournament)
+		matchdays = matchdays.filter(tournament=tournament)
 	matches_pending = matches_scope.filter(status="scheduled").order_by("court", "time")
 	matches_finished = matches_scope.filter(status="finished").order_by("date", "time")
-	matchdays = MatchDay.objects.filter(category=category, is_visible=True)
 
 	selected_matchday = None
 	if selected_matchday_slug:
@@ -356,10 +392,20 @@ def build_matches_context(category, selected_matchday_slug=None):
 				"slug": match.slug,
 				"home_team": match.home_team.name,
 				"home_team_logo": match.home_team.logo.url if match.home_team.logo else DEFAULT_TEAM_LOGO,
-				"home_team_last_results": get_last_results(match.home_team, exclude_match=match, category=category),
+				"home_team_last_results": get_last_results(
+					match.home_team,
+					exclude_match=match,
+					category=category,
+					tournament=tournament,
+				),
 				"away_team": match.away_team.name,
 				"away_team_logo": match.away_team.logo.url if match.away_team.logo else DEFAULT_TEAM_LOGO,
-				"away_team_last_results": get_last_results(match.away_team, exclude_match=match, category=category),
+				"away_team_last_results": get_last_results(
+					match.away_team,
+					exclude_match=match,
+					category=category,
+					tournament=tournament,
+				),
 				"matchday_label": matchday_label,
 				"court": match.get_court_display(),
 				"date": match.date,
@@ -375,8 +421,10 @@ def build_matches_context(category, selected_matchday_slug=None):
 	}
 
 
-def build_statistics_context(category):
+def build_statistics_context(category, tournament=None):
 	matches_scope = Match.objects.filter(home_team__category=category, away_team__category=category)
+	if tournament is not None:
+		matches_scope = matches_scope.filter(match_day__tournament=tournament)
 	finished_matches = matches_scope.filter(status="finished")
 	finished_count = finished_matches.count()
 	goals_data = finished_matches.aggregate(home_goals=Sum("home_score"), away_goals=Sum("away_score"))
@@ -387,18 +435,20 @@ def build_statistics_context(category):
 	avg_yellow_cards_per_match = (total_yellow_cards / finished_count) if finished_count else 0
 	avg_red_cards_per_match = (total_red_cards / finished_count) if finished_count else 0
 	
-	best_gk = get_best_goalkeepers(category, limit=5)
-	top_scorers = get_top_scorers(category, limit=5)
+	best_gk = get_best_goalkeepers(category, limit=5, tournament=tournament)
+	top_scorers = get_top_scorers(category, limit=5, tournament=tournament)
 
 	# Top players by yellow cards
+	top_yellow_qs = MatchEvent.objects.filter(
+		match__home_team__category=category,
+		match__away_team__category=category,
+		match__status="finished",
+		event_type=MatchEvent.YELLOW_CARD,
+	)
+	if tournament is not None:
+		top_yellow_qs = top_yellow_qs.filter(match__match_day__tournament=tournament)
 	top_yellow_qs = (
-		MatchEvent.objects.filter(
-			match__home_team__category=category,
-			match__away_team__category=category,
-			match__status="finished",
-			event_type=MatchEvent.YELLOW_CARD,
-		)
-		.values("player__id", "player__name", "player__team__name")
+		top_yellow_qs.values("player__id", "player__name", "player__team__name")
 		.annotate(yellow_cards=Count("id"))
 		.order_by("-yellow_cards", "player__name")[:5]
 	)
@@ -413,14 +463,16 @@ def build_statistics_context(category):
 	]
 
 	# Top players by red cards
+	top_red_qs = MatchEvent.objects.filter(
+		match__home_team__category=category,
+		match__away_team__category=category,
+		match__status="finished",
+		event_type=MatchEvent.RED_CARD,
+	)
+	if tournament is not None:
+		top_red_qs = top_red_qs.filter(match__match_day__tournament=tournament)
 	top_red_qs = (
-		MatchEvent.objects.filter(
-			match__home_team__category=category,
-			match__away_team__category=category,
-			match__status="finished",
-			event_type=MatchEvent.RED_CARD,
-		)
-		.values("player__id", "player__name", "player__team__name")
+		top_red_qs.values("player__id", "player__name", "player__team__name")
 		.annotate(red_cards=Count("id"))
 		.order_by("-red_cards", "player__name")[:5]
 	)

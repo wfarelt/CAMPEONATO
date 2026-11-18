@@ -49,6 +49,30 @@ class CoreSettingsViewTests(TestCase):
         self.assertContains(response, "Configuraci\u00f3n general")
         self.assertContains(response, "Configuraci\u00f3n de jugadores")
 
+    def test_shared_shell_uses_bootstrap_offcanvas_navigation(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertContains(response, 'data-bs-toggle="offcanvas"')
+        self.assertContains(response, 'class="offcanvas offcanvas-start app-offcanvas d-lg-none"')
+        self.assertContains(response, 'class="bi bi-trophy"')
+        self.assertContains(response, "Campeonatos")
+        self.assertNotContains(response, "mobile-menu-backdrop")
+
+    def test_shared_shell_does_not_show_organizer_navigation_to_players(self):
+        player = get_user_model().objects.create_user(
+            username="player_shell",
+            password="secret",
+            role="PLAYER",
+        )
+        self.client.force_login(player)
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertNotContains(response, "Campeonatos")
+        self.assertNotContains(response, reverse("sponsors"))
+
     def test_organizer_can_update_social_link(self):
         self.client.force_login(self.organizer)
 

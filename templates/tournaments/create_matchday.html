@@ -257,6 +257,13 @@ form .form-control::placeholder {
                 {% endif %}
             </div>
             <div class="form-group mb-3">
+                <label class="wizard-label" for="{{ matchday_form.tournament.id_for_label }}">Temporada</label>
+                {{ matchday_form.tournament }}
+                {% if matchday_form.tournament.errors %}
+                    <small class="text-danger">{{ matchday_form.tournament.errors }}</small>
+                {% endif %}
+            </div>
+            <div class="form-group mb-3">
                 <label class="wizard-label" for="{{ matchday_form.date.id_for_label }}">Fecha de la Jornada</label>
                 {{ matchday_form.date }}
                 {% if matchday_form.date.errors %}
@@ -339,7 +346,7 @@ form .form-control::placeholder {
 
         <div class="wizard-actions">
             <button type="submit" class="btn btn-primary">Guardar cambios</button>
-            <a href="{% url 'matchday_detail' matchday.slug %}?category={{ matchday.category }}" class="btn btn-secondary">Cancelar</a>
+            <a href="{% url 'matchday_detail' matchday.slug %}?{{ category_query }}" class="btn btn-secondary">Cancelar</a>
         </div>
     </form>
     {% endif %}
@@ -361,6 +368,13 @@ form .form-control::placeholder {
                     {{ matchday_form.category }}
                     {% if matchday_form.category.errors %}
                         <small class="text-danger">{{ matchday_form.category.errors }}</small>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    <label class="wizard-label" for="{{ matchday_form.tournament.id_for_label }}">Temporada</label>
+                    {{ matchday_form.tournament }}
+                    {% if matchday_form.tournament.errors %}
+                        <small class="text-danger">{{ matchday_form.tournament.errors }}</small>
                     {% endif %}
                 </div>
                 <div class="form-group mb-3">
@@ -396,7 +410,8 @@ form .form-control::placeholder {
 
         <div class="wizard-card mb-4 p-4 md:p-6">
                 <h5 class="wizard-section-title">Resumen de jornada</h5>
-                <p class="summary-item"><strong>Campeonato:</strong> {{ matchday_data.category }}</p>
+                <p class="summary-item"><strong>Campeonato:</strong> {{ championship_category_label }}</p>
+                <p class="summary-item"><strong>Temporada:</strong> {{ selected_tournament.name|default:"Sin temporada" }}</p>
                 <p class="summary-item"><strong>Fecha:</strong> {{ matchday_data.date }}</p>
                 <p class="summary-item mb-0"><strong>Descripción:</strong> {{ matchday_data.description|default:"Sin descripción" }}</p>
         </div>
@@ -497,7 +512,8 @@ form .form-control::placeholder {
         <div class="wizard-card mb-4 p-4 md:p-6">
                 <h5 class="wizard-section-title">Paso 3: Confirmar y guardar</h5>
 
-                <p class="summary-item"><strong>Campeonato:</strong> {{ matchday_data.category }}</p>
+                <p class="summary-item"><strong>Campeonato:</strong> {{ championship_category_label }}</p>
+                <p class="summary-item"><strong>Temporada:</strong> {{ selected_tournament.name|default:"Sin temporada" }}</p>
                 <p class="summary-item"><strong>Fecha:</strong> {{ matchday_data.date }}</p>
                 <p class="summary-item mb-3"><strong>Descripción:</strong> {{ matchday_data.description|default:"Sin descripción" }}</p>
 

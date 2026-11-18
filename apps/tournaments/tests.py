@@ -3,12 +3,14 @@ from datetime import date, time
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase
+from django.urls import reverse
 
 from apps.matches.models import Match
 from apps.teams.models import Team
-from apps.tournaments.forms import get_match_formset_class
+from apps.tournaments.forms import MatchDayForm, MatchForm, get_match_formset_class
 from apps.tournaments.models import MatchDay, Tournament, TournamentTeam
-from apps.tournaments.services import recommend_matches_for_matchday
+from apps.tournaments.services import recommend_matches_for_matchday, validate_matchday_teams
+from apps.users.models import User
 
 
 class MatchRecommendationTests(TestCase):
@@ -190,3 +192,203 @@ class TournamentModelTests(TestCase):
 
         with self.assertRaises(ValidationError):
             matchday.full_clean()
+
+    def test_service_rejects_repeated_team_in_matchday(self):
+        matchday = MatchDay(
+            tournament=self.tournament,
+            category="seniors",
+            date=date(2026, 6, 1),
+        )
+
+        with self.assertRaises(ValidationError):
+            validate_matchday_teams(matchday, [self.team.pk, self.team.pk])
+
+    def test_service_rejects_team_not_enrolled_in_matchday_tournament(self):
+        unregistered_team = Team.objects.create(name="Unregistered", coach="Coach", category="seniors")
+        matchday = MatchDay(
+            tournament=self.tournament,
+            category="seniors",
+            date=date(2026, 6, 1),
+        )
+
+        with self.assertRaises(ValidationError):
+            validate_matchday_teams(matchday, [self.team.pk, unregistered_team.pk])
+
+    def test_matchday_form_limits_tournament_choices_to_category(self):
+        other_tournament = Tournament.objects.create(
+            name="Liga Super Seniors",
+            season="2026",
+            category="super_seniors",
+        )
+
+        form = MatchDayForm(initial={"category": "seniors"})
+
+        self.assertQuerySetEqual(
+            form.fields["tournament"].queryset,
+            [self.tournament],
+        )
+        self.assertNotIn(other_tournament, form.fields["tournament"].queryset)
+
+    def test_match_form_limits_teams_to_tournament_members(self):
+        other_team = Team.objects.create(name="Outside Team", coach="Coach", category="seniors")
+        self.tournament.teams.add(self.team)
+        form = MatchForm(category="seniors", tournament=self.tournament)
+
+        self.assertIn(self.team, form.fields["home_team"].queryset)
+        self.assertNotIn(other_team, form.fields["home_team"].queryset)
+
+    def test_recommendations_only_consider_matches_in_selected_tournament(self):
+        other_team = Team.objects.create(name="Other Season Team", coach="Coach", category="seniors")
+        other_tournament = Tournament.objects.create(
+            name="Otra liga",
+            season="2025",
+            category="seniors",
+        )
+        self.tournament.teams.add(self.team)
+        self.tournament.teams.add(other_team)
+        other_tournament.teams.add(self.team)
+        other_tournament.teams.add(other_team)
+        matchday = MatchDay.objects.create(
+            tournament=other_tournament,
+            category="seniors",
+            date=date(2025, 6, 1),
+        )
+        Match.objects.create(
+            match_day=matchday,
+            home_team=self.team,
+            away_team=other_team,
+            date=matchday.date,
+            time=time(10, 0),
+        )
+
+        recommendation = recommend_matches_for_matchday("seniors", 1, tournament=self.tournament)
+
+        self.assertTrue(recommendation["possible"])
+        self.assertEqual(len(recommendation["matches"]), 1)
+
+
+class TournamentManagementViewsTests(TestCase):
+    def setUp(self):
+        self.organizer = User.objects.create_user(username="season-organizer", password="secret", role="ORGANIZER")
+        self.player = User.objects.create_user(username="season-player", password="secret", role="PLAYER")
+        self.team = Team.objects.create(name="Enrolled Team", coach="Coach", category="seniors")
+
+    def test_organizer_can_create_tournament_and_enroll_teams(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.post(
+            f"{reverse('tournament_create')}?category=seniors",
+            {
+                "name": "Liga Apertura",
+                "season": "2026",
+                "category": "seniors",
+                "status": Tournament.SETUP,
+                "teams": [str(self.team.pk)],
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            f"{reverse('tournaments_list')}?category=seniors",
+            fetch_redirect_response=False,
+        )
+        tournament = Tournament.objects.get(name="Liga Apertura", season="2026")
+        self.assertEqual(list(tournament.teams.all()), [self.team])
+        self.assertTrue(tournament.organizers.filter(pk=self.organizer.pk).exists())
+
+    def test_non_organizer_cannot_manage_tournaments(self):
+        self.client.force_login(self.player)
+
+        response = self.client.get(reverse("tournaments_list"), {"category": "seniors"})
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_organizer_can_view_list_and_edit_team_membership(self):
+        tournament = Tournament.objects.create(name="Liga Invierno", season="2026", category="seniors")
+        tournament.organizers.add(self.organizer)
+        tournament.teams.add(self.team)
+        replacement = Team.objects.create(name="Replacement Team", coach="Coach", category="seniors")
+        self.client.force_login(self.organizer)
+
+        list_response = self.client.get(reverse("tournaments_list"), {"category": "seniors"})
+        edit_response = self.client.get(
+            reverse("tournament_edit", args=[tournament.pk]),
+            {"category": "seniors"},
+        )
+
+        self.assertContains(list_response, "Liga Invierno")
+        self.assertContains(edit_response, "Equipos participantes")
+        update_response = self.client.post(
+            f"{reverse('tournament_edit', args=[tournament.pk])}?category=seniors",
+            {
+                "name": tournament.name,
+                "season": tournament.season,
+                "category": tournament.category,
+                "status": tournament.status,
+                "teams": [str(replacement.pk)],
+            },
+        )
+
+        self.assertRedirects(
+            update_response,
+            f"{reverse('tournaments_list')}?category=seniors",
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(list(tournament.teams.all()), [replacement])
+
+    def test_organizer_cannot_edit_another_organizers_tournament(self):
+        owner = User.objects.create_user(username="other-organizer", password="secret", role="ORGANIZER")
+        tournament = Tournament.objects.create(name="Liga Privada", season="2026", category="seniors")
+        tournament.organizers.add(owner)
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(
+            reverse("tournament_edit", args=[tournament.pk]),
+            {"category": "seniors"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_matchday_form_only_offers_tournaments_assigned_to_organizer(self):
+        assigned = Tournament.objects.create(name="Assigned", season="2026", category="seniors")
+        assigned.organizers.add(self.organizer)
+        unassigned = Tournament.objects.create(name="Unassigned", season="2025", category="seniors")
+
+        form = MatchDayForm(initial={"category": "seniors"}, user=self.organizer)
+
+        self.assertIn(assigned, form.fields["tournament"].queryset)
+        self.assertNotIn(unassigned, form.fields["tournament"].queryset)
+
+    def test_organizer_cannot_create_matchday_for_another_organizers_tournament(self):
+        owner = User.objects.create_user(username="matchday-owner", password="secret", role="ORGANIZER")
+        tournament = Tournament.objects.create(name="Owner Season", season="2026", category="seniors")
+        tournament.organizers.add(owner)
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(
+            reverse("create_matchday"),
+            {"category": "seniors", "tournament": tournament.pk},
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_deleting_team_in_tournament_only_removes_its_membership(self):
+        tournament = Tournament.objects.create(name="Team Season", season="2026", category="seniors")
+        tournament.organizers.add(self.organizer)
+        tournament.teams.add(self.team)
+        other_tournament = Tournament.objects.create(name="Other Team Season", season="2025", category="seniors")
+        other_tournament.teams.add(self.team)
+        self.client.force_login(self.organizer)
+
+        response = self.client.post(
+            f"{reverse('team_delete', args=[self.team.slug])}?category=seniors&tournament={tournament.pk}"
+        )
+
+        self.assertRedirects(
+            response,
+            f"{reverse('teams')}?category=seniors&tournament={tournament.pk}",
+            fetch_redirect_response=False,
+        )
+        self.assertTrue(Team.objects.filter(pk=self.team.pk).exists())
+        self.assertFalse(tournament.teams.filter(pk=self.team.pk).exists())
+        self.assertTrue(other_tournament.teams.filter(pk=self.team.pk).exists())

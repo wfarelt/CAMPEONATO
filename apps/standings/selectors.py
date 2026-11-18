@@ -6,7 +6,7 @@ from apps.matches.models import Match
 from apps.teams.models import Team
 
 
-def calculate_team_standing(team, include_adjustments=True, category=None):
+def calculate_team_standing(team, include_adjustments=True, category=None, tournament=None):
 	"""Compute standings metrics for a single team."""
 	championship_category = category or team.category
 	matches_played = Match.objects.filter(
@@ -15,6 +15,8 @@ def calculate_team_standing(team, include_adjustments=True, category=None):
 		away_team__category=championship_category,
 		playoff_link__isnull=True,
 	)
+	if tournament is not None:
+		matches_played = matches_played.filter(match_day__tournament=tournament)
 	won = matches_played.filter(
 		Q(home_team=team, home_score__gt=F("away_score"))
 		| Q(away_team=team, away_score__gt=F("home_score"))
@@ -31,7 +33,10 @@ def calculate_team_standing(team, include_adjustments=True, category=None):
 	points = won * 3 + drawn
 	adjustments = 0
 	if include_adjustments:
-		adjustments = team.points_adjustments.aggregate(total=Sum("points"))["total"] or 0
+		adjustments_query = team.points_adjustments.all()
+		if tournament is not None:
+			adjustments_query = adjustments_query.filter(match__match_day__tournament=tournament)
+		adjustments = adjustments_query.aggregate(total=Sum("points"))["total"] or 0
 		points += adjustments
 
 	return {
@@ -51,12 +56,19 @@ def calculate_team_standing(team, include_adjustments=True, category=None):
 	}
 
 
-def get_sorted_standings(include_adjustments=True, category=None):
+def get_sorted_standings(include_adjustments=True, category=None, tournament=None):
 	teams_qs = Team.objects.all()
 	if category:
 		teams_qs = teams_qs.filter(category=category)
+	if tournament is not None:
+		teams_qs = teams_qs.filter(tournament_memberships__tournament=tournament)
 	standings = [
-		calculate_team_standing(team, include_adjustments=include_adjustments, category=category)
+		calculate_team_standing(
+			team,
+			include_adjustments=include_adjustments,
+			category=category,
+			tournament=tournament,
+		)
 		for team in teams_qs
 	]
 	return sorted(
@@ -65,7 +77,7 @@ def get_sorted_standings(include_adjustments=True, category=None):
 	)
 
 
-def get_last_results(team, exclude_match=None, n=5, category=None):
+def get_last_results(team, exclude_match=None, n=5, category=None, tournament=None):
 	championship_category = category or team.category
 	matches = Match.objects.filter(
 		(Q(home_team=team) | Q(away_team=team)) & Q(status="finished"),
@@ -74,6 +86,8 @@ def get_last_results(team, exclude_match=None, n=5, category=None):
 	)
 	if exclude_match:
 		matches = matches.exclude(pk=exclude_match.pk)
+	if tournament is not None:
+		matches = matches.filter(match_day__tournament=tournament)
 	matches = matches.order_by("-date", "-time")[:n]
 
 	results = []
@@ -95,7 +109,7 @@ def get_last_results(team, exclude_match=None, n=5, category=None):
 	return results
 
 
-def get_opponents_with_points(team):
+def get_opponents_with_points(team, tournament=None):
 	all_teams = set(Team.objects.filter(category=team.category).exclude(pk=team.pk))
 	played_matches = Match.objects.filter(
 		Q(home_team=team) | Q(away_team=team),
@@ -103,6 +117,9 @@ def get_opponents_with_points(team):
 		home_team__category=team.category,
 		away_team__category=team.category,
 	)
+	if tournament is not None:
+		all_teams = set(all_teams.intersection(Team.objects.filter(tournament_memberships__tournament=tournament)))
+		played_matches = played_matches.filter(match_day__tournament=tournament)
 
 	already_played = set()
 	for match in played_matches:
@@ -113,19 +130,26 @@ def get_opponents_with_points(team):
 
 	opponents_data = []
 	for opponent in all_teams - already_played:
-		standing = calculate_team_standing(opponent, include_adjustments=False, category=team.category)
+		standing = calculate_team_standing(
+			opponent,
+			include_adjustments=False,
+			category=team.category,
+			tournament=tournament,
+		)
 		opponents_data.append({"team": opponent, "points": standing["points"]})
 
 	return sorted(opponents_data, key=lambda item: -item["points"])
 
 
-def get_results_by_team(team):
+def get_results_by_team(team, tournament=None):
 	matches = Match.objects.filter(
 		Q(home_team=team) | Q(away_team=team),
 		status="finished",
 		home_team__category=team.category,
 		away_team__category=team.category,
 	).order_by("-date", "-time")
+	if tournament is not None:
+		matches = matches.filter(match_day__tournament=tournament)
 
 	results = []
 	for match in matches:

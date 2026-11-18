@@ -1,5 +1,7 @@
 """Write-side business logic for tournaments app."""
 
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Q
 
 from apps.matches.models import Match
@@ -8,18 +10,42 @@ from apps.teams.models import Team
 
 def save_matchday_with_matches(matchday_form, formset):
 	"""Persist a matchday and its related matches from a bound formset."""
-	matchday = matchday_form.save()
+	with transaction.atomic():
+		matchday = matchday_form.save(commit=False)
+		matchday.full_clean()
+		instances = formset.save(commit=False)
+		validate_matchday_teams(
+			matchday,
+			[
+				team_id
+				for instance in instances
+				for team_id in (instance.home_team_id, instance.away_team_id)
+				if team_id
+			],
+		)
+		matchday.save()
 
-	instances = formset.save(commit=False)
-	for instance in instances:
-		instance.date = matchday.date
-		instance.match_day = matchday
-		instance.save()
+		for instance in instances:
+			instance.date = matchday.date
+			instance.match_day = matchday
+			instance.save()
 
-	for obj in formset.deleted_objects:
-		obj.delete()
+		for obj in formset.deleted_objects:
+			obj.delete()
 
 	return matchday
+
+
+def validate_matchday_teams(matchday, team_ids):
+	"""Ensure every fixture team belongs to the matchday's category/season."""
+	team_ids = list(team_ids)
+	if len(team_ids) != len(set(team_ids)):
+		raise ValidationError("Un equipo no puede aparecer en más de un partido de la misma jornada.")
+	teams = Team.objects.filter(pk__in=set(team_ids), category=matchday.category)
+	if matchday.tournament_id:
+		teams = teams.filter(tournament_memberships__tournament_id=matchday.tournament_id)
+	if teams.count() != len(set(team_ids)):
+		raise ValidationError("Todos los equipos deben estar inscritos en la temporada de la jornada.")
 
 
 def _max_matching_size(team_ids, invalid_pairs):
@@ -126,7 +152,7 @@ def _find_matching(requested, team_ids, invalid_pairs, team_match_counts, team_n
 	return backtrack(available_set, requested)
 
 
-def recommend_matches_for_matchday(category, requested_match_count):
+def recommend_matches_for_matchday(category, requested_match_count, tournament=None):
 	"""Return suggested team pairings prioritizing teams with fewer total matches.
 
 	The recommendation never repeats an historical pairing (home/away order is
@@ -150,9 +176,10 @@ def recommend_matches_for_matchday(category, requested_match_count):
 	if requested == 0:
 		return base_result
 
-	available_teams = list(
-		Team.objects.filter(category=category, is_available_for_matchday=True).order_by("name")
-	)
+	available_teams_query = Team.objects.filter(category=category, is_available_for_matchday=True)
+	if tournament is not None:
+		available_teams_query = available_teams_query.filter(tournament_memberships__tournament=tournament)
+	available_teams = list(available_teams_query.order_by("name"))
 	if len(available_teams) < 2:
 		return {
 			**base_result,
@@ -169,6 +196,8 @@ def recommend_matches_for_matchday(category, requested_match_count):
 		home_team__category=category,
 		away_team__category=category,
 	).filter(Q(home_team_id__in=team_ids) | Q(away_team_id__in=team_ids))
+	if tournament is not None:
+		matches = matches.filter(match_day__tournament=tournament)
 
 	for match in matches:
 		if match.home_team_id in team_match_counts:

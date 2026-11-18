@@ -1,0 +1,33 @@
+from django.conf import settings
+from django.db import migrations, models
+
+
+def assign_existing_tournaments(apps, schema_editor):
+    Tournament = apps.get_model("tournaments", "Tournament")
+    User = apps.get_model(*settings.AUTH_USER_MODEL.split("."))
+    database = schema_editor.connection.alias
+    organizer_ids = list(
+        User.objects.using(database).filter(role="ORGANIZER").values_list("pk", flat=True)
+    )
+    through = Tournament.organizers.through
+    tournament_ids = Tournament.objects.using(database).values_list("pk", flat=True)
+    through.objects.using(database).bulk_create(
+        [
+            through(tournament_id=tournament_id, user_id=organizer_id)
+            for tournament_id in tournament_ids
+            for organizer_id in organizer_ids
+        ],
+        ignore_conflicts=True,
+    )
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("tournaments", "0007_tournament_organizers"),
+        ("users", "0003_user_favorite_team"),
+    ]
+
+    operations = [
+        migrations.RunPython(assign_existing_tournaments, migrations.RunPython.noop),
+    ]

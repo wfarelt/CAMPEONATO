@@ -4,13 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Case, IntegerField, Value, When, Q
 from django.urls import reverse
 
-from apps.core.categories import get_request_championship_category
+from apps.core.categories import get_request_championship_category, get_request_tournament
 from apps.standings.selectors import get_opponents_with_points, get_results_by_team
 from apps.teams.forms import PlayerForm, TeamForm, TeamManagerSettingsForm
 from apps.teams.models import Player
 from apps.matches.models import Match, MatchEvent
 from apps.teams.selectors import build_team_api_data, get_all_teams, get_team_or_404
 from apps.users.permissions import (
+    can_manage_tournament,
     can_add_players_to_team,
     can_manage_team_profile_for_team,
     can_manage_players_for_team,
@@ -18,10 +19,25 @@ from apps.users.permissions import (
 )
 
 
+def _tournament_query(category, tournament):
+    query = f"category={category}"
+    if tournament is not None:
+        query += f"&tournament={tournament.pk}"
+    return query
+
+
+def _tournament_access_error(user, tournament):
+    if tournament is not None and getattr(user, "role", None) == "ORGANIZER":
+        if not can_manage_tournament(user, tournament):
+            return HttpResponseForbidden("No tienes permisos para administrar esta temporada.")
+    return None
+
+
 @login_required
 def teams_view(request):
     category = get_request_championship_category(request)
-    return render(request, "teams/teams.html", {"teams": get_all_teams(category=category)})
+    tournament = get_request_tournament(request, category)
+    return render(request, "teams/teams.html", {"teams": get_all_teams(category=category, tournament=tournament)})
 
 
 @login_required
@@ -30,7 +46,8 @@ def team_detail_view(request, team_slug):
         return HttpResponseForbidden("No tienes permisos para ver los detalles de este equipo.")
 
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_slug, category=category)
+    tournament = get_request_tournament(request, category)
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
     team_players = team.players.annotate(
         position_order=Case(
             When(position="GK", then=Value(0)),
@@ -44,8 +61,8 @@ def team_detail_view(request, team_slug):
     context = {
         "team": team,
         "team_players": team_players,
-        "next_opponents": get_opponents_with_points(team),
-        "results": get_results_by_team(team),
+        "next_opponents": get_opponents_with_points(team, tournament=tournament),
+        "results": get_results_by_team(team, tournament=tournament),
         "pending_card_events": (
             MatchEvent.objects.filter(
                 team=team,
@@ -59,13 +76,16 @@ def team_detail_view(request, team_slug):
         "can_edit_team_profile": can_manage_team_profile_for_team(request.user, team),
         "can_edit_players": can_manage_players_for_team(request.user, team),
     }
+    if tournament is not None:
+        context["pending_card_events"] = context["pending_card_events"].filter(match__match_day__tournament=tournament)
     return render(request, "teams/team.html", context)
 
 
 @login_required
 def api_teams(request):
     category = get_request_championship_category(request)
-    data = [build_team_api_data(t) for t in get_all_teams(category=category)]
+    tournament = get_request_tournament(request, category)
+    data = [build_team_api_data(t) for t in get_all_teams(category=category, tournament=tournament)]
     return JsonResponse({"teams": data})
 
 
@@ -73,6 +93,10 @@ def api_teams(request):
 @organizer_required
 def team_create_view(request):
     category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
+    access_error = _tournament_access_error(request.user, tournament)
+    if access_error:
+        return access_error
 
     if request.method == "POST":
         form = TeamForm(request.POST, request.FILES)
@@ -80,14 +104,16 @@ def team_create_view(request):
             team = form.save(commit=False)
             team.category = category
             team.save()
-            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
+            if tournament:
+                tournament.teams.add(team)
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
     else:
         form = TeamForm()
 
     return render(
         request,
         "teams/team_form.html",
-        {"form": form, "is_edit": False, "selected_category": category},
+        {"form": form, "is_edit": False, "selected_category": category, "selected_tournament": tournament},
     )
 
 
@@ -95,13 +121,17 @@ def team_create_view(request):
 @organizer_required
 def team_edit_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_slug, category=category)
+    tournament = get_request_tournament(request, category)
+    access_error = _tournament_access_error(request.user, tournament)
+    if access_error:
+        return access_error
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
 
     if request.method == "POST":
         form = TeamForm(request.POST, request.FILES, instance=team)
         if form.is_valid():
             team = form.save()
-            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
     else:
         form = TeamForm(instance=team)
 
@@ -116,11 +146,18 @@ def team_edit_view(request, team_slug):
 @organizer_required
 def team_delete_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_slug, category=category)
+    tournament = get_request_tournament(request, category)
+    access_error = _tournament_access_error(request.user, tournament)
+    if access_error:
+        return access_error
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
 
     if request.method == "POST":
-        team.delete()
-        return redirect(f"{reverse('teams')}?category={category}")
+        if tournament is not None:
+            tournament.teams.remove(team)
+        else:
+            team.delete()
+        return redirect(f"{reverse('teams')}?{_tournament_query(category, tournament)}")
 
     return render(request, "teams/team_confirm_delete.html", {"team": team, "selected_category": category})
 
@@ -128,7 +165,8 @@ def team_delete_view(request, team_slug):
 @login_required
 def team_manager_settings_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_slug, category=category)
+    tournament = get_request_tournament(request, category)
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
 
     if not can_manage_team_profile_for_team(request.user, team):
         return HttpResponseForbidden("No tienes permisos para editar la configuracion de este equipo.")
@@ -137,7 +175,7 @@ def team_manager_settings_view(request, team_slug):
         form = TeamManagerSettingsForm(request.POST, request.FILES, instance=team)
         if form.is_valid():
             form.save()
-            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
     else:
         form = TeamManagerSettingsForm(instance=team)
 
@@ -151,7 +189,11 @@ def team_manager_settings_view(request, team_slug):
 @login_required
 def player_create_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_slug, category=category)
+    tournament = get_request_tournament(request, category)
+    access_error = _tournament_access_error(request.user, tournament)
+    if access_error:
+        return access_error
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
 
     if not can_add_players_to_team(request.user, team):
         return HttpResponseForbidden("No tienes permisos para anadir jugadores a este equipo.")
@@ -162,7 +204,7 @@ def player_create_view(request, team_slug):
             player = form.save(commit=False)
             player.team = team
             player.save()
-            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
     else:
         form = PlayerForm(user=request.user)
 
@@ -176,7 +218,11 @@ def player_create_view(request, team_slug):
 @login_required
 def player_edit_view(request, team_slug, player_id):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_slug, category=category)
+    tournament = get_request_tournament(request, category)
+    access_error = _tournament_access_error(request.user, tournament)
+    if access_error:
+        return access_error
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
 
     if not can_manage_players_for_team(request.user, team):
         return HttpResponseForbidden("No tienes permisos para editar jugadores de este equipo.")
@@ -187,7 +233,7 @@ def player_edit_view(request, team_slug, player_id):
         form = PlayerForm(request.POST, request.FILES, instance=player, user=request.user)
         if form.is_valid():
             form.save()
-            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
     else:
         form = PlayerForm(instance=player, user=request.user)
 
@@ -201,7 +247,11 @@ def player_edit_view(request, team_slug, player_id):
 @login_required
 def player_delete_view(request, team_slug, player_id):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_slug, category=category)
+    tournament = get_request_tournament(request, category)
+    access_error = _tournament_access_error(request.user, tournament)
+    if access_error:
+        return access_error
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
 
     if not can_manage_players_for_team(request.user, team):
         return HttpResponseForbidden("No tienes permisos para eliminar jugadores de este equipo.")
@@ -210,7 +260,7 @@ def player_delete_view(request, team_slug, player_id):
 
     if request.method == "POST":
         player.delete()
-        return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?category={category}")
+        return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
 
     return render(
         request,
@@ -223,7 +273,11 @@ def player_delete_view(request, team_slug, player_id):
 @organizer_required
 def team_report_view(request, team_slug):
     category = get_request_championship_category(request)
-    team = get_team_or_404(team_slug, category=category)
+    tournament = get_request_tournament(request, category)
+    access_error = _tournament_access_error(request.user, tournament)
+    if access_error:
+        return access_error
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
 
     # Matches where the team participated (finished only)
     matches = (
@@ -236,6 +290,8 @@ def team_report_view(request, team_slug):
         .order_by("date", "time")
         .select_related("home_team", "away_team")
     )
+    if tournament is not None:
+        matches = matches.filter(match_day__tournament=tournament)
 
     players = team.players.order_by("number", "name").all()
 

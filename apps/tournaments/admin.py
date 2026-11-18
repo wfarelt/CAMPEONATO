@@ -15,6 +15,7 @@ class TournamentAdmin(admin.ModelAdmin):
     list_display = ("name", "season", "category", "status", "start_date", "end_date")
     list_filter = ("category", "status", "season")
     search_fields = ("name", "season")
+    filter_horizontal = ("organizers",)
     inlines = [TournamentTeamInline]
 
 

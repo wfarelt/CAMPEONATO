@@ -12,7 +12,7 @@ from django.views.decorators.http import require_GET, require_POST
 from apps.notifications.forms import NotificationCreateForm
 from apps.notifications.models import UserNotification, WebPushSubscription
 from apps.notifications.services import create_and_dispatch_notification, send_web_push_to_user_ids
-from apps.users.permissions import organizer_required
+from apps.users.permissions import organizer_required, platform_admin_required
 
 
 @login_required
@@ -59,7 +59,7 @@ def mark_notification_read(request, user_notification_id):
 
 
 @login_required
-@organizer_required
+@platform_admin_required
 def notification_create(request):
     if request.method == "POST":
         form = NotificationCreateForm(request.POST)

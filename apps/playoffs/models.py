@@ -8,7 +8,15 @@ from apps.core.choices import CHAMPIONSHIP_CATEGORY_CHOICES
 
 
 class LeagueSettings(models.Model):
-    category = models.CharField(max_length=20, choices=CHAMPIONSHIP_CATEGORY_CHOICES, unique=True)
+    tournament = models.ForeignKey(
+        "tournaments.Tournament",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="playoff_settings",
+        verbose_name="Campeonato",
+    )
+    category = models.CharField(max_length=20, choices=CHAMPIONSHIP_CATEGORY_CHOICES)
     teams_classified = models.PositiveIntegerField(default=8)
     playoffs_enabled = models.BooleanField(default=False)
     third_place_match = models.BooleanField(default=True)
@@ -23,15 +31,31 @@ class LeagueSettings(models.Model):
     class Meta:
         verbose_name = "Configuracion de liga"
         verbose_name_plural = "Configuraciones de liga"
-        ordering = ["category"]
+        ordering = ["category", "tournament__season"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category"],
+                condition=models.Q(tournament__isnull=True),
+                name="unique_legacy_playoff_settings_per_category",
+            ),
+            models.UniqueConstraint(
+                fields=["tournament"],
+                condition=models.Q(tournament__isnull=False),
+                name="unique_playoff_settings_per_tournament",
+            ),
+        ]
 
     def __str__(self):
+        if self.tournament_id:
+            return f"{self.tournament.name} - {self.tournament.season}"
         return get_championship_label(self.category)
 
     def clean(self):
         super().clean()
-        if self.teams_classified < 2 or self.teams_classified & (self.teams_classified - 1):
-            raise ValidationError({"teams_classified": "La cantidad de clasificados debe ser una potencia de dos mayor o igual a 2."})
+        if self.teams_classified < 2 or self.teams_classified > 64:
+            raise ValidationError({"teams_classified": "La cantidad de clasificados debe estar entre 2 y 64."})
+        if self.tournament_id and self.tournament.category != self.category:
+            raise ValidationError({"tournament": "El campeonato debe pertenecer a la misma categoría de la configuración."})
 
 
 class Playoff(models.Model):
@@ -56,8 +80,13 @@ class Playoff(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["category"],
-                condition=models.Q(is_active=True),
-                name="one_active_playoff_per_category",
+                condition=models.Q(is_active=True, tournament__isnull=True),
+                name="one_active_legacy_playoff_per_category",
+            ),
+            models.UniqueConstraint(
+                fields=["tournament"],
+                condition=models.Q(is_active=True, tournament__isnull=False),
+                name="one_active_playoff_per_tournament",
             ),
         ]
 
@@ -70,15 +99,21 @@ class Playoff(models.Model):
             raise ValidationError({"settings": "La configuracion debe pertenecer a la misma categoria."})
         if self.tournament_id and self.tournament.category != self.category:
             raise ValidationError({"tournament": "El campeonato debe pertenecer a la misma categoria del cuadro."})
+        if self.settings_id and self.settings.tournament_id != self.tournament_id:
+            raise ValidationError({"settings": "La configuracion debe pertenecer a este campeonato."})
 
 
 class PlayoffTie(models.Model):
+    ROUND_OF_64 = "round_of_64"
+    ROUND_OF_32 = "round_of_32"
     ROUND_OF_16 = "round_of_16"
     QUARTERFINAL = "quarterfinal"
     SEMIFINAL = "semifinal"
     THIRD_PLACE = "third_place"
     FINAL = "final"
     ROUND_CHOICES = [
+        (ROUND_OF_64, "Ronda de 64"),
+        (ROUND_OF_32, "Ronda de 32"),
         (ROUND_OF_16, "Octavos de final"),
         (QUARTERFINAL, "Cuartos de final"),
         (SEMIFINAL, "Semifinal"),
@@ -96,6 +131,7 @@ class PlayoffTie(models.Model):
     home_penalties = models.PositiveSmallIntegerField(null=True, blank=True)
     away_penalties = models.PositiveSmallIntegerField(null=True, blank=True)
     decided_by_penalties = models.BooleanField(default=False)
+    is_bye = models.BooleanField(default=False)
     next_tie = models.ForeignKey("self", on_delete=models.SET_NULL, related_name="previous_ties", null=True, blank=True)
     next_slot = models.CharField(max_length=4, choices=[("home", "Local"), ("away", "Visitante")], blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

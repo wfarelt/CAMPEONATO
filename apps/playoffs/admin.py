@@ -5,8 +5,8 @@ from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffT
 
 @admin.register(LeagueSettings)
 class LeagueSettingsAdmin(admin.ModelAdmin):
-    list_display = ("category", "teams_classified", "playoffs_enabled", "playoffs_home_and_away", "final_home_and_away", "third_place_match")
-    list_filter = ("playoffs_enabled", "playoffs_home_and_away", "third_place_match")
+    list_display = ("tournament", "category", "teams_classified", "playoffs_enabled", "playoffs_home_and_away", "final_home_and_away", "third_place_match")
+    list_filter = ("category", "playoffs_enabled", "playoffs_home_and_away", "third_place_match")
 
 
 class PlayoffTieInline(admin.TabularInline):

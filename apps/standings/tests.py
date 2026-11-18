@@ -6,6 +6,7 @@ from apps.matches.models import Match, PointsAdjustment
 from apps.standings.services import build_standings
 from apps.playoffs.models import LeagueSettings
 from apps.teams.models import Team
+from apps.tournaments.models import MatchDay, Tournament
 
 
 class StandingsServiceTests(TestCase):
@@ -72,6 +73,32 @@ class StandingsServiceTests(TestCase):
 
         self.assertEqual(len(standings), 2)
         self.assertEqual({item["team"] for item in standings}, {"Master FC", "Veteranos FC"})
+
+    def test_build_standings_filters_matches_and_teams_by_tournament(self):
+        tournament = Tournament.objects.create(name="Liga 2026", season="2026", category="seniors")
+        tournament.teams.add(self.team_a, self.team_b)
+        matchday = MatchDay.objects.create(
+            tournament=tournament,
+            category="seniors",
+            date=date(2026, 6, 1),
+        )
+        Match.objects.create(
+            match_day=matchday,
+            home_team=self.team_a,
+            away_team=self.team_b,
+            home_score=0,
+            away_score=2,
+            date=matchday.date,
+            time=time(15, 0),
+            status="finished",
+        )
+
+        standings = build_standings(category="seniors", include_adjustments=False, tournament=tournament)
+
+        self.assertEqual({item["team"] for item in standings}, {"Alpha FC", "Beta FC"})
+        beta = next(item for item in standings if item["team"] == "Beta FC")
+        self.assertEqual(beta["won"], 1)
+        self.assertEqual(beta["points"], 3)
 
     def test_standings_view_uses_the_category_qualification_limit(self):
         LeagueSettings.objects.create(category="seniors", teams_classified=2)

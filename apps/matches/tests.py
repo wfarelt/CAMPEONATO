@@ -8,8 +8,9 @@ from django.test import TestCase
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_home_playoff_context, build_matches_context, build_statistics_context
 from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
+from apps.playoffs.services import generate_playoff
 from apps.teams.models import Player, Team
-from apps.tournaments.models import MatchDay
+from apps.tournaments.models import MatchDay, Tournament
 from apps.users.models import User
 
 
@@ -65,6 +66,37 @@ class MatchServicesTests(TestCase):
         self.assertEqual(context["featured_match"]["home_team"], "Alpha FC")
         self.assertTrue(context["featured_match"]["is_finished"])
         self.assertEqual(context["teams_classified"], 4)
+
+    def test_home_playoff_link_preserves_selected_tournament(self):
+        tournament = Tournament.objects.create(name="Liga 2026", season="2026", category="seniors")
+        settings = LeagueSettings.objects.create(category="seniors", playoffs_enabled=True)
+        Playoff.objects.create(category="seniors", settings=settings, tournament=tournament)
+
+        response = self.client.get("/", {"category": "seniors", "tournament": tournament.pk})
+
+        self.assertContains(response, f'href="/playoffs/?category=seniors&amp;tournament={tournament.pk}"')
+
+    def test_home_playoff_context_marks_bye_ties(self):
+        tournament = Tournament.objects.create(name="Bye League", season="2026", category="seniors")
+        extra_teams = [
+            Team.objects.create(name=f"Bye Team {index}", coach="Coach", category="seniors")
+            for index in range(1, 3)
+        ]
+        tournament.teams.add(self.team_a, self.team_b, self.team_c, self.team_d, *extra_teams)
+        LeagueSettings.objects.create(
+            category="seniors",
+            tournament=tournament,
+            teams_classified=6,
+            playoffs_enabled=True,
+        )
+        playoff = generate_playoff("seniors", date(2026, 6, 1), time(10, 0), tournament=tournament)
+        bye_tie = playoff.ties.get(round=PlayoffTie.QUARTERFINAL, position=1)
+
+        context = build_home_context(category="seniors", tournament=tournament)
+        response = self.client.get("/", {"category": "seniors", "tournament": tournament.pk})
+
+        self.assertTrue(context["playoff_rounds"][0]["ties"][0]["is_bye"])
+        self.assertContains(response, f"Descanso: {bye_tie.winner.name} avanza directamente.")
 
     def test_home_playoff_context_shows_only_current_round(self):
         settings = LeagueSettings.objects.create(category="seniors", teams_classified=4, playoffs_enabled=True)
@@ -265,6 +297,97 @@ class MatchServicesTests(TestCase):
         playoffs_response = self.client.get("/playoffs/?category=seniors")
         self.assertContains(playoffs_response, "Empate global: 1 - 1")
         self.assertContains(playoffs_response, "name=\"home_penalties\"")
+
+    def test_saving_regular_match_result_redirects_to_matches(self):
+        organizer = User.objects.create_user(username="organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.post(
+            f"/partidos/{self.scheduled_match.slug}/resultado/?category=seniors",
+            {
+                "action": "save_match",
+                "home_score": 2,
+                "away_score": 1,
+                "status": "finished",
+                "court": self.scheduled_match.court,
+                "date": self.scheduled_match.date.isoformat(),
+                "time": self.scheduled_match.time.strftime("%H:%M"),
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            "/partidos/?category=seniors",
+            fetch_redirect_response=False,
+        )
+        self.scheduled_match.refresh_from_db()
+        self.assertEqual(self.scheduled_match.status, "finished")
+
+    def test_non_organizer_cannot_write_match_results_or_events(self):
+        player_user = User.objects.create_user(username="match-player", password="secret", role="PLAYER")
+        self.client.force_login(player_user)
+
+        detail_response = self.client.get(
+            f"/partidos/{self.scheduled_match.slug}/resultado/?category=seniors"
+        )
+        self.assertNotContains(detail_response, 'name="action" value="save_match"')
+        self.assertNotContains(detail_response, 'name="action" value="add_event"')
+
+        response = self.client.post(
+            f"/partidos/{self.scheduled_match.slug}/resultado/?category=seniors",
+            {
+                "action": "save_match",
+                "home_score": 4,
+                "away_score": 0,
+                "status": "finished",
+                "court": self.scheduled_match.court,
+                "date": self.scheduled_match.date.isoformat(),
+                "time": self.scheduled_match.time.strftime("%H:%M"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.scheduled_match.refresh_from_db()
+        self.assertEqual(self.scheduled_match.status, "scheduled")
+        self.assertEqual(self.scheduled_match.home_score, 0)
+
+    def test_organizer_cannot_write_results_in_unassigned_tournament(self):
+        owner = User.objects.create_user(username="season-owner", password="secret", role="ORGANIZER")
+        tournament = Tournament.objects.create(name="Protected League", season="2026", category="seniors")
+        tournament.organizers.add(owner)
+        tournament.teams.add(self.team_a, self.team_b)
+        matchday = MatchDay.objects.create(
+            tournament=tournament,
+            category="seniors",
+            date=date(2026, 6, 1),
+        )
+        match = Match.objects.create(
+            match_day=matchday,
+            home_team=self.team_a,
+            away_team=self.team_b,
+            date=matchday.date,
+            time=time(15, 0),
+            status="scheduled",
+        )
+        unrelated_organizer = User.objects.create_user(username="other-organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(unrelated_organizer)
+
+        response = self.client.post(
+            f"/partidos/{match.slug}/resultado/?category=seniors&tournament={tournament.pk}",
+            {
+                "action": "save_match",
+                "home_score": 1,
+                "away_score": 0,
+                "status": "finished",
+                "court": match.court,
+                "date": match.date.isoformat(),
+                "time": match.time.strftime("%H:%M"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 403)
+        match.refresh_from_db()
+        self.assertEqual(match.status, "scheduled")
 
     def test_finishing_a_decisive_playoff_match_advances_winner_automatically(self):
         settings = LeagueSettings.objects.create(category="seniors", playoffs_enabled=True)

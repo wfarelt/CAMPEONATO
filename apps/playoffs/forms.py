@@ -1,6 +1,42 @@
 from django import forms
 
 from apps.matches.models import Match
+from apps.playoffs.models import LeagueSettings
+
+
+class PlayoffSettingsForm(forms.ModelForm):
+    class Meta:
+        model = LeagueSettings
+        fields = [
+            "teams_classified",
+            "playoffs_enabled",
+            "third_place_match",
+            "playoffs_home_and_away",
+            "final_home_and_away",
+            "penalties_on_aggregate_tie",
+            "sporting_advantage_on_tie",
+            "replay_on_aggregate_tie",
+        ]
+        labels = {
+            "teams_classified": "Equipos clasificados",
+            "playoffs_enabled": "Habilitar playoffs",
+            "third_place_match": "Incluir partido por el tercer puesto",
+            "playoffs_home_and_away": "Rondas a ida y vuelta",
+            "final_home_and_away": "Final a ida y vuelta",
+            "penalties_on_aggregate_tie": "Resolver empate global por penales",
+            "sporting_advantage_on_tie": "Usar ventaja deportiva en empate",
+            "replay_on_aggregate_tie": "Permitir partido de desempate",
+        }
+        widgets = {
+            "teams_classified": forms.NumberInput(attrs={"class": "form-control", "min": 2, "max": 64, "step": 1}),
+            "playoffs_enabled": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "third_place_match": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "playoffs_home_and_away": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "final_home_and_away": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "penalties_on_aggregate_tie": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "sporting_advantage_on_tie": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "replay_on_aggregate_tie": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
 
 
 class PlayoffGenerationForm(forms.Form):

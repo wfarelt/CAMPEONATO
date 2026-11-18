@@ -6,21 +6,30 @@ from apps.core.categories import (
     CHAMPIONSHIP_CATEGORY_CHOICES,
     get_championship_label,
     get_request_championship_category,
+    get_request_tournament,
 )
 from apps.core.models import SOCIAL_LINK_METADATA, SiteBranding, SocialLink
+from apps.tournaments.models import Tournament
 
 
 def championship_context(request):
     """Expose selected championship category across all templates."""
     selected_category = get_request_championship_category(request)
+    selected_tournament = get_request_tournament(request, selected_category)
+    tournament_query = f"category={selected_category}"
+    if selected_tournament:
+        tournament_query += f"&tournament={selected_tournament.pk}"
     return {
         "championship_category": selected_category,
         "championship_category_label": get_championship_label(selected_category),
+        "selected_tournament": selected_tournament,
+        "championship_tournaments": Tournament.objects.filter(category=selected_category).order_by("-season", "name"),
+        "tournament_query": tournament_query,
         "championship_categories": [
             {"value": value, "label": label}
             for value, label in CHAMPIONSHIP_CATEGORY_CHOICES
         ],
-        "category_query": f"category={selected_category}",
+        "category_query": tournament_query,
     }
 
 

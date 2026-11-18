@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from datetime import datetime
 
-from apps.core.categories import get_request_championship_category, CHAMPIONSHIP_CATEGORY_CHOICES
+from apps.core.categories import get_request_championship_category, get_request_tournament, CHAMPIONSHIP_CATEGORY_CHOICES
 from apps.matches.models import PointsAdjustment
 from apps.playoffs.services import get_teams_classified
 from apps.standings.services import build_standings
@@ -11,6 +11,7 @@ from apps.standings.services import build_standings
 
 def standings_view(request):
     category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
     point_adjustments = PointsAdjustment.objects.filter(
         team__category=category,
     ).select_related(
@@ -19,12 +20,15 @@ def standings_view(request):
         "match__home_team",
         "match__away_team",
     ).order_by("-date", "-id")
+    if tournament:
+        point_adjustments = point_adjustments.filter(match__match_day__tournament=tournament)
     return render(
         request,
         "standings/standings.html",
         {
-            "standings": build_standings(category=category, include_adjustments=True),
-            "teams_classified": get_teams_classified(category),
+            "standings": build_standings(category=category, include_adjustments=True, tournament=tournament),
+            "selected_tournament": tournament,
+            "teams_classified": get_teams_classified(category, tournament=tournament),
             "point_adjustments": point_adjustments,
         },
     )
@@ -32,7 +36,8 @@ def standings_view(request):
 
 def standings_api(request):
     category = get_request_championship_category(request)
-    return JsonResponse({"standings": build_standings(category=category, include_adjustments=False)})
+    tournament = get_request_tournament(request, category)
+    return JsonResponse({"standings": build_standings(category=category, include_adjustments=False, tournament=tournament)})
 
 
 def standings_sitemap(request):

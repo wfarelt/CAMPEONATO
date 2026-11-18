@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from apps.core.categories import get_request_championship_category
+from apps.core.categories import get_request_championship_category, get_request_tournament
 from apps.matches.forms import MatchEventForm, MatchResultForm
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
@@ -14,13 +14,22 @@ from apps.playoffs.services import get_tie_aggregate, get_tie_matches, resolve_t
 from apps.teams.models import Player
 from apps.notifications.services import create_and_dispatch_notification
 from apps.notifications.models import NotificationAudienceType, NotificationCategory
+from apps.users.permissions import can_manage_match
 import logging
 
 logger = logging.getLogger(__name__)
 
 
+def _tournament_query(category, tournament):
+    query = f"category={category}"
+    if tournament is not None:
+        query += f"&tournament={tournament.pk}"
+    return query
+
+
 def home(request):
     category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
     if request.method == "POST":
         nombre = request.POST.get("nombre", "").strip()
         correo = request.POST.get("correo", "").strip()
@@ -29,24 +38,26 @@ def home(request):
             messages.success(request, "¡Mensaje enviado! Nos pondremos en contacto pronto.")
         else:
             messages.error(request, "Por favor completa todos los campos.")
-        return redirect(reverse("home"))
-    return render(request, "home.html", build_home_context(category=category))
+        return redirect(f"{reverse('home')}?{_tournament_query(category, tournament)}")
+    return render(request, "home.html", build_home_context(category=category, tournament=tournament))
 
 
 @login_required
 def dashboard_view(request):
     category = get_request_championship_category(request)
-    return render(request, "matches/dashboard.html", build_home_context(category=category))
+    tournament = get_request_tournament(request, category)
+    return render(request, "matches/dashboard.html", build_home_context(category=category, tournament=tournament))
 
 
 @login_required
 def matches_view(request):
     category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
     selected_matchday_slug = request.GET.get("matchday")
     return render(
         request,
         "matches/matches.html",
-        build_matches_context(category=category, selected_matchday_slug=selected_matchday_slug),
+        build_matches_context(category=category, selected_matchday_slug=selected_matchday_slug, tournament=tournament),
     )
 
 
@@ -56,18 +67,22 @@ def statistics(request):
         return HttpResponseForbidden("No tienes permisos para ver estas estadisticas.")
 
     category = get_request_championship_category(request)
-    return render(request, "matches/statistics.html", build_statistics_context(category=category))
+    tournament = get_request_tournament(request, category)
+    return render(request, "matches/statistics.html", build_statistics_context(category=category, tournament=tournament))
 
 
 @login_required
 def match_detail_view(request, match_slug):
     category = get_request_championship_category(request)
-    match = get_object_or_404(
-        Match.objects.select_related("home_team", "away_team", "match_day"),
+    tournament = get_request_tournament(request, category)
+    match_query = Match.objects.select_related("home_team", "away_team", "match_day").filter(
         slug=match_slug,
         home_team__category=category,
         away_team__category=category,
     )
+    if tournament is not None:
+        match_query = match_query.filter(match_day__tournament=tournament)
+    match = get_object_or_404(match_query)
     home_players = list(match.home_team.players.all().order_by("number"))
     away_players = list(match.away_team.players.all().order_by("number"))
     return render(request, "matches/match_detail.html", {
@@ -82,12 +97,18 @@ def match_detail_view(request, match_slug):
 @login_required
 def match_result_view(request, match_slug):
     category = get_request_championship_category(request)
-    match = get_object_or_404(
-        Match.objects.select_related("home_team", "away_team", "match_day"),
+    tournament = get_request_tournament(request, category)
+    match_query = Match.objects.select_related("home_team", "away_team", "match_day").filter(
         slug=match_slug,
         home_team__category=category,
         away_team__category=category,
     )
+    if tournament is not None:
+        match_query = match_query.filter(match_day__tournament=tournament)
+    match = get_object_or_404(match_query)
+    can_edit_results = can_manage_match(request.user, match)
+    if request.method == "POST" and not can_edit_results:
+        return HttpResponseForbidden("No tienes permisos para registrar resultados en este partido.")
     players = Player.objects.filter(team__in=[match.home_team, match.away_team]).select_related("team").order_by(
         "team__name",
         "name",
@@ -132,7 +153,8 @@ def match_result_view(request, match_slug):
                             title=title,
                             message=message,
                             category=NotificationCategory.MATCH,
-                            audience_type=NotificationAudienceType.ALL,
+                            audience_type=NotificationAudienceType.TEAM,
+                            target_teams=[match.home_team, match.away_team],
                             created_by=request.user if hasattr(request, "user") else None,
                             send_push=True,
                             push_url=push_url,
@@ -156,17 +178,19 @@ def match_result_view(request, match_slug):
                                 request,
                                 "La llave quedó empatada en el marcador global. Registra los penales desde el cuadro de playoffs.",
                             )
-                            return redirect(f"{reverse('playoffs')}?category={category}")
+                            return redirect(f"{reverse('playoffs')}?{_tournament_query(category, tie.playoff.tournament)}")
                         try:
                             resolved_tie = resolve_tie(tie)
                         except ValidationError as error:
                             for error_message in error.messages:
                                 messages.error(request, error_message)
-                            return redirect(f"{reverse('playoffs')}?category={category}")
+                            return redirect(f"{reverse('playoffs')}?{_tournament_query(category, tie.playoff.tournament)}")
                         messages.success(request, f"Llave definida. Clasifica {resolved_tie.winner.name}.")
-                        return redirect(f"{reverse('playoffs')}?category={category}")
+                        return redirect(f"{reverse('playoffs')}?{_tournament_query(category, tie.playoff.tournament)}")
 
-                return redirect("matches")
+                    return redirect(f"{reverse('matches')}?{_tournament_query(category, tournament)}")
+
+                return redirect(f"{reverse('matches')}?{_tournament_query(category, tournament)}")
 
         elif action == "add_event":
             event_form = MatchEventForm(request.POST, players=players)
@@ -184,7 +208,8 @@ def match_result_view(request, match_slug):
                             Match.objects.filter(pk=match.pk).update(home_score=F("home_score") + 1)
                         else:
                             Match.objects.filter(pk=match.pk).update(away_score=F("away_score") + 1)
-                return redirect("match_result", match_slug=match.slug)
+                result_url = reverse("match_result", kwargs={"match_slug": match.slug})
+                return redirect(f"{result_url}?{_tournament_query(category, tournament)}")
 
         elif action == "delete_event":
             event = get_object_or_404(MatchEvent, pk=request.POST.get("event_id"), match=match)
@@ -196,7 +221,8 @@ def match_result_view(request, match_slug):
                     elif event.team_id == match.away_team_id and match.away_score > 0:
                         Match.objects.filter(pk=match.pk, away_score__gt=0).update(away_score=F("away_score") - 1)
                 event.delete()
-            return redirect("match_result", match_slug=match.slug)
+            result_url = reverse("match_result", kwargs={"match_slug": match.slug})
+            return redirect(f"{result_url}?{_tournament_query(category, tournament)}")
 
         else:
             match_form = MatchResultForm(instance=match)
@@ -216,5 +242,6 @@ def match_result_view(request, match_slug):
             "goal_events": events.filter(event_type=MatchEvent.GOAL),
             "card_events": events.filter(event_type__in=[MatchEvent.YELLOW_CARD, MatchEvent.RED_CARD]),
             "players": players,
+            "can_edit_results": can_edit_results,
         },
     )
