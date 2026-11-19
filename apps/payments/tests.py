@@ -45,6 +45,33 @@ class CardPaymentPermissionTests(TestCase):
         )
         self.url = reverse("register_card_payment", args=[self.event.pk])
 
+    def test_owner_sees_bootstrap_card_payment_form(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(f"{self.url}?category=seniors&tournament={self.tournament.pk}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="app-surface border rounded-3 p-3 p-md-4"')
+        self.assertContains(response, 'class="form-control bg-dark text-white border-secondary"')
+        self.assertContains(response, 'class="form-check-input"')
+        self.assertContains(response, "Player One")
+        self.assertContains(response, "Marcar como pagado")
+
+    def test_owner_sees_bootstrap_card_payment_list(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(
+            reverse("card_payments"),
+            {"category": "seniors", "tournament": self.tournament.pk, "filtro": "pendientes"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'aria-label="Filtrar pagos"')
+        self.assertContains(response, 'class="table app-table table-hover align-middle mb-0"')
+        self.assertContains(response, "Player One")
+        self.assertContains(response, "Pendiente")
+        self.assertContains(response, "Registrar")
+
     def test_owner_can_register_card_payment(self):
         self.client.force_login(self.owner)
 

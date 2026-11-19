@@ -22,11 +22,11 @@ class NotificationCreateForm(forms.ModelForm):
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Titulo de la notificacion"}),
             "message": forms.Textarea(attrs={"class": "form-control", "rows": 4, "placeholder": "Mensaje"}),
-            "category": forms.Select(attrs={"class": "form-control"}),
-            "audience_type": forms.Select(attrs={"class": "form-control"}),
-            "role": forms.Select(attrs={"class": "form-control"}),
-            "target_teams": forms.SelectMultiple(attrs={"class": "form-control", "size": 6}),
-            "target_users": forms.SelectMultiple(attrs={"class": "form-control", "size": 6}),
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "audience_type": forms.Select(attrs={"class": "form-select"}),
+            "role": forms.Select(attrs={"class": "form-select"}),
+            "target_teams": forms.SelectMultiple(attrs={"class": "form-select", "size": 6}),
+            "target_users": forms.SelectMultiple(attrs={"class": "form-select", "size": 6}),
             "expires_at": forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
         }
 

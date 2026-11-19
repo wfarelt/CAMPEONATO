@@ -11,20 +11,20 @@ class MatchResultForm(forms.ModelForm):
 		widgets = {
 			"home_score": forms.NumberInput(
 				attrs={
-					"class": "w-full rounded-xl border border-[#282e39] bg-[#101622] px-4 py-3 text-center text-4xl font-bold text-white placeholder:text-[#9da6b9] focus:border-primary focus:ring-primary",
+					"class": "form-control app-score-input text-center fw-bold",
 					"min": 0,
 				}
 			),
 			"away_score": forms.NumberInput(
 				attrs={
-					"class": "w-full rounded-xl border border-[#282e39] bg-[#101622] px-4 py-3 text-center text-4xl font-bold text-white placeholder:text-[#9da6b9] focus:border-primary focus:ring-primary",
+					"class": "form-control app-score-input text-center fw-bold",
 					"min": 0,
 				}
 			),
-			"status": forms.Select(attrs={"class": "w-full rounded-xl border border-gray-300 px-4 py-3"}),
-			"court": forms.Select(attrs={"class": "w-full rounded-xl border border-gray-300 px-4 py-3"}),
-			"date": forms.DateInput(attrs={"type": "date", "class": "w-full rounded-xl border border-gray-300 px-4 py-3"}),
-			"time": forms.TimeInput(attrs={"type": "time", "class": "w-full rounded-xl border border-gray-300 px-4 py-3"}),
+			"status": forms.Select(attrs={"class": "form-select"}),
+			"court": forms.Select(attrs={"class": "form-select"}),
+			"date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+			"time": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
 		}
 
 
@@ -33,7 +33,7 @@ class MatchEventForm(forms.ModelForm):
 		model = MatchEvent
 		fields = ["player"]
 		widgets = {
-			"player": forms.Select(attrs={"class": "w-full rounded-xl border border-gray-300 px-4 py-3"}),
+			"player": forms.Select(attrs={"class": "form-select"}),
 		}
 
 	def __init__(self, *args, players=None, **kwargs):

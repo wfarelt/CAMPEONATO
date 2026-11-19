@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.core.models import SOCIAL_WHATSAPP, TEAM_MANAGER_ENABLE_PLAYERS, AppConfiguration, SocialLink
+from apps.teams.models import Player, Team
 
 
 class CoreSettingsViewTests(TestCase):
@@ -48,12 +49,17 @@ class CoreSettingsViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Configuraci\u00f3n general")
         self.assertContains(response, "Configuraci\u00f3n de jugadores")
+        self.assertContains(response, 'class="form-check-input"')
+        self.assertContains(response, 'role="switch"')
+        self.assertContains(response, 'class="form-control app-search-input"')
 
     def test_shared_shell_uses_bootstrap_offcanvas_navigation(self):
         self.client.force_login(self.organizer)
 
         response = self.client.get(reverse("dashboard"))
 
+        self.assertNotContains(response, "cdn.tailwindcss.com")
+        self.assertNotContains(response, "tailwind.config")
         self.assertContains(response, 'data-bs-toggle="offcanvas"')
         self.assertContains(response, 'class="offcanvas offcanvas-start app-offcanvas d-lg-none"')
         self.assertContains(response, 'class="bi bi-trophy"')
@@ -72,6 +78,30 @@ class CoreSettingsViewTests(TestCase):
 
         self.assertNotContains(response, "Campeonatos")
         self.assertNotContains(response, reverse("sponsors"))
+
+    def test_search_results_render_bootstrap_sections_and_matching_team_player(self):
+        team = Team.objects.create(name="Alpha Search", coach="Coach A", category="seniors")
+        Player.objects.create(team=team, name="Alex Search", number=9, position="FW")
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(reverse("search"), {"category": "seniors", "q": "Alpha"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "row g-4")
+        self.assertContains(response, "form-control app-search-input")
+        self.assertContains(response, team.name)
+        self.assertContains(response, "Alex Search")
+
+    def test_news_detail_renders_bootstrap_article_and_slug(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(reverse("news_detail", kwargs={"news_slug": "season-opener"}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="app-surface border rounded-3 p-4 p-md-5"')
+        self.assertContains(response, 'aria-labelledby="news-title"')
+        self.assertContains(response, "Season Opener")
+        self.assertContains(response, "/noticias/season-opener")
 
     def test_organizer_can_update_social_link(self):
         self.client.force_login(self.organizer)

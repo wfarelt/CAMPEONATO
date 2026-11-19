@@ -44,7 +44,7 @@ class TournamentForm(forms.ModelForm):
     teams = forms.ModelMultipleChoiceField(
         queryset=Team.objects.none(),
         required=False,
-        widget=forms.SelectMultiple(attrs={"class": "form-control", "size": 8}),
+        widget=forms.SelectMultiple(attrs={"class": "form-select", "size": 8}),
         label="Equipos participantes",
     )
 
@@ -68,10 +68,10 @@ class TournamentForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "season": forms.TextInput(attrs={"class": "form-control"}),
-            "category": forms.Select(attrs={"class": "form-control"}),
+            "category": forms.Select(attrs={"class": "form-select"}),
             "start_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
             "end_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
-            "status": forms.Select(attrs={"class": "form-control"}),
+            "status": forms.Select(attrs={"class": "form-select"}),
         }
 
 

@@ -9,60 +9,54 @@
 {% block header_title %}Posiciones de la Liga{% endblock %}
 
 {% block content %}
-<!-- Header -->
+<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
 <div class="mb-4">
-  <h2 class="mb-1 text-2xl font-black">Posiciones de la Liga</h2>
-  <p class="text-[#9da6b9] text-sm">{{ championship_category_label }} • Última actualización</p>
+  <h2 class="h3 fw-bold mb-1">Posiciones de la Liga</h2>
+  <p class="small text-secondary mb-0">{{ championship_category_label }} · Última actualización</p>
 </div>
 
-<!-- Desktop Table View -->
-<div class="hidden overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27] lg:block">
+<div class="d-none d-lg-block app-surface border rounded-3 overflow-hidden mb-4">
   <div class="overflow-x-auto">
-    <table class="w-full">
-      <thead class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent">
+    <table class="table table-sm table-hover align-middle app-table mb-0">
+      <thead>
         <tr>
-          <th class="px-3 py-2 text-left text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">#</th>
-          <th class="px-3 py-2 text-left text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">Equipo</th>
-          <th class="px-3 py-2 text-center text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">PJ</th>
-          <th class="px-3 py-2 text-center text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">G</th>
-          <th class="px-3 py-2 text-center text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">E</th>
-          <th class="px-3 py-2 text-center text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">P</th>
-          <th class="px-3 py-2 text-center text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">GF</th>
-          <th class="px-3 py-2 text-center text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">GC</th>
-          <th class="px-3 py-2 text-center text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">DG</th>
-          <th class="px-3 py-2 text-right text-[11px] font-bold uppercase text-[#9da6b9] tracking-wider">Pts</th>
+          <th scope="col">#</th>
+          <th scope="col">Equipo</th>
+          <th scope="col" class="text-center">PJ</th>
+          <th scope="col" class="text-center">G</th>
+          <th scope="col" class="text-center">E</th>
+          <th scope="col" class="text-center">P</th>
+          <th scope="col" class="text-center">GF</th>
+          <th scope="col" class="text-center">GC</th>
+          <th scope="col" class="text-center">DG</th>
+          <th scope="col" class="text-end">Pts</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-[#282e39] text-sm">
+      <tbody class="small">
         {% for team in standings %}
-        <tr
-          class="transition-colors hover:bg-[#282e39]
-          {% if forloop.counter <= teams_classified %}bg-primary/5{% endif %}"
-        >
-          <td class="px-3 py-2">
-            <div
-              class="flex size-7 items-center justify-center rounded-full font-bold text-sm
-              {% if forloop.counter <= teams_classified %}bg-primary/60 text-white{% else %}bg-[#282e39] text-white{% endif %}"
-            >
+        <tr>
+          <td>
+            <span class="app-rank-indicator d-inline-flex align-items-center justify-content-center rounded-circle fw-bold text-white
+              {% if forloop.counter <= teams_classified %}bg-primary{% else %}bg-secondary{% endif %}">
               {{ forloop.counter }}
-            </div>
+            </span>
           </td>
-          <td class="px-3 py-2 font-semibold">
+          <th scope="row" class="fw-semibold">
             {{ team.team }}
             {% if team.points_adjustment %}
               <span class="text-info">({% if team.points_adjustment > 0 %}+{% endif %}{{ team.points_adjustment }})</span>
             {% endif %}
-          </td>
-          <td class="px-3 py-2 text-center">{{ team.matches_played }}</td>
-          <td class="px-3 py-2 text-center font-semibold text-accent-green">{{ team.won }}</td>
-          <td class="px-3 py-2 text-center font-semibold text-[#9da6b9]">{{ team.drawn }}</td>
-          <td class="px-3 py-2 text-center font-semibold text-red-500">{{ team.lost }}</td>
-          <td class="px-3 py-2 text-center">{{ team.goals_for }}</td>
-          <td class="px-3 py-2 text-center">{{ team.goals_against }}</td>
-          <td class="px-3 py-2 text-center font-semibold {% if team.goal_difference >= 0 %}text-accent-green{% else %}text-red-500{% endif %}">
+          </th>
+          <td class="text-center">{{ team.matches_played }}</td>
+          <td class="text-center fw-semibold text-success">{{ team.won }}</td>
+          <td class="text-center fw-semibold text-secondary">{{ team.drawn }}</td>
+          <td class="text-center fw-semibold text-danger">{{ team.lost }}</td>
+          <td class="text-center">{{ team.goals_for }}</td>
+          <td class="text-center">{{ team.goals_against }}</td>
+          <td class="text-center fw-semibold {% if team.goal_difference >= 0 %}text-success{% else %}text-danger{% endif %}">
             {% if team.goal_difference >= 0 %}+{% endif %}{{ team.goal_difference }}
           </td>
-          <td class="px-3 py-2 text-right font-black text-primary">
+          <td class="text-end fw-bold text-primary">
             {{ team.points }}
           </td>
         </tr>
@@ -72,102 +66,93 @@
   </div>
 </div>
 
-<!-- Mobile Card View -->
-<div class="flex flex-col gap-2 lg:hidden">
+<div class="d-flex d-lg-none flex-column gap-2 mb-4">
   {% for team in standings %}
-  <div
-    class="rounded-2xl border border-[#282e39] bg-[#1c1f27] p-2 transition-all hover:border-primary
-    {% if forloop.counter <= teams_classified %}border-primary/60 bg-primary/5{% endif %}"
-  >
-    <div class="flex items-start justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div
-          class="flex size-8 items-center justify-center rounded-full font-bold text-sm
-          {% if forloop.counter <= teams_classified %}bg-primary/60 text-white{% else %}bg-[#282e39] text-white{% endif %}"
-        >
+  <article class="app-surface border rounded-3 p-3 {% if forloop.counter <= teams_classified %}border-primary app-standings-qualified{% endif %}">
+    <div class="d-flex align-items-start justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <span class="app-rank-indicator d-inline-flex align-items-center justify-content-center rounded-circle fw-bold text-white
+          {% if forloop.counter <= teams_classified %}bg-primary{% else %}bg-secondary{% endif %}">
           {{ forloop.counter }}
-        </div>
+        </span>
         <div>
-          <p class="font-bold text-sm">{{ team.team }}</p>
-          <p class="text-xs text-[#9da6b9]">{{ team.matches_played }} partidos</p>
+          <p class="small fw-bold mb-1">{{ team.team }}</p>
+          <p class="small text-secondary mb-0">{{ team.matches_played }} partidos</p>
         </div>
       </div>
-      <div class="text-right">
-        <p class="text-xl font-black text-primary">{{ team.points }}</p>
+      <div class="text-end">
+        <p class="h5 fw-bold text-primary mb-0">{{ team.points }}</p>
         {% if team.points_adjustment %}
-        <p class="text-xs font-medium text-[#9da6b9]">({% if team.points_adjustment > 0 %}+{% endif %}{{ team.points_adjustment }}) ajuste</p>
+        <p class="small text-secondary mb-0">({% if team.points_adjustment > 0 %}+{% endif %}{{ team.points_adjustment }}) ajuste</p>
         {% endif %}
-        <p class="text-[11px] text-[#9da6b9]">Puntos</p>
+        <p class="small text-secondary mb-0">Puntos</p>
       </div>
     </div>
-    <div class="mt-2 grid grid-cols-5 gap-1 border-t border-[#282e39] pt-2 text-center text-xs">
-      <div>
-        <p class="font-bold text-accent-green">{{ team.won }}</p>
-        <p class="text-[10px] text-[#9da6b9]">G</p>
+    <div class="row row-cols-5 g-1 border-top mt-2 pt-2 text-center small">
+      <div class="col">
+        <p class="fw-bold text-success mb-0">{{ team.won }}</p>
+        <p class="text-secondary mb-0">G</p>
       </div>
-      <div>
-        <p class="font-bold text-[#9da6b9]">{{ team.drawn }}</p>
-        <p class="text-[10px] text-[#9da6b9]">E</p>
+      <div class="col">
+        <p class="fw-bold text-secondary mb-0">{{ team.drawn }}</p>
+        <p class="text-secondary mb-0">E</p>
       </div>
-      <div>
-        <p class="font-bold text-red-500">{{ team.lost }}</p>
-        <p class="text-[10px] text-[#9da6b9]">P</p>
+      <div class="col">
+        <p class="fw-bold text-danger mb-0">{{ team.lost }}</p>
+        <p class="text-secondary mb-0">P</p>
       </div>
-      <div>
-        <p class="font-bold">{{ team.goals_for }}</p>
-        <p class="text-[10px] text-[#9da6b9]">GF</p>
+      <div class="col">
+        <p class="fw-bold mb-0">{{ team.goals_for }}</p>
+        <p class="text-secondary mb-0">GF</p>
       </div>
-      <div>
-        <p
-          class="font-bold
-          {% if team.goal_difference >= 0 %}text-accent-green{% else %}text-red-500{% endif %}"
-        >
+      <div class="col">
+        <p class="fw-bold mb-0 {% if team.goal_difference >= 0 %}text-success{% else %}text-danger{% endif %}">
           {% if team.goal_difference >= 0 %}+{% endif %}{{ team.goal_difference }}
         </p>
-        <p class="text-[10px] text-[#9da6b9]">DG</p>
+        <p class="text-secondary mb-0">DG</p>
       </div>
     </div>
-  </div>
+  </article>
   {% endfor %}
 </div>
 
 <!-- Point adjustment details -->
-<section class="mt-6 overflow-hidden rounded-3xl border border-[#282e39] bg-[#1c1f27]">
-  <div class="border-b border-[#282e39] px-4 py-3">
-    <h3 class="text-lg font-black">Detalle de ajustes de puntos</h3>
-    <p class="text-xs text-[#9da6b9]">Ajustes registrados para los equipos de esta categoría.</p>
+<section class="app-surface border rounded-3 overflow-hidden mb-4">
+  <div class="border-bottom px-3 px-md-4 py-3">
+    <h3 class="h5 fw-bold mb-1">Detalle de ajustes de puntos</h3>
+    <p class="small text-secondary mb-0">Ajustes registrados para los equipos de esta categoría.</p>
   </div>
   <div class="overflow-x-auto">
-    <table class="w-full text-left text-sm">
-      <thead class="border-b border-[#282e39] bg-[#20232c] text-[11px] uppercase tracking-wider text-[#9da6b9]">
+    <table class="table table-sm table-hover align-middle app-table mb-0">
+      <thead>
         <tr>
-          <th class="px-4 py-3">Fecha</th>
-          <th class="px-4 py-3">Partido</th>
-          <th class="px-4 py-3">Equipo</th>
-          <th class="px-4 py-3 text-right">Puntos</th>
-          <th class="px-4 py-3">Motivo</th>
+          <th scope="col">Fecha</th>
+          <th scope="col">Partido</th>
+          <th scope="col">Equipo</th>
+          <th scope="col" class="text-end">Puntos</th>
+          <th scope="col">Motivo</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-[#282e39]">
+      <tbody>
         {% for adjustment in point_adjustments %}
-        <tr class="hover:bg-[#282e39]">
-          <td class="whitespace-nowrap px-4 py-3 text-[#9da6b9]">{{ adjustment.date|date:"d/m/Y" }}</td>
-          <td class="px-4 py-3">
+        <tr>
+          <td class="text-nowrap text-secondary">{{ adjustment.date|date:"d/m/Y" }}</td>
+          <td>
             {% if adjustment.match %}
             {{ adjustment.match.home_team.name }} - {{ adjustment.match.away_team.name }}
             {% else %}
-            <span class="text-[#9da6b9]">Sin partido asociado</span>
+            <span class="text-secondary">Sin partido asociado</span>
             {% endif %}
           </td>
-          <td class="px-4 py-3 font-semibold">{{ adjustment.team.name }}</td>
-          <td class="px-4 py-3 text-right font-bold {% if adjustment.points > 0 %}text-accent-green{% elif adjustment.points < 0 %}text-red-500{% endif %}">
+          <td class="fw-semibold">{{ adjustment.team.name }}</td>
+          <td class="text-end fw-bold {% if adjustment.points > 0 %}text-success{% elif adjustment.points < 0 %}text-danger{% endif %}">
             {% if adjustment.points > 0 %}+{% endif %}{{ adjustment.points }}
           </td>
-          <td class="px-4 py-3">{{ adjustment.reason }}</td>
+          <td>{{ adjustment.reason }}</td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5" class="px-4 py-6 text-center text-sm text-[#9da6b9]">No hay ajustes registrados para esta categoría.</td>
+          <td colspan="5" class="text-center text-secondary py-4">No hay ajustes registrados para esta categoría.</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -175,10 +160,10 @@
   </div>
 </section>
 
-<!-- Footer Note -->
-<div class="mt-6 rounded-2xl border border-[#282e39] bg-[#1c1f27] px-4 py-3">
-  <p class="text-[12px] text-[#9da6b9]">
-    <span class="font-bold">Referencias:</span> PJ = Partidos Jugados | G = Ganados | E = Empatados | P = Perdidos | GF = Goles a Favor | GC = Goles en Contra | DG = Diferencia de Goles | Pts = Puntos
+<div class="app-empty-state border rounded-3 px-3 py-3">
+  <p class="small text-secondary mb-0">
+    <span class="fw-bold">Referencias:</span> PJ = Partidos Jugados | G = Ganados | E = Empatados | P = Perdidos | GF = Goles a Favor | GC = Goles en Contra | DG = Diferencia de Goles | Pts = Puntos
   </p>
 </div>
+</section>
 {% endblock %}

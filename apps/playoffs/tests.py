@@ -467,6 +467,7 @@ class PlayoffGenerationTests(TestCase):
         self.assertContains(response, "IDA")
         self.assertContains(response, "Vuelta")
         self.assertContains(response, "Penales")
+        self.assertContains(response, 'class="table app-table table-sm align-middle mb-0"')
 
     def test_playoffs_view_shows_leg_scores_instead_of_aggregate(self):
         self.settings.playoffs_home_and_away = True
@@ -600,6 +601,10 @@ class PlayoffGenerationTests(TestCase):
         page = self.client.get(schedule_url, {"category": "seniors"})
         self.assertContains(page, "Crear jornada de semifinales")
         self.assertContains(page, "Ida y vuelta")
+        self.assertContains(page, 'class="row g-3 mt-1 d-none"')
+        self.assertContains(page, 'class="form-control bg-dark text-white border-secondary"')
+        self.assertContains(page, 'class="form-select bg-dark text-white border-secondary"')
+        self.assertContains(page, 'classList.toggle("d-none", !show)')
 
         response = self.client.post(
             schedule_url,
@@ -653,6 +658,11 @@ class PlayoffGenerationTests(TestCase):
         organizer = User.objects.create_user(username="organizer", password="secret", role="ORGANIZER")
         self.client.force_login(organizer)
 
+        page = self.client.get(reverse("playoffs"), {"category": "seniors"})
+        self.assertContains(page, 'class="row g-3 mt-2"')
+        self.assertContains(page, 'class="form-select bg-dark text-white border-secondary"')
+        self.assertContains(page, "Generar cuadro")
+
         response = self.client.post(
             reverse("generate_playoff"),
             {
@@ -691,6 +701,17 @@ class PlayoffSettingsViewTests(TestCase):
             playoffs_enabled=False,
         )
         self.url = f"{reverse('playoff_settings')}?category=seniors&tournament={self.tournament.pk}"
+
+    def test_owner_sees_bootstrap_playoff_settings_form(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="app-surface border rounded-3 p-3 p-md-4"')
+        self.assertContains(response, 'class="row g-3"')
+        self.assertContains(response, 'class="form-check-input"')
+        self.assertContains(response, "Guardar reglas")
 
     def test_owner_can_save_tournament_specific_playoff_rules(self):
         self.client.force_login(self.organizer)

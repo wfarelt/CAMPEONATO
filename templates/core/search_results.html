@@ -4,17 +4,19 @@
 {% block header_title %}Busqueda{% endblock %}
 
 {% block content %}
-<div class="mx-auto mt-4 w-full max-w-6xl space-y-6 md:mt-6">
-  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-5 md:p-6">
-    <h1 class="m-0 text-2xl font-black text-white">Resultados de busqueda</h1>
-    <p class="mt-2 text-sm text-[#9da6b9]">Categoria: {{ championship_category_label }}</p>
+<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
+  <section class="app-surface border rounded-3 p-3 p-md-4 mb-4">
+    <h1 class="h3 fw-bold text-white">Resultados de búsqueda</h1>
+    <p class="small text-secondary">Categoría: {{ championship_category_label }}</p>
 
-    <form action="{% url 'search' %}" class="mt-4" method="get">
+    <form action="{% url 'search' %}" class="mt-4" method="get" role="search">
       <input type="hidden" name="category" value="{{ championship_category }}" />
-      <div class="relative">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9da6b9] text-xl">search</span>
+      <div class="input-group">
+        <span class="input-group-text app-surface border-end-0 text-secondary" aria-hidden="true">
+          <span class="material-symbols-outlined">search</span>
+        </span>
         <input
-          class="w-full rounded-full border border-[#282e39] bg-[#101622] py-2 pl-10 pr-4 text-sm text-white placeholder:text-[#9da6b9] focus:border-primary focus:outline-none"
+          class="form-control app-search-input border-start-0"
           name="q"
           placeholder="Buscar equipos, jugadores, CI..."
           type="text"
@@ -24,48 +26,52 @@
     </form>
 
     {% if query %}
-    <p class="mt-3 text-sm text-[#9da6b9]">{{ results_count }} resultado(s) para "{{ query }}"</p>
+    <p class="small text-secondary mt-3 mb-0">{{ results_count }} resultado(s) para "{{ query }}"</p>
     {% else %}
-    <p class="mt-3 text-sm text-[#9da6b9]">Escribe algo para iniciar la busqueda.</p>
+    <p class="small text-secondary mt-3 mb-0">Escribe algo para iniciar la búsqueda.</p>
     {% endif %}
   </section>
 
   {% if query %}
-  <div class="grid gap-6 lg:grid-cols-2">
-    <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-5 md:p-6">
-      <h2 class="mb-4 text-lg font-bold text-white">Equipos</h2>
-      <div class="space-y-3">
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+    <section class="app-surface border rounded-3 p-3 p-md-4 h-100">
+      <h2 class="h5 fw-bold text-white mb-3">Equipos</h2>
+      <div class="d-flex flex-column gap-2">
         {% for team in teams %}
-        <a href="{% url 'team' team.slug %}?{{ category_query }}" class="flex items-center justify-between rounded-xl border border-[#282e39] bg-[#101622] p-3 transition hover:border-primary">
+        <a href="{% url 'team' team.slug %}?{{ category_query }}" class="app-surface border rounded-2 p-3 d-flex align-items-center justify-content-between gap-3 text-decoration-none">
           <div>
-            <p class="m-0 font-bold text-white">{{ team.name }}</p>
-            <p class="m-0 text-xs text-[#9da6b9]">DT: {{ team.coach }}</p>
+            <p class="fw-bold text-white mb-1">{{ team.name }}</p>
+            <p class="small text-secondary mb-0">DT: {{ team.coach }}</p>
           </div>
-          <span class="material-symbols-outlined text-[#9da6b9]">arrow_forward</span>
+          <span class="material-symbols-outlined text-secondary">arrow_forward</span>
         </a>
         {% empty %}
-        <p class="text-sm text-[#9da6b9]">Sin equipos coincidentes.</p>
+        <p class="small text-secondary mb-0">Sin equipos coincidentes.</p>
         {% endfor %}
       </div>
     </section>
+    </div>
 
-    <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-5 md:p-6">
-      <h2 class="mb-4 text-lg font-bold text-white">Jugadores</h2>
-      <div class="space-y-3">
+    <div class="col-12 col-lg-6">
+    <section class="app-surface border rounded-3 p-3 p-md-4 h-100">
+      <h2 class="h5 fw-bold text-white mb-3">Jugadores</h2>
+      <div class="d-flex flex-column gap-2">
         {% for player in players %}
-        <a href="{% url 'team' player.team.slug %}?{{ category_query }}" class="flex items-center justify-between rounded-xl border border-[#282e39] bg-[#101622] p-3 transition hover:border-primary">
+        <a href="{% url 'team' player.team.slug %}?{{ category_query }}" class="app-surface border rounded-2 p-3 d-flex align-items-center justify-content-between gap-3 text-decoration-none">
           <div>
-            <p class="m-0 font-bold text-white">{{ player.name }}</p>
-            <p class="m-0 text-xs text-[#9da6b9]">{{ player.team.name }} • Nro {{ player.number }}{% if player.ci %} • CI {{ player.ci }}{% endif %}</p>
+            <p class="fw-bold text-white mb-1">{{ player.name }}</p>
+            <p class="small text-secondary mb-0">{{ player.team.name }} · Nro {{ player.number }}{% if player.ci %} · CI {{ player.ci }}{% endif %}</p>
           </div>
-          <span class="material-symbols-outlined text-[#9da6b9]">arrow_forward</span>
+          <span class="material-symbols-outlined text-secondary">arrow_forward</span>
         </a>
         {% empty %}
-        <p class="text-sm text-[#9da6b9]">Sin jugadores coincidentes.</p>
+        <p class="small text-secondary mb-0">Sin jugadores coincidentes.</p>
         {% endfor %}
       </div>
     </section>
+    </div>
   </div>
   {% endif %}
-</div>
+</section>
 {% endblock %}

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión | FutbolSCZ</title>
 
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <link
         href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
@@ -18,90 +18,118 @@
         body {
             font-family: "Lexend", sans-serif;
         }
+
+        .login-page {
+            min-height: 100vh;
+            background: #101622;
+        }
+
+        .login-brand-panel {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #14532d, #166534 58%, #15803d);
+        }
+
+        .login-brand-content {
+            width: min(100% - 3rem, 30rem);
+            background: rgba(8, 24, 15, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .login-card {
+            width: min(100%, 28rem);
+            background: #1c1f27;
+            border-color: #282e39 !important;
+        }
+
+        .login-control {
+            color: #f3f5f8;
+            border-color: #3b4352;
+            background: #101622;
+        }
+
+        .login-control::placeholder {
+            color: #9da6b9;
+        }
+
+        .login-control:focus {
+            color: #f3f5f8;
+            border-color: #198754;
+            background: #101622;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.2);
+        }
     </style>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+<body class="login-page text-light">
 
-<div class="grid min-h-screen lg:grid-cols-2">
+<main class="container-fluid login-page">
+  <div class="row min-vh-100">
 
-    <!-- Panel izquierdo -->
-    <div
-        class="hidden lg:flex items-center justify-center bg-gradient-to-br from-green-900 via-green-700 to-green-500 p-10"
-    >
-        <div
-            class="w-full max-w-md rounded-3xl bg-black/20 p-10 backdrop-blur-md border border-white/10"
-        >
+    <section class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center login-brand-panel p-4 p-xl-5" aria-label="Futbol Santa Cruz">
+        <div class="login-brand-content rounded-3 p-4 p-xl-5 text-center">
             <img
                 src="{% static 'tournament/img/futbolscz_logo.png' %}"
                 alt="FutbolSCZ"
-                class="mx-auto mb-6 h-28 w-28 rounded-2xl bg-white p-2 shadow-2xl"
+                class="mb-4 rounded-3 bg-white p-2"
+                width="112"
+                height="112"
             >
 
-            <h1 class="text-center text-4xl font-black tracking-tight">
+            <h1 class="display-6 fw-bold">
                 FUTBOL
             </h1>
 
-            <h2 class="text-center text-2xl font-bold text-green-100">
+            <h2 class="h3 fw-bold text-white">
                 SANTA CRUZ
             </h2>
 
-            <p class="mt-4 text-center text-white/90 leading-relaxed">
+            <p class="mt-4 mb-0 text-white">
                 Administra torneos, campeonatos y estadísticas desde una sola plataforma.
             </p>
         </div>
-    </div>
+    </section>
 
-    <!-- Login -->
-    <div class="flex items-center justify-center p-6 sm:p-10">
+    <section class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-3 p-sm-4 p-xl-5" aria-labelledby="login-title">
 
-        <div
-            class="w-full max-w-md rounded-3xl border border-slate-800/60 bg-slate-900/90 p-8 backdrop-blur-sm shadow-[0_20px_60px_rgba(0,0,0,0.50)]"
-        >
+        <div class="login-card border rounded-3 p-4 p-sm-5">
 
-            <!-- Logo móvil -->
-            <div class="mb-6 text-center lg:hidden">
+            <div class="d-lg-none text-center mb-4">
                 <img
                     src="{% static 'tournament/img/futbolscz_logo.png' %}"
                     alt="FutbolSCZ"
-                    class="mx-auto mb-4 h-16 w-16 rounded-xl bg-white p-1"
+                    class="mb-3 rounded-3 bg-white p-1"
+                    width="64"
+                    height="64"
                 >
 
-                <h1 class="text-lg font-black">
+                <h1 class="h5 fw-bold mb-0">
                     FUTBOL SANTA CRUZ
                 </h1>
             </div>
 
-            <!-- Encabezado -->
-            <div class="mb-6">
-                <h2 class="text-3xl font-black tracking-tight">
+            <header class="mb-4">
+                <h2 class="h3 fw-bold" id="login-title">
                     Bienvenido
                 </h2>
 
-                <p class="mt-1 text-sm text-slate-400">
+                <p class="text-white-50 mb-0">
                     Inicia sesión para continuar
                 </p>
-            </div>
+            </header>
 
-            <div class="mb-6 h-px bg-slate-800"></div>
+            <hr class="border-secondary mb-4">
 
             {% if form.errors %}
-            <div
-                class="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
-            >
+            <div class="alert alert-danger" role="alert">
                 Usuario o contraseña incorrectos.
             </div>
             {% endif %}
 
-            <form method="post" class="space-y-5">
+            <form method="post" class="row g-3">
                 {% csrf_token %}
 
-                <!-- Usuario -->
-                <div>
-                    <label
-                        for="id_username"
-                        class="mb-2 block text-sm font-medium text-slate-300"
-                    >
+                <div class="col-12">
+                    <label for="id_username" class="form-label fw-semibold">
                         Usuario
                     </label>
 
@@ -111,17 +139,14 @@
                         type="text"
                         required
                         autofocus
+                        autocomplete="username"
                         placeholder="Ingrese su usuario"
-                        class="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder-slate-500 transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none"
+                        class="form-control login-control"
                     >
                 </div>
 
-                <!-- Contraseña -->
-                <div>
-                    <label
-                        for="id_password"
-                        class="mb-2 block text-sm font-medium text-slate-300"
-                    >
+                <div class="col-12">
+                    <label for="id_password" class="form-label fw-semibold">
                         Contraseña
                     </label>
 
@@ -130,8 +155,9 @@
                         name="password"
                         type="password"
                         required
+                        autocomplete="current-password"
                         placeholder="Ingrese su contraseña"
-                        class="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder-slate-500 transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none"
+                        class="form-control login-control"
                     >
                 </div>
 
@@ -139,57 +165,42 @@
                 <input type="hidden" name="next" value="{{ next }}">
                 {% endif %}
 
-                <!-- Botones -->
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-2">
-
-                    <a
-                        href="{% url 'home' %}"
-                        class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-slate-700 hover:border-slate-600"
-                    >
+                <div class="col-12 row g-2 pt-1">
+                    <div class="col-12 col-sm-6">
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary w-100">
                         Cancelar
                     </a>
-
-                    <button
-                        type="submit"
-                        class="rounded-xl bg-green-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400"
-                    >
+                    </div>
+                    <div class="col-12 col-sm-6">
+                    <button type="submit" class="btn btn-success w-100">
                         Iniciar sesión
                     </button>
-
+                    </div>
                 </div>
-
             </form>
 
-            <!-- Links -->
-            <div class="mt-6 space-y-2 text-center text-sm">
+            <div class="text-center small mt-4">
 
                 <p>
-                    <a
-                        href="{% url 'password_reset' %}"
-                        class="text-green-400 transition hover:text-green-300"
-                    >
+                    <a href="{% url 'password_reset' %}" class="link-success">
                         ¿Olvidaste tu contraseña?
                     </a>
                 </p>
 
-                <p class="text-slate-400">
+                <p class="text-white-50 mb-0">
                     ¿No tienes cuenta?
 
-                    <a
-                        href="{% url 'register' %}"
-                        class="font-medium text-green-400 transition hover:text-green-300"
-                    >
+                    <a href="{% url 'register' %}" class="link-success fw-semibold">
                         Regístrate
                     </a>
                 </p>
 
             </div>
-
         </div>
-
-    </div>
+    </section>
 
 </div>
+</main>
 
 </body>
 </html>

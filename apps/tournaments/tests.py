@@ -276,6 +276,12 @@ class TournamentManagementViewsTests(TestCase):
     def test_organizer_can_create_tournament_and_enroll_teams(self):
         self.client.force_login(self.organizer)
 
+        form_page = self.client.get(f"{reverse('tournament_create')}?category=seniors")
+        self.assertEqual(form_page.status_code, 200)
+        self.assertContains(form_page, 'class="app-surface border rounded-3 p-3 p-md-4"')
+        self.assertContains(form_page, 'class="row g-3"')
+        self.assertContains(form_page, 'class="form-select"')
+
         response = self.client.post(
             f"{reverse('tournament_create')}?category=seniors",
             {
@@ -295,6 +301,66 @@ class TournamentManagementViewsTests(TestCase):
         tournament = Tournament.objects.get(name="Liga Apertura", season="2026")
         self.assertEqual(list(tournament.teams.all()), [self.team])
         self.assertTrue(tournament.organizers.filter(pk=self.organizer.pk).exists())
+
+    def test_matchday_wizard_uses_bootstrap_layout_for_first_two_steps(self):
+        self.client.force_login(self.organizer)
+
+        first_step = self.client.get(reverse("create_matchday"), {"category": "seniors"})
+
+        self.assertEqual(first_step.status_code, 200)
+        self.assertContains(first_step, "class=\"row row-cols-1 row-cols-sm-3 g-2 mb-4\"")
+        self.assertContains(first_step, "Registrar jornada")
+
+        next_step = self.client.post(
+            f"{reverse('create_matchday')}?category=seniors",
+            {
+                "step": "1",
+                "category": "seniors",
+                "date": "2026-06-15",
+                "description": "Fecha de prueba",
+                "is_visible": "on",
+            },
+        )
+
+        self.assertEqual(next_step.status_code, 302)
+        second_step = self.client.get(next_step.url)
+        self.assertEqual(second_step.status_code, 200)
+        self.assertContains(second_step, "class=\"row g-3 align-items-end\"")
+        self.assertContains(second_step, "Añadir partido")
+
+    def test_matchday_list_renders_bootstrap_empty_state(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(reverse("matchdays_list"), {"category": "seniors"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "app-empty-state border rounded-3")
+        self.assertContains(response, "Crear la primera jornada")
+
+    def test_matchday_list_renders_bootstrap_table(self):
+        self.client.force_login(self.organizer)
+        matchday = MatchDay.objects.create(category="seniors", date=date(2026, 6, 15), description="Primera fecha")
+
+        response = self.client.get(reverse("matchdays_list"), {"category": "seniors"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "table table-hover align-middle app-table mb-0")
+        self.assertContains(response, "Primera fecha")
+        self.assertContains(response, reverse("matchday_detail", kwargs={"matchday_slug": matchday.slug}))
+
+    def test_matchday_detail_renders_bootstrap_summary(self):
+        self.client.force_login(self.organizer)
+        matchday = MatchDay.objects.create(category="seniors", date=date(2026, 6, 15), description="Primera fecha")
+
+        response = self.client.get(
+            reverse("matchday_detail", kwargs={"matchday_slug": matchday.slug}),
+            {"category": "seniors"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "row row-cols-2 row-cols-sm-3 g-3 mb-4")
+        self.assertContains(response, "app-surface border rounded-3 overflow-hidden")
+        self.assertContains(response, "No hay partidos registrados en esta jornada.")
 
     def test_non_organizer_cannot_manage_tournaments(self):
         self.client.force_login(self.player)
@@ -318,6 +384,7 @@ class TournamentManagementViewsTests(TestCase):
 
         self.assertContains(list_response, "Liga Invierno")
         self.assertContains(edit_response, "Equipos participantes")
+        self.assertContains(edit_response, 'class="form-select"')
         update_response = self.client.post(
             f"{reverse('tournament_edit', args=[tournament.pk])}?category=seniors",
             {

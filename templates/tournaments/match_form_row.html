@@ -1,0 +1,32 @@
+<div class="match-form">
+  {{ form.id }}
+  <div class="row g-3 align-items-end">
+    <div class="col-12 col-md-6 col-lg-3">
+      <label class="wizard-label" for="{{ form.home_team.id_for_label }}">Equipo local</label>
+      {{ form.home_team }}
+      {% if form.home_team.errors %}<div class="wizard-error mt-1">{{ form.home_team.errors }}</div>{% endif %}
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+      <label class="wizard-label" for="{{ form.away_team.id_for_label }}">Equipo visitante</label>
+      {{ form.away_team }}
+      {% if form.away_team.errors %}<div class="wizard-error mt-1">{{ form.away_team.errors }}</div>{% endif %}
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="wizard-label" for="{{ form.court.id_for_label }}">Cancha</label>
+      {{ form.court }}
+      {% if form.court.errors %}<div class="wizard-error mt-1">{{ form.court.errors }}</div>{% endif %}
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="wizard-label" for="{{ form.time.id_for_label }}">Hora</label>
+      {{ form.time }}
+      {% if form.time.errors %}<div class="wizard-error mt-1">{{ form.time.errors }}</div>{% endif %}
+    </div>
+    <div class="col-12 col-lg-2">
+      <div class="form-check">
+        {{ form.DELETE }}
+        <label class="form-check-label text-secondary" for="{{ form.DELETE.id_for_label }}">Eliminar</label>
+      </div>
+    </div>
+    {% if form.non_field_errors %}<div class="col-12 wizard-error">{{ form.non_field_errors }}</div>{% endif %}
+  </div>
+</div>

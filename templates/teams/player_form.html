@@ -1,149 +1,47 @@
 {% extends "core/base.html" %}
 
-{% block title %}{% if is_edit %}Editar Jugador{% else %}Nuevo Jugador{% endif %}{% endblock %}
-
-{% block header_title %}{% if is_edit %}Editar Jugador{% else %}Nuevo Jugador{% endif %}{% endblock %}
+{% block title %}{% if is_edit %}Editar jugador{% else %}Nuevo jugador{% endif %}{% endblock %}
+{% block header_title %}{% if is_edit %}Editar jugador{% else %}Nuevo jugador{% endif %}{% endblock %}
 
 {% block content %}
-<div class="mx-auto w-full max-w-3xl rounded-3xl border border-[#282e39] bg-[#1c1f27] p-8">
-  <div class="mb-6">
-    <h2 class="text-2xl font-black text-white">
-      {% if is_edit %}Editar {{ player.name }}{% else %}Registrar jugador{% endif %}
-    </h2>
-    <p class="mt-2 text-sm text-[#9da6b9]">Equipo: {{ team.name }}</p>
+<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
+  <div class="app-form-narrow mx-auto w-100">
+    <header class="mb-4">
+      <p class="small text-secondary mb-1">Equipo: {{ team.name }}</p>
+      <h1 class="h3 fw-bold text-white mb-0">{% if is_edit %}Editar {{ player.name }}{% else %}Registrar jugador{% endif %}</h1>
+    </header>
+
+    <form method="post" enctype="multipart/form-data" class="app-surface border rounded-3 p-3 p-md-4">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="row g-3">
+        {% for field in form %}
+        {% if field.field.widget.input_type == 'checkbox' %}
+        <div class="col-12 col-md-6">
+          <div class="form-check app-surface border rounded-3 p-3 ps-5 h-100">
+            {{ field }}
+            <label class="form-check-label fw-semibold text-white" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% if field.name == 'is_sub35' %}<p class="small text-secondary mt-2 mb-0">Marca si el jugador participa en la categoría Sub35.</p>{% endif %}
+            {% if field.name == 'is_reinforcement' %}<p class="small text-secondary mt-2 mb-0">Marca si participa como refuerzo.</p>{% endif %}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="col-12 {% if field.name == 'name' or field.name == 'photo' %}col-md-12{% else %}col-md-6{% endif %}">
+          <label class="form-label small fw-semibold text-secondary" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.name == 'goals_scored' %}<div class="form-text text-secondary">Goles registrados antes de usar el detalle de eventos.</div>{% endif %}
+          {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="d-flex flex-column flex-sm-row gap-2 mt-4 pt-3 border-top">
+        <button type="submit" class="btn btn-primary">{% if is_edit %}Guardar cambios{% else %}Crear jugador{% endif %}</button>
+        <a href="{% url 'team' team.slug %}?{{ category_query }}" class="btn btn-outline-light">Cancelar</a>
+      </div>
+    </form>
   </div>
-
-  <form method="post" enctype="multipart/form-data" class="space-y-5">
-    {% csrf_token %}
-
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_name">Nombre completo del jugador</label>
-      {{ form.name }}
-      {% if form.name.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.name.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_ci">CI</label>
-      {{ form.ci }}
-      {% if form.ci.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.ci.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
-    {% if form.graduation_year %}
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_graduation_year">Año de egreso</label>
-      {{ form.graduation_year }}
-      {% if form.graduation_year.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.graduation_year.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    {% if form.birth_date %}
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_birth_date">Fecha de nacimiento</label>
-      {{ form.birth_date }}
-      {% if form.birth_date.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.birth_date.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    {% if form.photo %}
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_photo">Foto</label>
-      {{ form.photo }}
-      {% if form.photo.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.photo.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <div class="grid gap-5 md:grid-cols-2">
-      <div>
-        <label class="mb-1 block text-sm font-semibold text-white" for="id_number">Numero</label>
-        {{ form.number }}
-        {% if form.number.errors %}
-        <p class="mt-1 text-xs text-red-400">{{ form.number.errors|join:", " }}</p>
-        {% endif %}
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm font-semibold text-white" for="id_position">Posicion</label>
-        {{ form.position }}
-        {% if form.position.errors %}
-        <p class="mt-1 text-xs text-red-400">{{ form.position.errors|join:", " }}</p>
-        {% endif %}
-      </div>
-    </div>
-
-    {% if form.goals_scored %}
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_goals_scored">Goles acumulados</label>
-      {{ form.goals_scored }}
-      {% if form.goals_scored.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.goals_scored.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    {% if form.is_sub35 %}
-    <div class="rounded-xl border border-[#282e39] bg-[#282e39]/60 p-4">
-      <label for="id_is_sub35" class="flex cursor-pointer items-center justify-between gap-4">
-        <div>
-          <p class="text-sm font-semibold text-white">Es Sub35</p>
-          <p class="text-xs text-[#9da6b9]">Marcar si el jugador es Sub35.</p>
-        </div>
-        <span class="relative inline-flex items-center">
-          {{ form.is_sub35 }}
-        </span>
-      </label>
-      {% if form.is_sub35.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.is_sub35.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <div class="rounded-xl border border-[#282e39] bg-[#282e39]/60 p-4">
-      <label for="id_is_reinforcement" class="flex cursor-pointer items-center justify-between gap-4">
-        <div>
-          <p class="text-sm font-semibold text-white">Jugador refuerzo</p>
-          <p class="text-xs text-[#9da6b9]">Marcar si este jugador participa como refuerzo.</p>
-        </div>
-        <span class="relative inline-flex items-center">
-          {{ form.is_reinforcement }}
-        </span>
-      </label>
-      {% if form.is_reinforcement.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.is_reinforcement.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
-    {% if form.non_field_errors %}
-    <div>
-      {% for error in form.non_field_errors %}
-      <p class="text-xs text-red-400">{{ error }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="flex flex-wrap items-center gap-3 pt-2">
-      <button
-        type="submit"
-        class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
-      >
-        {% if is_edit %}Guardar cambios{% else %}Crear jugador{% endif %}
-      </button>
-      <a
-        href="{% url 'team' team.slug %}?{{ category_query }}"
-        class="rounded-xl bg-[#282e39] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#343b48]"
-      >
-        Cancelar
-      </a>
-    </div>
-  </form>
-</div>
+</section>
 {% endblock %}

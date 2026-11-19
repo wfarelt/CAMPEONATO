@@ -224,6 +224,83 @@ body.app-body {
   background: var(--app-surface);
 }
 
+.app-form-narrow {
+  max-width: 52rem;
+}
+
+.app-team-card {
+  overflow: hidden;
+  color: var(--app-text);
+  border-color: var(--app-border);
+  border-radius: 0.75rem;
+  background: var(--app-surface);
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.app-team-card:hover {
+  border-color: var(--app-primary);
+  transform: translateY(-2px);
+}
+
+.app-team-logo-stage {
+  min-height: 9rem;
+  background: linear-gradient(145deg, rgba(var(--bs-primary-rgb), 0.16), transparent 70%);
+}
+
+.app-team-logo {
+  width: min(100%, 8rem);
+  height: 7rem;
+}
+
+.app-team-placeholder {
+  width: 5.5rem;
+  height: 5.5rem;
+  color: var(--app-text-muted);
+  background: var(--app-surface-hover);
+  font-size: 2.5rem;
+}
+
+.app-player-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 2.5rem;
+}
+
+.app-result-indicator {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+}
+
+.app-player-photo-preview {
+  max-height: 75vh;
+}
+
+.app-sponsor-image-stage {
+  height: 10rem;
+  background: #101622;
+}
+
+.app-rank-indicator {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 1.75rem;
+}
+
+.app-standings-qualified {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-team-card {
+    transition: none;
+  }
+
+  .app-team-card:hover {
+    transform: none;
+  }
+}
+
 .app-nav-link {
   color: var(--app-text-muted);
   font-size: 0.875rem;

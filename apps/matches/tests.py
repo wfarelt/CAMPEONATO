@@ -4,6 +4,7 @@ import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.test import TestCase
+from django.urls import reverse
 
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_home_playoff_context, build_matches_context, build_statistics_context
@@ -66,6 +67,59 @@ class MatchServicesTests(TestCase):
         self.assertEqual(context["featured_match"]["home_team"], "Alpha FC")
         self.assertTrue(context["featured_match"]["is_finished"])
         self.assertEqual(context["teams_classified"], 4)
+
+    def test_dashboard_view_renders_bootstrap_summary_and_scoring_teams(self):
+        organizer = User.objects.create_user(username="dashboard-organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.get(reverse("dashboard"), {"category": "seniors"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="row row-cols-2 row-cols-md-4 g-2 g-md-3"')
+        self.assertContains(response, 'class="app-surface border rounded-3 overflow-hidden"')
+        self.assertContains(response, "Resumen del Campeonato")
+        self.assertContains(response, "Equipos con mas goles")
+        self.assertContains(response, "Alpha FC")
+        self.assertContains(response, "Ver Estadisticas Completas")
+
+    def test_match_detail_renders_bootstrap_score_and_print_sheet(self):
+        Player.objects.create(team=self.team_a, name="Home Print Player", number=7, position="FW")
+        Player.objects.create(team=self.team_b, name="Away Print Player", number=8, position="GK")
+        organizer = User.objects.create_user(username="match-detail-organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.get(
+            reverse("match_detail", kwargs={"match_slug": self.finished_match.slug}),
+            {"category": "seniors"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="row align-items-center g-3"')
+        self.assertContains(response, "Alpha FC")
+        self.assertContains(response, "Beta FC")
+        self.assertContains(response, "Home Print Player")
+        self.assertContains(response, "Away Print Player")
+        self.assertContains(response, 'class="print-modal-overlay d-none align-items-center justify-content-center p-3"')
+        self.assertContains(response, 'class="form-check-input flex-shrink-0"')
+
+    def test_match_result_renders_bootstrap_controls_for_organizer(self):
+        Player.objects.create(team=self.team_a, name="Home Event Player", number=7, position="FW")
+        Player.objects.create(team=self.team_b, name="Away Event Player", number=8, position="GK")
+        organizer = User.objects.create_user(username="match-result-organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.get(
+            reverse("match_result", kwargs={"match_slug": self.finished_match.slug}),
+            {"category": "seniors"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="form-control app-score-input text-center fw-bold"')
+        self.assertContains(response, 'class="form-select result-player-select"')
+        self.assertContains(response, 'class="btn-group w-100 mb-3"')
+        self.assertContains(response, "Registrar evento")
+        self.assertContains(response, "Eventos del partido")
+        self.assertContains(response, "Home Event Player")
 
     def test_home_playoff_link_preserves_selected_tournament(self):
         tournament = Tournament.objects.create(name="Liga 2026", season="2026", category="seniors")
@@ -459,6 +513,19 @@ class MatchServicesTests(TestCase):
         self.assertEqual(list(context["matches_finished"]), [self.finished_match])
         self.assertEqual(context["matches_pending"][0]["home_team_last_results"], [])
 
+    def test_matches_page_renders_bootstrap_fixture_cards_and_result_filter(self):
+        organizer = User.objects.create_user(username="matches-page-organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.get(reverse("matches"), {"category": "seniors"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Próximos partidos")
+        self.assertContains(response, "Gamma FC")
+        self.assertContains(response, "Resultados")
+        self.assertContains(response, 'class="row row-cols-1 row-cols-lg-2 g-3"')
+        self.assertContains(response, 'id="matchday-filter"')
+
     def test_build_matches_context_orders_pending_by_court_and_time(self):
         second_match = Match.objects.create(
             match_day=self.matchday,
@@ -496,6 +563,20 @@ class MatchServicesTests(TestCase):
         self.assertEqual(context["top_scorers"][0]["goals"], 8)
         self.assertEqual(context["top_scorers"][1]["player_name"], "Striker A")
         self.assertEqual(context["top_scorers"][2]["team_name"], "Gamma FC")
+
+    def test_statistics_view_renders_bootstrap_sections_and_scorer(self):
+        Player.objects.create(team=self.team_a, name="Statistics Striker", number=9, position="FW", goals_scored=6)
+        organizer = User.objects.create_user(username="statistics-organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.get(reverse("statistics"), {"category": "seniors"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="row row-cols-1 row-cols-sm-2 row-cols-xxl-4 g-3 mb-4"')
+        self.assertContains(response, 'class="app-surface border rounded-3 overflow-hidden h-100"')
+        self.assertContains(response, "Goleadores")
+        self.assertContains(response, "Statistics Striker")
+        self.assertContains(response, "Tarjetas Amarillas")
 
     def test_build_statistics_context_uses_player_photo_when_available(self):
         with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):

@@ -4,16 +4,20 @@
 {% block header_title %}Noticias{% endblock %}
 
 {% block content %}
-<div class="mx-auto mt-4 w-full max-w-3xl space-y-6 md:mt-6">
-  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 md:p-8">
-    <p class="text-xs font-bold uppercase tracking-wider text-primary">Noticia</p>
-    <h1 class="mt-2 text-3xl font-black text-white">{{ news_title }}</h1>
-    <p class="mt-4 text-sm text-[#9da6b9]">
-      Esta ruta usa slug amigable: <span class="font-bold text-white">/noticias/{{ news_slug }}</span>.
-    </p>
-    <p class="mt-2 text-sm text-[#9da6b9]">
-      Si deseas, puedo conectar esta vista a un modelo real de noticias para publicar contenido dinámico.
-    </p>
-  </section>
+<div class="container py-4 py-lg-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-9">
+      <article class="app-surface border rounded-3 p-4 p-md-5" aria-labelledby="news-title">
+        <p class="small fw-bold text-uppercase text-primary mb-2">Noticia</p>
+        <h1 class="h2 fw-bold mb-4" id="news-title">{{ news_title }}</h1>
+        <p class="small text-white-50 mb-2">
+          Esta ruta usa slug amigable: <span class="fw-bold text-white text-break">/noticias/{{ news_slug }}</span>.
+        </p>
+        <p class="small text-white-50 mb-0">
+          Si deseas, puedo conectar esta vista a un modelo real de noticias para publicar contenido dinámico.
+        </p>
+      </article>
+    </div>
+  </div>
 </div>
 {% endblock %}

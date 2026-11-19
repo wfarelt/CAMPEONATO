@@ -54,51 +54,44 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-
-  {# Header #}
-  <div class="bg-[#1c1f27] rounded-2xl border border-[#282e39] p-6 print:hidden">
-    <div class="flex flex-wrap items-center justify-between gap-4">
+<div class="container-fluid py-4">
+  <section class="app-surface border rounded-3 p-3 p-md-4 mb-4 no-print" aria-labelledby="payments-title">
+    <div class="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3">
       <div>
-        <h2 class="text-lg font-semibold text-white">Control de Pagos – Tarjetas</h2>
-        <p class="text-sm text-[#9da6b9]">
+        <h1 class="h5 fw-bold mb-1" id="payments-title">Control de Pagos – Tarjetas</h1>
+        <p class="small text-white-50 mb-0">
           {{ card_events|length }} registro{{ card_events|length|pluralize }} – ordenados por equipo
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3">
-
-        {# Filter tabs #}
-        <div class="flex rounded-xl border border-[#282e39] overflow-hidden text-sm font-medium">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="btn-group" role="group" aria-label="Filtrar pagos">
           <a href="{% url 'card_payments' %}?filtro=pendientes&{{ category_query }}"
-             class="px-4 py-2 transition {% if filtro == 'pendientes' %}bg-orange-500 text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white{% endif %}">
+             class="btn {% if filtro == 'pendientes' %}btn-warning{% else %}btn-outline-secondary{% endif %}"
+             aria-pressed="{% if filtro == 'pendientes' %}true{% else %}false{% endif %}">
             Pendientes
           </a>
           <a href="{% url 'card_payments' %}?filtro=pagados&{{ category_query }}"
-             class="px-4 py-2 border-x border-[#282e39] transition {% if filtro == 'pagados' %}bg-green-600 text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white{% endif %}">
+             class="btn {% if filtro == 'pagados' %}btn-success{% else %}btn-outline-secondary{% endif %}"
+             aria-pressed="{% if filtro == 'pagados' %}true{% else %}false{% endif %}">
             Pagados
           </a>
           <a href="{% url 'card_payments' %}?filtro=todos&{{ category_query }}"
-             class="px-4 py-2 transition {% if filtro == 'todos' %}bg-primary text-white{% else %}text-[#9da6b9] hover:bg-[#282e39] hover:text-white{% endif %}">
+             class="btn {% if filtro == 'todos' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+             aria-pressed="{% if filtro == 'todos' %}true{% else %}false{% endif %}">
             Todos
           </a>
         </div>
 
-        {# Print button #}
-        <button onclick="window.print()"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#282e39] text-sm font-medium text-[#cfd6e6] hover:bg-[#282e39] hover:text-white transition">
-          <span class="material-symbols-outlined" style="font-size:18px">print</span>
+        <button type="button" onclick="window.print()" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+          <span class="material-symbols-outlined" aria-hidden="true">print</span>
           Imprimir
         </button>
-
       </div>
     </div>
-  </div>
+  </section>
 
-  {# Printable area #}
   <div id="print-area">
-
-    {# Print-only header #}
     <div class="no-screen-show" style="display:none">
       <p class="print-title">Control de Pagos – Tarjetas</p>
       <p class="print-subtitle">
@@ -111,83 +104,76 @@
       </p>
     </div>
 
-    {# Table #}
-    <div class="bg-[#1c1f27] rounded-2xl border border-[#282e39] overflow-hidden print:bg-white print:border-gray-300">
+    <div class="app-surface border rounded-3 overflow-hidden">
       {% if card_events %}
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+      <div class="table-responsive">
+        <table class="table app-table table-hover align-middle mb-0">
           <thead>
-            <tr class="border-b border-[#282e39] text-[#9da6b9] text-xs uppercase tracking-wide print:text-gray-600 print:border-gray-300">
-              <th class="px-6 py-4 text-left">Equipo</th>
-              <th class="px-6 py-4 text-left">Jugador</th>
-              <th class="px-6 py-4 text-left">Tarjeta</th>
-              <th class="px-6 py-4 text-left">Partido</th>
-              <th class="px-6 py-4 text-left">Fecha</th>
-              <th class="px-6 py-4 text-right">Monto</th>
-              <th class="px-6 py-4 text-center">Estado</th>
-              <th class="px-6 py-4 text-center no-print">Acciones</th>
+            <tr class="text-uppercase small">
+              <th scope="col">Equipo</th>
+              <th scope="col">Jugador</th>
+              <th scope="col">Tarjeta</th>
+              <th scope="col">Partido</th>
+              <th scope="col">Fecha</th>
+              <th scope="col" class="text-end">Monto</th>
+              <th scope="col" class="text-center">Estado</th>
+              <th scope="col" class="text-center no-print">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#282e39] print:divide-gray-200">
+          <tbody>
             {% regroup card_events by team as events_by_team %}
             {% for group in events_by_team %}
-              <tr class="bg-[#101622] print:bg-gray-50">
-                <td colspan="8" class="px-6 py-2 text-xs font-semibold text-primary uppercase tracking-wider print:text-gray-700">
+              <tr class="table-group-divider">
+                <td colspan="8" class="bg-dark fw-semibold text-primary text-uppercase small">
                   {{ group.grouper }}
                 </td>
               </tr>
               {% for event in group.list %}
-              <tr class="hover:bg-[#101622] transition-colors print:hover:bg-transparent">
-                <td class="px-6 py-4 text-[#cfd6e6] print:text-gray-800">{{ event.team.name }}</td>
-                <td class="px-6 py-4 font-medium text-white print:text-gray-900">
+              <tr>
+                <td>{{ event.team.name }}</td>
+                <td class="fw-medium">
                   {{ event.player.name }}
                   {% if event.player.number %}
-                    <span class="text-[#9da6b9] text-xs ml-1 print:text-gray-500">#{{ event.player.number }}</span>
+                    <span class="text-white-50 small ms-1">#{{ event.player.number }}</span>
                   {% endif %}
                 </td>
-                <td class="px-6 py-4">
+                <td>
                   {% if event.event_type == 'yellow_card' %}
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 badge-yellow">
-                      Amarilla
-                    </span>
+                    <span class="badge text-bg-warning badge-yellow">Amarilla</span>
                   {% else %}
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30 badge-red">
-                      Roja
-                    </span>
+                    <span class="badge text-bg-danger badge-red">Roja</span>
                   {% endif %}
                 </td>
-                <td class="px-6 py-4 text-[#9da6b9] text-xs print:text-gray-600">
+                <td class="small text-white-50">
                   {{ event.match.home_team.name }} vs {{ event.match.away_team.name }}
                 </td>
-                <td class="px-6 py-4 text-[#9da6b9] text-xs print:text-gray-600">{{ event.match.date|date:"d/m/Y" }}</td>
-                <td class="px-6 py-4 text-right">
+                <td class="small text-white-50">{{ event.match.date|date:"d/m/Y" }}</td>
+                <td class="text-end">
                   {% if event.card_payment.amount %}
-                    <span class="text-white font-medium print:text-gray-900">${{ event.card_payment.amount }}</span>
+                    <span class="fw-medium">${{ event.card_payment.amount }}</span>
                   {% else %}
-                    <span class="text-[#9da6b9]">–</span>
+                    <span class="text-white-50">–</span>
                   {% endif %}
                 </td>
-                <td class="px-6 py-4 text-center">
+                <td class="text-center">
                   {% if event.card_payment.paid %}
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30 badge-paid">
-                      <span class="material-symbols-outlined no-print" style="font-size:14px">check_circle</span>
-                      Pagado
+                    <span class="badge text-bg-success badge-paid">
+                      <span class="material-symbols-outlined no-print" aria-hidden="true">check_circle</span> Pagado
                     </span>
                     {% if event.card_payment.paid_date %}
-                      <p class="text-[#9da6b9] text-xs mt-1 print:text-gray-500">{{ event.card_payment.paid_date|date:"d/m/Y" }}</p>
+                      <p class="small text-white-50 mt-1 mb-0">{{ event.card_payment.paid_date|date:"d/m/Y" }}</p>
                     {% endif %}
                   {% else %}
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30 badge-pending">
-                      <span class="material-symbols-outlined no-print" style="font-size:14px">pending</span>
-                      Pendiente
+                    <span class="badge text-bg-warning badge-pending">
+                      <span class="material-symbols-outlined no-print" aria-hidden="true">pending</span> Pendiente
                     </span>
                   {% endif %}
                 </td>
-                <td class="px-6 py-4 text-center no-print">
+                <td class="text-center no-print">
                   {% if event.can_manage_payment %}
                   <a href="{% url 'register_card_payment' event.id %}?{{ category_query }}"
-                     class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/20 text-primary border border-primary/30 hover:bg-primary hover:text-white transition">
-                    <span class="material-symbols-outlined" style="font-size:14px">payment</span>
+                     class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined" aria-hidden="true">payment</span>
                     {% if event.card_payment.pk %}Editar{% else %}Registrar{% endif %}
                   </a>
                   {% endif %}
@@ -199,9 +185,9 @@
         </table>
       </div>
       {% else %}
-      <div class="flex flex-col items-center justify-center py-16 text-[#9da6b9] no-print">
-        <span class="material-symbols-outlined text-5xl mb-3">check_circle</span>
-        <p class="text-base font-medium">
+      <div class="d-flex flex-column align-items-center justify-content-center p-5 text-center text-white-50 no-print">
+        <span class="material-symbols-outlined fs-1 mb-3" aria-hidden="true">check_circle</span>
+        <p class="fw-medium mb-0">
           {% if filtro == 'pendientes' %}No hay tarjetas pendientes de pago.
           {% elif filtro == 'pagados' %}No hay tarjetas pagadas aún.
           {% else %}No hay registros de tarjetas.
@@ -211,7 +197,6 @@
       {% endif %}
     </div>
 
-  </div>{# /print-area #}
-
+  </div>
 </div>
 {% endblock %}

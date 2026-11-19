@@ -4,169 +4,204 @@
 {% block header_title %}Playoffs{% endblock %}
 
 {% block content %}
-<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
-    <div class="flex flex-wrap items-end justify-between gap-3 border-b border-[#282e39] pb-5">
-        <div>
-            <p class="text-sm text-[#9da6b9]">{{ championship_category_label }}</p>
-            <h1 class="mt-1 text-3xl font-bold">Cuadro eliminatorio</h1>
-        </div>
-        <div class="flex flex-wrap items-center gap-3">
+<div class="container-fluid py-4">
+  <header class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 border-bottom pb-3 mb-4">
+    <div>
+      <p class="small text-white-50 mb-1">{{ championship_category_label }}</p>
+      <h1 class="h3 fw-bold mb-0">Cuadro eliminatorio</h1>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-3">
         {% if is_organizer and selected_tournament %}
-            <a href="{% url 'playoff_settings' %}?{{ category_query }}" class="inline-flex items-center gap-2 rounded-lg border border-[#3b4352] px-3 py-2 text-sm font-semibold text-[#d9e0ef] hover:bg-[#1c1f27]">
-                <span class="material-symbols-outlined text-lg">settings</span>Reglas de playoffs
+            <a href="{% url 'playoff_settings' %}?{{ category_query }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-gear" aria-hidden="true"></i>Reglas de playoffs
             </a>
         {% endif %}
         {% if settings and settings.playoffs_home_and_away %}
-            <p class="text-sm text-[#9da6b9]">Llaves a ida y vuelta</p>
+            <span class="small text-white-50">Llaves a ida y vuelta</span>
         {% elif settings %}
-            <p class="text-sm text-[#9da6b9]">Llaves a partido unico</p>
+            <span class="small text-white-50">Llaves a partido unico</span>
         {% endif %}
-        </div>
     </div>
+  </header>
     {% if messages %}
-    <div class="mt-5 space-y-2">
+    <div class="mb-4">
         {% for message in messages %}
-        <div class="rounded-xl border px-4 py-3 text-sm {% if message.tags == 'error' %}border-red-500/30 bg-red-500/10 text-red-200{% elif message.tags == 'warning' %}border-amber-500/30 bg-amber-500/10 text-amber-200{% else %}border-emerald-500/30 bg-emerald-500/10 text-emerald-200{% endif %}">
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %} py-2" role="status">
             {{ message }}
         </div>
         {% endfor %}
     </div>
     {% endif %}
     {% if not settings or not settings.playoffs_enabled %}
-        <section class="mt-8 max-w-3xl border border-[#282e39] bg-[#1c1f27] p-6">
-            <div class="flex items-start gap-3">
-                <span class="material-symbols-outlined text-[#f0b35b]">info</span>
+        <section class="app-surface border rounded-3 p-3 p-md-4" aria-labelledby="playoffs-unavailable-title">
+            <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-info-circle text-warning" aria-hidden="true"></i>
                 <div>
-                    <h2 class="font-semibold text-white">Playoffs no disponibles</h2>
-                    <p class="mt-1 text-sm text-[#9da6b9]">Esta temporada no tiene un cuadro habilitado. Configura sus reglas antes de generarlo.</p>
+                    <h2 class="h5 fw-bold" id="playoffs-unavailable-title">Playoffs no disponibles</h2>
+                    <p class="small text-white-50 mb-0">Esta temporada no tiene un cuadro habilitado. Configura sus reglas antes de generarlo.</p>
                 </div>
             </div>
         </section>
     {% elif not playoff %}
-        <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.8fr)]">
-            <section class="border border-[#282e39] bg-[#1c1f27] p-6">
-                <div class="flex items-start justify-between gap-4">
+        <div class="row g-4">
+            <section class="col-12 col-lg-7" aria-labelledby="generate-playoff-title">
+              <div class="app-surface border rounded-3 p-3 p-md-4 h-100">
+                <div class="d-flex align-items-start justify-content-between gap-3">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Configuracion lista</p>
-                        <h2 class="mt-2 text-xl font-bold text-white">Generar cuadro</h2>
-                        <p class="mt-1 text-sm text-[#9da6b9]">Los equipos se toman automaticamente de las posiciones finales de {{ championship_category_label }}.</p>
+                        <p class="small fw-semibold text-uppercase text-primary mb-2">Configuracion lista</p>
+                        <h2 class="h4 fw-bold" id="generate-playoff-title">Generar cuadro</h2>
+                        <p class="small text-white-50 mb-0">Los equipos se toman automaticamente de las posiciones finales de {{ championship_category_label }}.</p>
                     </div>
-                    <span class="material-symbols-outlined text-primary">account_tree</span>
+                    <i class="bi bi-diagram-3 text-primary fs-4" aria-hidden="true"></i>
                 </div>
                 {% if is_organizer %}
-                <form class="mt-6 grid gap-4 sm:grid-cols-2" method="post" action="{% url 'generate_playoff' %}?{{ category_query }}">
-                {% csrf_token %}
-                {% if generation_form.non_field_errors %}<div class="sm:col-span-2 text-sm text-red-300">{{ generation_form.non_field_errors }}</div>{% endif %}
-                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.match_date.id_for_label }}">{{ generation_form.match_date.label }}</label>{{ generation_form.match_date }}{{ generation_form.match_date.errors }}</div>
-                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.match_time.id_for_label }}">{{ generation_form.match_time.label }}</label>{{ generation_form.match_time }}{{ generation_form.match_time.errors }}</div>
-                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.court.id_for_label }}">{{ generation_form.court.label }}</label>{{ generation_form.court }}{{ generation_form.court.errors }}</div>
-                {% if settings.playoffs_home_and_away %}
-                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.second_leg_date.id_for_label }}">{{ generation_form.second_leg_date.label }}</label>{{ generation_form.second_leg_date }}{{ generation_form.second_leg_date.errors }}</div>
-                <div><label class="mb-1 block text-sm text-[#c5cada]" for="{{ generation_form.second_leg_time.id_for_label }}">{{ generation_form.second_leg_time.label }}</label>{{ generation_form.second_leg_time }}{{ generation_form.second_leg_time.errors }}</div>
-                {% endif %}
-                <div class="sm:col-span-2 flex items-center justify-between gap-4 border-t border-[#282e39] pt-4">
-                    <p class="text-xs text-[#9da6b9]">Se crearan las llaves y sus jornadas automaticamente.</p>
-                    <button class="inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90" type="submit"><span class="material-symbols-outlined text-[18px]">add_circle</span>Generar playoffs</button>
-                </div>
+                <form class="row g-3 mt-2" method="post" action="{% url 'generate_playoff' %}?{{ category_query }}">
+                    {% csrf_token %}
+                    {% if generation_form.non_field_errors %}<div class="col-12"><div class="alert alert-danger mb-0" role="alert">{{ generation_form.non_field_errors }}</div></div>{% endif %}
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-semibold" for="{{ generation_form.match_date.id_for_label }}">{{ generation_form.match_date.label }}</label>
+                        {{ generation_form.match_date }}
+                        {% if generation_form.match_date.errors %}<div class="invalid-feedback d-block">{{ generation_form.match_date.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-semibold" for="{{ generation_form.match_time.id_for_label }}">{{ generation_form.match_time.label }}</label>
+                        {{ generation_form.match_time }}
+                        {% if generation_form.match_time.errors %}<div class="invalid-feedback d-block">{{ generation_form.match_time.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-semibold" for="{{ generation_form.court.id_for_label }}">{{ generation_form.court.label }}</label>
+                        {{ generation_form.court }}
+                        {% if generation_form.court.errors %}<div class="invalid-feedback d-block">{{ generation_form.court.errors }}</div>{% endif %}
+                    </div>
+                    {% if settings.playoffs_home_and_away %}
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-semibold" for="{{ generation_form.second_leg_date.id_for_label }}">{{ generation_form.second_leg_date.label }}</label>
+                        {{ generation_form.second_leg_date }}
+                        {% if generation_form.second_leg_date.errors %}<div class="invalid-feedback d-block">{{ generation_form.second_leg_date.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-semibold" for="{{ generation_form.second_leg_time.id_for_label }}">{{ generation_form.second_leg_time.label }}</label>
+                        {{ generation_form.second_leg_time }}
+                        {% if generation_form.second_leg_time.errors %}<div class="invalid-feedback d-block">{{ generation_form.second_leg_time.errors }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="col-12 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 border-top pt-3 mt-1">
+                        <p class="small text-white-50 mb-0">Se crearan las llaves y sus jornadas automaticamente.</p>
+                        <button class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2" type="submit"><i class="bi bi-plus-circle" aria-hidden="true"></i>Generar playoffs</button>
+                    </div>
                 </form>
                 {% else %}
-                <p class="mt-6 border-t border-[#282e39] pt-4 text-sm text-[#9da6b9]">El cuadro sera generado por un organizador autorizado.</p>
+                <p class="small text-white-50 border-top pt-3 mt-4 mb-0">El cuadro sera generado por un organizador autorizado.</p>
                 {% endif %}
+              </div>
             </section>
-            <aside class="border border-[#282e39] bg-[#14171d] p-6">
-                <h2 class="font-semibold text-white">Reglas {% if selected_tournament %}de {{ selected_tournament.name }}{% else %}de la categoria{% endif %}</h2>
-                <dl class="mt-4 divide-y divide-[#282e39] text-sm">
-                    <div class="flex justify-between gap-4 py-3"><dt class="text-[#9da6b9]">Clasificados</dt><dd class="font-semibold text-white">{{ settings.teams_classified }} equipos</dd></div>
-                    <div class="flex justify-between gap-4 py-3"><dt class="text-[#9da6b9]">Formato</dt><dd class="font-semibold text-white">{% if settings.playoffs_home_and_away %}Ida y vuelta{% else %}Partido unico{% endif %}</dd></div>
-                    <div class="flex justify-between gap-4 py-3"><dt class="text-[#9da6b9]">Desempate</dt><dd class="font-semibold text-white">{% if settings.penalties_on_aggregate_tie %}Penales{% else %}Por configurar{% endif %}</dd></div>
-                    <div class="flex justify-between gap-4 py-3"><dt class="text-[#9da6b9]">Tercer puesto</dt><dd class="font-semibold text-white">{% if settings.third_place_match %}Si{% else %}No{% endif %}</dd></div>
+            <aside class="col-12 col-lg-5" aria-labelledby="playoff-rules-title">
+              <div class="app-surface border rounded-3 p-3 p-md-4 h-100">
+                <h2 class="h5 fw-bold" id="playoff-rules-title">Reglas {% if selected_tournament %}de {{ selected_tournament.name }}{% else %}de la categoria{% endif %}</h2>
+                <dl class="row g-0 small mb-0">
+                    <div class="col-12 d-flex justify-content-between gap-3 border-bottom py-3"><dt class="text-white-50">Clasificados</dt><dd class="fw-semibold mb-0">{{ settings.teams_classified }} equipos</dd></div>
+                    <div class="col-12 d-flex justify-content-between gap-3 border-bottom py-3"><dt class="text-white-50">Formato</dt><dd class="fw-semibold mb-0">{% if settings.playoffs_home_and_away %}Ida y vuelta{% else %}Partido unico{% endif %}</dd></div>
+                    <div class="col-12 d-flex justify-content-between gap-3 border-bottom py-3"><dt class="text-white-50">Desempate</dt><dd class="fw-semibold mb-0">{% if settings.penalties_on_aggregate_tie %}Penales{% else %}Por configurar{% endif %}</dd></div>
+                    <div class="col-12 d-flex justify-content-between gap-3 py-3"><dt class="text-white-50">Tercer puesto</dt><dd class="fw-semibold mb-0">{% if settings.third_place_match %}Si{% else %}No{% endif %}</dd></div>
                 </dl>
+              </div>
             </aside>
         </div>
     {% else %}
         {% if is_organizer and next_schedulable_round %}
-        <section class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/30 bg-primary/5 p-5">
+        <section class="app-surface border border-primary rounded-3 p-3 p-md-4 mb-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3" aria-labelledby="next-round-title">
             <div>
-                <h2 class="font-semibold text-white">Clasificados listos para {{ next_schedulable_round_label }}</h2>
-                <p class="mt-1 text-sm text-[#9da6b9]">Programa la nueva jornada y elige partido único o ida y vuelta. El desempate por penales sigue la configuración de esta categoría.</p>
+                <h2 class="h5 fw-bold" id="next-round-title">Clasificados listos para {{ next_schedulable_round_label }}</h2>
+                <p class="small text-white-50 mb-0">Programa la nueva jornada y elige partido único o ida y vuelta. El desempate por penales sigue la configuración de esta categoría.</p>
             </div>
-            <a href="{% url 'schedule_playoff_round' next_schedulable_round %}?{{ category_query }}" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90">
-                <span class="material-symbols-outlined text-lg">event</span>Crear jornada
+            <a href="{% url 'schedule_playoff_round' next_schedulable_round %}?{{ category_query }}" class="btn btn-primary d-inline-flex align-items-center gap-2 align-self-start align-self-md-auto">
+                <i class="bi bi-calendar-event" aria-hidden="true"></i>Crear jornada
             </a>
         </section>
         {% endif %}
-        <div class="mt-8 grid gap-8 lg:grid-cols-2 xl:grid-cols-4">
+        <div class="row row-cols-1 row-cols-lg-2 row-cols-xxl-4 g-3">
         {% for round in rounds %}
-            <section>
-                <h2 class="mb-4 text-sm font-bold uppercase text-[#9da6b9]">{{ round.label }}</h2>
-                <div class="space-y-4">
+            <section class="col">
+                <h2 class="h6 fw-bold text-uppercase text-white-50 mb-3">{{ round.label }}</h2>
+                <div>
                 {% for item in round.ties %}
-                    <article class="overflow-hidden rounded-lg border border-[#282e39] bg-[#1c1f27]">
+                    <article class="app-surface border rounded-3 overflow-hidden mb-3">
                         {% if item.tie.is_bye %}
-                        <div class="border-b border-[#282e39] bg-[#14171d] px-4 py-3 text-sm text-[#9da6b9]">
-                            Descanso: <strong class="text-white">{{ item.tie.winner.name }}</strong> avanza directamente.
+                        <div class="p-3 small text-white-50">
+                            Descanso: <strong>{{ item.tie.winner.name }}</strong> avanza directamente.
                         </div>
                         {% else %}
-                        <div class="grid grid-cols-[minmax(0,1fr)_2rem_2rem_2.5rem] items-center gap-1 border-b border-[#282e39] bg-[#14171d] px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-[#9da6b9]">
-                            <span></span><span title="Ida">{{ item.first_leg_label }}</span><span title="Vuelta">{% if item.has_second_leg %}Vta.{% else %}—{% endif %}</span><span title="Penales">Pen.</span>
-                        </div>
-                        <div class="grid grid-cols-[minmax(0,1fr)_2rem_2rem_2.5rem] items-center gap-1 border-b border-[#282e39] px-3 py-3 text-center">
-                            <span class="truncate text-left text-sm">{% if item.tie.home_team %}{{ item.tie.home_team.name }}{% else %}Por definir{% endif %}</span>
-                            <strong class="text-primary">{{ item.home_first_score }}</strong>
-                            <strong class="text-primary">{% if item.has_second_leg %}{{ item.home_second_score }}{% else %}—{% endif %}</strong>
-                            <strong class="text-primary">{% if item.tie.decided_by_penalties %}{{ item.tie.home_penalties }}{% else %}—{% endif %}</strong>
-                        </div>
-                        <div class="grid grid-cols-[minmax(0,1fr)_2rem_2rem_2.5rem] items-center gap-1 px-3 py-3 text-center">
-                            <span class="truncate text-left text-sm">{% if item.tie.away_team %}{{ item.tie.away_team.name }}{% else %}Por definir{% endif %}</span>
-                            <strong class="text-primary">{{ item.away_first_score }}</strong>
-                            <strong class="text-primary">{% if item.has_second_leg %}{{ item.away_second_score }}{% else %}—{% endif %}</strong>
-                            <strong class="text-primary">{% if item.tie.decided_by_penalties %}{{ item.tie.away_penalties }}{% else %}—{% endif %}</strong>
+                        <div class="table-responsive">
+                          <table class="table app-table table-sm align-middle mb-0" aria-label="Resultados de la llave {{ item.tie.position }}">
+                            <thead>
+                              <tr class="small text-uppercase">
+                                <th scope="col"></th>
+                                <th scope="col" class="text-center" title="Ida">{{ item.first_leg_label }}</th>
+                                <th scope="col" class="text-center" title="Vuelta">{% if item.has_second_leg %}Vta.{% else %}—{% endif %}</th>
+                                <th scope="col" class="text-center" title="Penales">Pen.</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <th scope="row" class="fw-normal text-break">{% if item.tie.home_team %}{{ item.tie.home_team.name }}{% else %}Por definir{% endif %}</th>
+                                <td class="text-center fw-bold text-primary">{{ item.home_first_score }}</td>
+                                <td class="text-center fw-bold text-primary">{% if item.has_second_leg %}{{ item.home_second_score }}{% else %}—{% endif %}</td>
+                                <td class="text-center fw-bold text-primary">{% if item.tie.decided_by_penalties %}{{ item.tie.home_penalties }}{% else %}—{% endif %}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row" class="fw-normal text-break">{% if item.tie.away_team %}{{ item.tie.away_team.name }}{% else %}Por definir{% endif %}</th>
+                                <td class="text-center fw-bold text-primary">{{ item.away_first_score }}</td>
+                                <td class="text-center fw-bold text-primary">{% if item.has_second_leg %}{{ item.away_second_score }}{% else %}—{% endif %}</td>
+                                <td class="text-center fw-bold text-primary">{% if item.tie.decided_by_penalties %}{{ item.tie.away_penalties }}{% else %}—{% endif %}</td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </div>
                         {% endif %}
                         {% if item.winner_changed %}
-                        <div class="border-t border-amber-500/30 bg-amber-500/10 px-4 py-3">
-                            <p class="text-sm font-semibold text-amber-200">
+                        <div class="alert alert-warning rounded-0 mb-0">
+                            <p class="small fw-semibold mb-0">
                                 El resultado actual {% if item.calculated_winner %}cambia el clasificado a {{ item.calculated_winner.name }}{% else %}deja la llave sin resolver{% endif %}.
                             </p>
                             {% if item.downstream_locked %}
-                            <p class="mt-1 text-xs text-[#c5cada]">Hay partidos disputados en una ronda posterior. El cuadro no puede actualizarse automáticamente.</p>
+                            <p class="small mt-2 mb-0">Hay partidos disputados en una ronda posterior. El cuadro no puede actualizarse automáticamente.</p>
                             {% elif is_organizer %}
-                            <p class="mt-1 text-xs text-[#c5cada]">Confirma para recalcular los cruces posteriores que aún no se disputaron.</p>
+                            <p class="small mt-2 mb-0">Confirma para recalcular los cruces posteriores que aún no se disputaron.</p>
                             <form method="post" action="{% url 'confirm_playoff_result_change' item.tie.id %}?{{ category_query }}" class="mt-3">
                                 {% csrf_token %}
-                                <button type="submit" class="rounded-lg border border-amber-400/40 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-400/10">Confirmar actualización del cuadro</button>
+                                <button type="submit" class="btn btn-outline-warning btn-sm">Confirmar actualización del cuadro</button>
                             </form>
                             {% else %}
-                            <p class="mt-1 text-xs text-[#c5cada]">Solicita a un organizador autorizado que revise el cuadro.</p>
+                            <p class="small mt-2 mb-0">Solicita a un organizador autorizado que revise el cuadro.</p>
                             {% endif %}
                         </div>
                         {% endif %}
                         {% if item.tie.decided_by_penalties %}
-                        <div class="border-t border-[#282e39] px-4 py-2 text-xs text-[#9da6b9]">
+                        <div class="border-top px-3 py-2 small text-white-50">
                             Penales: {{ item.tie.home_penalties }} - {{ item.tie.away_penalties }}
                         </div>
                         {% endif %}
                         {% if item.tie.winner and not item.tie.is_bye and not item.winner_changed %}
-                        <div class="border-t border-[#282e39] bg-primary/10 px-4 py-2 text-xs font-semibold text-white">
+                        <div class="border-top p-2 small fw-semibold">
                             Clasifica: {{ item.tie.winner }}
                         </div>
                         {% elif item.needs_penalties %}
-                        <div class="border-t border-amber-500/30 bg-amber-500/10 px-4 py-3">
-                            <p class="text-sm font-semibold text-amber-200">Empate global: {{ item.home_aggregate }} - {{ item.away_aggregate }}</p>
-                            <p class="mt-1 text-xs text-[#9da6b9]">Registra los penales para definir quién clasifica.</p>
+                        <div class="alert alert-warning rounded-0 mb-0">
+                            <p class="fw-semibold mb-1">Empate global: {{ item.home_aggregate }} - {{ item.away_aggregate }}</p>
+                            <p class="small mb-0">Registra los penales para definir quién clasifica.</p>
                             {% if is_organizer %}
-                            <form method="post" action="{% url 'record_playoff_penalties' item.tie.id %}?{{ category_query }}" class="mt-3 grid grid-cols-[1fr_auto_1fr_auto] items-end gap-2">
+                            <form method="post" action="{% url 'record_playoff_penalties' item.tie.id %}?{{ category_query }}" class="row g-2 align-items-end mt-2">
                                 {% csrf_token %}
-                                <div>
-                                    <label class="mb-1 block text-xs text-[#9da6b9]" for="home-penalties-{{ item.tie.id }}">{{ item.tie.home_team.name }}</label>
-                                    <input id="home-penalties-{{ item.tie.id }}" name="home_penalties" type="number" min="0" required class="w-full rounded-lg border border-[#3d4f6e] bg-[#101622] px-3 py-2 text-center font-bold text-white">
+                                <div class="col-5 col-sm-4">
+                                    <label class="form-label small" for="home-penalties-{{ item.tie.id }}">{{ item.tie.home_team.name }}</label>
+                                    <input id="home-penalties-{{ item.tie.id }}" name="home_penalties" type="number" min="0" required class="form-control bg-dark text-white border-secondary text-center fw-bold">
                                 </div>
-                                <span class="pb-2 text-[#9da6b9]">-</span>
-                                <div>
-                                    <label class="mb-1 block text-xs text-[#9da6b9]" for="away-penalties-{{ item.tie.id }}">{{ item.tie.away_team.name }}</label>
-                                    <input id="away-penalties-{{ item.tie.id }}" name="away_penalties" type="number" min="0" required class="w-full rounded-lg border border-[#3d4f6e] bg-[#101622] px-3 py-2 text-center font-bold text-white">
+                                <div class="col-auto pb-2">-</div>
+                                <div class="col-5 col-sm-4">
+                                    <label class="form-label small" for="away-penalties-{{ item.tie.id }}">{{ item.tie.away_team.name }}</label>
+                                    <input id="away-penalties-{{ item.tie.id }}" name="away_penalties" type="number" min="0" required class="form-control bg-dark text-white border-secondary text-center fw-bold">
                                 </div>
-                                <button type="submit" class="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90">Guardar</button>
+                                <div class="col-12 col-sm-auto"><button type="submit" class="btn btn-primary btn-sm">Guardar</button></div>
                             </form>
                             {% endif %}
                         {% endif %}

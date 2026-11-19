@@ -51,7 +51,7 @@ class PlayoffGenerationForm(forms.Form):
     court = forms.ChoiceField(
         label="Cancha",
         choices=Match.COURT_CHOICES,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={"class": "form-select bg-dark text-white border-secondary"}),
     )
     second_leg_date = forms.DateField(
         label="Fecha de vuelta",
@@ -105,31 +105,31 @@ class PlayoffRoundScheduleForm(forms.Form):
 
     match_date = forms.DateField(
         label="Fecha de ida / partido único",
-        widget=forms.DateInput(attrs={"type": "date", "class": "w-full rounded-xl border border-[#282e39] bg-[#101622] px-4 py-3 text-white"}),
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control bg-dark text-white border-secondary"}),
     )
     match_time = forms.TimeField(
         label="Hora",
-        widget=forms.TimeInput(attrs={"type": "time", "class": "w-full rounded-xl border border-[#282e39] bg-[#101622] px-4 py-3 text-white"}),
+        widget=forms.TimeInput(attrs={"type": "time", "class": "form-control bg-dark text-white border-secondary"}),
     )
     court = forms.ChoiceField(
         label="Cancha",
         choices=Match.COURT_CHOICES,
-        widget=forms.Select(attrs={"class": "w-full rounded-xl border border-[#282e39] bg-[#101622] px-4 py-3 text-white"}),
+        widget=forms.Select(attrs={"class": "form-select bg-dark text-white border-secondary"}),
     )
     format = forms.ChoiceField(
         label="Formato de la llave",
         choices=[(SINGLE, "Partido único"), (HOME_AND_AWAY, "Ida y vuelta")],
-        widget=forms.Select(attrs={"class": "w-full rounded-xl border border-[#282e39] bg-[#101622] px-4 py-3 text-white"}),
+        widget=forms.Select(attrs={"class": "form-select bg-dark text-white border-secondary"}),
     )
     second_leg_date = forms.DateField(
         label="Fecha de vuelta",
         required=False,
-        widget=forms.DateInput(attrs={"type": "date", "class": "w-full rounded-xl border border-[#282e39] bg-[#101622] px-4 py-3 text-white"}),
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control bg-dark text-white border-secondary"}),
     )
     second_leg_time = forms.TimeField(
         label="Hora de vuelta",
         required=False,
-        widget=forms.TimeInput(attrs={"type": "time", "class": "w-full rounded-xl border border-[#282e39] bg-[#101622] px-4 py-3 text-white"}),
+        widget=forms.TimeInput(attrs={"type": "time", "class": "form-control bg-dark text-white border-secondary"}),
     )
 
     def clean_court(self):

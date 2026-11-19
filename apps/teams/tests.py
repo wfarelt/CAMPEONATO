@@ -6,6 +6,7 @@ from django.urls import reverse
 from apps.core.models import (
     AppConfiguration,
     TEAM_MANAGER_ENABLE_PLAYERS,
+    TEAM_MANAGER_EDIT_TEAM,
     PLAYER_FIELD_BIRTH_DATE,
     PLAYER_FIELD_GRADUATION_YEAR,
     PLAYER_FIELD_PHOTO,
@@ -57,6 +58,26 @@ class TeamCrudPermissionsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Team.objects.filter(name="Beta Team", category="seniors").exists())
 
+    def test_team_form_renders_bootstrap_fields(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(f"{reverse('team_create')}?category=seniors")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "class=\"row g-3\"")
+        self.assertContains(response, "form-control")
+        self.assertContains(response, "Disponible para jornada")
+
+    def test_team_list_renders_bootstrap_grid_and_team_data(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(f"{reverse('teams')}?category=seniors")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3")
+        self.assertContains(response, "app-team-card")
+        self.assertContains(response, self.team.name)
+
     def test_non_organizer_cannot_create_team(self):
         self.client.force_login(self.player)
         response = self.client.post(
@@ -86,6 +107,39 @@ class TeamCrudPermissionsTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertTrue(Team.objects.filter(pk=self.team.id).exists())
+
+    def test_team_delete_confirmation_uses_bootstrap(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(
+            f"{reverse('team_delete', kwargs={'team_slug': self.team.slug})}?category=seniors"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "app-surface border border-danger rounded-3")
+        self.assertContains(response, "btn btn-danger")
+
+    def test_team_manager_can_edit_team_profile_with_permission_enabled(self):
+        AppConfiguration.objects.update_or_create(
+            key=TEAM_MANAGER_EDIT_TEAM,
+            defaults={"is_enabled": True},
+        )
+        self.client.force_login(self.team_manager)
+
+        response = self.client.get(
+            f"{reverse('team_manager_settings', kwargs={'team_slug': self.team.slug})}?category=seniors"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "class=\"app-surface border rounded-3 p-3 p-md-4\"")
+        update_response = self.client.post(
+            f"{reverse('team_manager_settings', kwargs={'team_slug': self.team.slug})}?category=seniors",
+            {"coach": "New Coach"},
+        )
+
+        self.assertEqual(update_response.status_code, 302)
+        self.team.refresh_from_db()
+        self.assertEqual(self.team.coach, "New Coach")
 
     def test_organizer_can_create_player(self):
         self.client.force_login(self.organizer)
@@ -146,6 +200,18 @@ class TeamCrudPermissionsTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Player.objects.filter(team=self.other_team, name="Rival").exists())
+
+    def test_player_delete_confirmation_uses_bootstrap(self):
+        player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(
+            f"{reverse('player_delete', kwargs={'team_slug': self.team.slug, 'player_id': player.id})}?category=seniors"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "app-surface border border-danger rounded-3")
+        self.assertContains(response, "btn btn-danger")
 
     def test_team_manager_cannot_edit_player(self):
         player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")
@@ -215,6 +281,17 @@ class TeamCrudPermissionsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         positions = [player.position for player in response.context["team_players"]]
         self.assertEqual(positions, ["GK", "DF", "MF", "FW"])
+
+    def test_team_detail_renders_bootstrap_sections_and_photo_modal(self):
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(f"{reverse('team', kwargs={'team_slug': self.team.slug})}?category=seniors")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "class=\"row g-4\"")
+        self.assertContains(response, "app-surface border rounded-3")
+        self.assertContains(response, "id=\"playerPhotoModal\"")
+        self.assertContains(response, "Sin jugadores registrados")
 
     def test_team_detail_includes_only_pending_card_payments(self):
         player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")

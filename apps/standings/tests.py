@@ -105,7 +105,9 @@ class StandingsServiceTests(TestCase):
 
         response = self.client.get("/tabla-posiciones/?category=seniors")
 
-        self.assertContains(response, "bg-primary/60 text-white", count=4)
+        self.assertContains(response, "bg-primary", count=4)
+        self.assertContains(response, "table table-sm table-hover align-middle app-table")
+        self.assertContains(response, "d-flex d-lg-none flex-column gap-2")
 
     def test_standings_view_shows_adjustment_total_and_details(self):
         response = self.client.get("/tabla-posiciones/?category=seniors")

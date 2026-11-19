@@ -1,108 +1,75 @@
 {% extends "core/base.html" %}
 
-{% load static %}
-
 {% block title %}Equipos - Panel del Campeonato{% endblock %}
 
 {% block header_title %}Equipos{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="mb-8">
-  <h2 class="mb-2 text-4xl font-black">Equipos de la Liga</h2>
-  <p class="text-[#9da6b9]">{{ championship_category_label }} • Explora y administra todos los equipos participantes</p>
-  {% if user.role == 'ORGANIZER' %}
-  <a
-    href="{% url 'team_create' %}?{{ category_query }}"
-    class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90"
-  >
-    <span class="material-symbols-outlined text-sm">add</span>
-    Registrar equipo
-  </a>
-  {% endif %}
-</div>
+<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
+  <header class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
+    <div>
+      <p class="small text-secondary mb-1">{{ championship_category_label }}{% if selected_tournament %} · {{ selected_tournament.name }}{% endif %}</p>
+      <h1 class="h3 fw-bold text-white mb-1">Equipos</h1>
+      <p class="text-secondary mb-0">Equipos participantes y su disponibilidad.</p>
+    </div>
+    {% if user.role == 'ORGANIZER' %}
+    <a href="{% url 'team_create' %}?{{ category_query }}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 align-self-start align-self-sm-auto">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i>Registrar equipo
+    </a>
+    {% endif %}
+  </header>
 
-<!-- Teams Grid -->
-<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3">
   {% for team in teams %}
-  <div
-    class="group flex flex-col overflow-hidden rounded-2xl border border-[#282e39] bg-[#1c1f27] transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/20"
-  >
-    <!-- Team Logo Section -->
-    <div class="flex h-32 items-center justify-center bg-gradient-to-br from-primary/10 to-transparent p-4">
-      {% if team.logo %}
-      <img
-        alt="{{ team.name }}"
-        class="h-full w-full object-contain"
-        src="{{ team.logo.url }}"
-      />
-      {% else %}
-      <div class="flex h-24 w-24 items-center justify-center rounded-lg bg-[#282e39]">
-        <span class="material-symbols-outlined text-4xl text-[#9da6b9]">shield</span>
+  <div class="col">
+    <article class="card app-team-card h-100">
+      <div class="app-team-logo-stage d-flex align-items-center justify-content-center p-3">
+        {% if team.logo %}
+        <img alt="Escudo de {{ team.name }}" class="app-team-logo object-fit-contain" src="{{ team.logo.url }}" />
+        {% else %}
+        <div class="app-team-placeholder d-flex align-items-center justify-content-center rounded-3" aria-hidden="true">
+          <i class="bi bi-shield-fill"></i>
+        </div>
+        {% endif %}
       </div>
-      {% endif %}
-    </div>
-
-    <!-- Team Info Section -->
-    <div class="flex flex-1 flex-col gap-4 border-t border-[#282e39] p-4">
-      <div>
-        <h3 class="font-bold text-white">{{ team.name }}</h3>
-        <p class="text-xs text-[#9da6b9]">
-          Delegado: {{ team.coach }}          
-        </p>
-        <p class="mt-1 text-xs">
+      <div class="card-body d-flex flex-column gap-3 border-top">
+        <div>
+          <h2 class="h5 fw-bold text-white mb-1">{{ team.name }}</h2>
+          <p class="small text-secondary mb-2">Delegado: {{ team.coach }}</p>
           {% if team.is_available_for_matchday %}
-          <span class="rounded-full border border-green-400/60 bg-green-400/15 px-2 py-1 text-green-300">Disponible para jornada</span>
+          <span class="badge text-bg-success">Disponible para jornada</span>
           {% else %}
-          <span class="rounded-full border border-red-400/60 bg-red-400/15 px-2 py-1 text-red-300">No disponible para jornada</span>
+          <span class="badge text-bg-danger">No disponible para jornada</span>
           {% endif %}
-        </p>
-      </div>
+        </div>
 
-      
-
-      <!-- Stats or Quick Info -->
-      {% if user.role != 'PLAYER' %}
-      <a
-        class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-2 px-4 font-bold text-white transition-all hover:bg-primary/90 group-hover:shadow-lg group-hover:shadow-primary/30"
-        href="{% url 'team' team.slug %}?{{ category_query }}"
-      >
-        <span class="material-symbols-outlined text-sm">arrow_forward</span>
-        <span>Detalles</span>
-      </a>
-      {% endif %}
-
-      {% if user.role == 'ORGANIZER' %}
-      <div class="grid grid-cols-2 gap-2">
-        <a
-          href="{% url 'team_edit' team.slug %}?{{ category_query }}"
-          class="inline-flex items-center justify-center rounded-lg bg-[#282e39] py-2 px-3 text-white transition hover:bg-[#343b48]"
-          title="Editar equipo"
-          aria-label="Editar equipo"
-        >
-          <span class="material-symbols-outlined text-base">edit</span>
+        {% if user.role != 'PLAYER' %}
+        <a class="btn btn-primary btn-sm mt-auto d-inline-flex align-items-center justify-content-center gap-2" href="{% url 'team' team.slug %}?{{ category_query }}">
+          Ver detalles<i class="bi bi-arrow-right" aria-hidden="true"></i>
         </a>
-        <a
-          href="{% url 'team_delete' team.slug %}?{{ category_query }}"
-          class="inline-flex items-center justify-center rounded-lg bg-red-600/90 py-2 px-3 text-white transition hover:bg-red-500"
-          title="Eliminar equipo"
-          aria-label="Eliminar equipo"
-        >
-          <span class="material-symbols-outlined text-base">delete</span>
-        </a>
+        {% endif %}
+
+        {% if user.role == 'ORGANIZER' %}
+        <div class="d-flex gap-2">
+          <a href="{% url 'team_edit' team.slug %}?{{ category_query }}" class="btn btn-outline-light btn-sm flex-fill" title="Editar equipo" aria-label="Editar {{ team.name }}">
+            <i class="bi bi-pencil" aria-hidden="true"></i><span class="visually-hidden">Editar equipo</span>
+          </a>
+          <a href="{% url 'team_delete' team.slug %}?{{ category_query }}" class="btn btn-outline-danger btn-sm flex-fill" title="Eliminar equipo" aria-label="Eliminar {{ team.name }}">
+            <i class="bi bi-trash" aria-hidden="true"></i><span class="visually-hidden">Eliminar equipo</span>
+          </a>
+        </div>
+        {% endif %}
       </div>
-      
-      {% endif %}
-    </div>
+    </article>
   </div>
   {% empty %}
-  <!-- Empty State -->
-  <div class="col-span-full rounded-2xl border border-[#282e39] bg-[#1c1f27] p-12 text-center">
-    <span class="material-symbols-outlined mb-4 inline-block text-5xl text-[#9da6b9]">
-      teams
-    </span>
-    <p class="text-[#9da6b9]">Aun no hay equipos registrados.</p>
+  <div class="col-12">
+    <div class="app-empty-state rounded-3 border border-dashed p-5 text-center text-secondary">
+      <i class="bi bi-people fs-3 d-block mb-2" aria-hidden="true"></i>
+      Aún no hay equipos registrados.
+    </div>
   </div>
   {% endfor %}
 </div>
+</section>
 {% endblock %}

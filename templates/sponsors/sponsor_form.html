@@ -4,27 +4,39 @@
 {% block header_title %}{% if is_edit %}Editar{% else %}Registrar{% endif %} auspiciador{% endblock %}
 
 {% block content %}
-<div class="mx-auto w-full max-w-2xl rounded-2xl border border-[#282e39] bg-[#1c1f27] p-6">
-  <form method="post" enctype="multipart/form-data" class="space-y-4">
+<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
+<div class="app-surface border rounded-3 p-3 p-md-4 app-form-narrow mx-auto w-100">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% for field in form %}
-    <div>
-      <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-[#9da6b9]" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {% if field.field.widget.input_type == "checkbox" %}
+    <div class="form-check mb-3">
       {{ field }}
+      <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
       {% if field.errors %}
-      <p class="mt-1 text-xs text-red-300">{{ field.errors|join:", " }}</p>
+      <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
       {% endif %}
     </div>
+    {% else %}
+    <div class="mb-3">
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+      <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+    {% endif %}
     {% endfor %}
 
-    <div class="flex gap-2 pt-2">
-      <button type="submit" class="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90">
+    <div class="d-flex flex-wrap gap-2 pt-2">
+      <button type="submit" class="btn btn-primary">
         Guardar
       </button>
-      <a href="{% url 'sponsors' %}?{{ category_query }}" class="inline-flex items-center rounded-xl bg-[#282e39] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#343b48]">
+      <a href="{% url 'sponsors' %}?{{ category_query }}" class="btn btn-outline-secondary">
         Cancelar
       </a>
     </div>
   </form>
 </div>
+</section>
 {% endblock %}

@@ -1,7 +1,12 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.notifications.models import Notification, NotificationAudienceType, NotificationCategory
+from apps.notifications.models import (
+    Notification,
+    NotificationAudienceType,
+    NotificationCategory,
+    UserNotification,
+)
 from apps.notifications.services import resolve_recipient_users
 from apps.teams.models import Team
 from apps.users.models import User
@@ -27,6 +32,36 @@ class GlobalNotificationPermissionTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Notification.objects.exists())
+
+    def test_platform_admin_sees_bootstrap_notification_form(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.get(reverse("notifications_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="row g-3"')
+        self.assertContains(response, 'class="form-select"')
+        self.assertContains(response, 'class="btn btn-primary"')
+
+    def test_inbox_renders_unread_notification_with_bootstrap_controls(self):
+        notification = Notification.objects.create(
+            title="Aviso de prueba",
+            message="La jornada comienza pronto.",
+            category=NotificationCategory.MATCH,
+            audience_type=NotificationAudienceType.ALL,
+        )
+        UserNotification.objects.create(user=self.organizer, notification=notification)
+        self.client.force_login(self.organizer)
+
+        response = self.client.get(reverse("notifications_inbox"), {"filter": "unread"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'aria-label="Filtrar notificaciones"')
+        self.assertContains(response, 'class="nav-link active"')
+        self.assertContains(response, 'id="enable-push-btn"')
+        self.assertContains(response, "Aviso de prueba")
+        self.assertContains(response, "Marcar leida")
+        self.assertContains(response, "push-subscription.js")
 
     def test_platform_admin_can_send_global_notification(self):
         self.client.force_login(self.admin)

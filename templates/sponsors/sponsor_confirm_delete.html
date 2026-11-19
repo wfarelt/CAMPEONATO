@@ -4,18 +4,21 @@
 {% block header_title %}Eliminar auspiciador{% endblock %}
 
 {% block content %}
-<div class="mx-auto w-full max-w-lg rounded-2xl border border-[#282e39] bg-[#1c1f27] p-6">
-  <h2 class="text-xl font-black text-white">Eliminar auspiciador</h2>
-  <p class="mt-2 text-sm text-[#9da6b9]">Estas seguro de eliminar <span class="font-bold text-white">{{ sponsor.name }}</span>?</p>
+<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
+<div class="app-surface border border-danger rounded-3 p-3 p-md-4 app-form-narrow">
+  <h2 class="h4 fw-bold text-white">Eliminar auspiciador</h2>
+  <p class="text-secondary">¿Estás seguro de eliminar <strong class="text-white">{{ sponsor.name }}</strong>?</p>
+  <p class="text-danger">Esta acción no se puede deshacer.</p>
 
-  <form method="post" class="mt-5 flex gap-2">
+  <form method="post" class="d-flex flex-wrap gap-2 mt-4">
     {% csrf_token %}
-    <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-500">
-      Confirmar eliminacion
+    <button type="submit" class="btn btn-danger">
+      Confirmar eliminación
     </button>
-    <a href="{% url 'sponsors' %}?{{ category_query }}" class="rounded-xl bg-[#282e39] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#343b48]">
+    <a href="{% url 'sponsors' %}?{{ category_query }}" class="btn btn-outline-secondary">
       Cancelar
     </a>
   </form>
 </div>
+</section>
 {% endblock %}

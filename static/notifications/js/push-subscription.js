@@ -18,10 +18,8 @@
   const setButton = ({ text, disabled = false, primary = true }) => {
     button.disabled = disabled;
     button.textContent = text;
-    button.classList.toggle("bg-primary", primary);
-    button.classList.toggle("hover:bg-primary/90", primary);
-    button.classList.toggle("bg-[#282e39]", !primary);
-    button.classList.toggle("hover:bg-[#343b48]", !primary);
+    button.classList.toggle("btn-primary", primary);
+    button.classList.toggle("btn-secondary", !primary);
   };
 
   const urlBase64ToUint8Array = (base64String) => {

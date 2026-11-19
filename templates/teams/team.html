@@ -6,160 +6,156 @@
 {% block header_title %}{{ team.name }}{% endblock %}
 
 {% block content %}
-<!-- Back Button -->
-<div class="mb-6">
-  <div class="flex flex-wrap gap-3">
+<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
+  <div class="d-flex flex-wrap gap-2 mb-4">
     <a
-      class="inline-flex items-center gap-2 rounded-lg bg-[#282e39] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#343b48]"
+      class="btn btn-secondary d-inline-flex align-items-center gap-2"
       href="{% url 'teams' %}?{{ category_query }}"
     >
-      <span class="material-symbols-outlined text-sm">arrow_back</span>
+      <span class="material-symbols-outlined small">arrow_back</span>
       <span>Volver a Equipos</span>
     </a>
     {% if user.role == 'ORGANIZER' %}
     <a
-      class="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-white transition-all hover:bg-primary/90"
+      class="btn btn-primary app-icon-button rounded-2"
       href="{% url 'team_edit' team.slug %}?{{ category_query }}"
       title="Editar equipo"
       aria-label="Editar equipo"
     >
-      <span class="material-symbols-outlined text-base">edit</span>
+      <span class="material-symbols-outlined fs-6">edit</span>
     </a>
     <a
-      class="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-white transition-all hover:bg-red-500"
+      class="btn btn-danger app-icon-button rounded-2"
       href="{% url 'team_delete' team.slug %}?{{ category_query }}"
       title="Eliminar equipo"
       aria-label="Eliminar equipo"
     >
-      <span class="material-symbols-outlined text-base">delete</span>
+      <span class="material-symbols-outlined fs-6">delete</span>
     </a>
     <a
-      class="inline-flex items-center justify-center rounded-lg bg-[#374151] px-3 py-2 text-white transition-all hover:bg-[#4b5563]"
+      class="btn btn-secondary app-icon-button rounded-2"
       href="{% url 'team_report' team.slug %}?{{ category_query }}"
       title="Imprimir reporte del equipo"
       aria-label="Imprimir reporte del equipo"
     >
-      <span class="material-symbols-outlined text-base">print</span>
+      <span class="material-symbols-outlined fs-6">print</span>
     </a>
     {% elif can_edit_team_profile %}
     <a
-      class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-all hover:bg-primary/90"
+      class="btn btn-primary d-inline-flex align-items-center gap-2"
       href="{% url 'team_manager_settings' team.slug %}?{{ category_query }}"
       title="Editar configuracion del equipo"
       aria-label="Editar configuracion del equipo"
     >
-      <span class="material-symbols-outlined text-base">settings</span>
+      <span class="material-symbols-outlined fs-6">settings</span>
       <span>Editar equipo</span>
     </a>
     {% endif %}
   </div>
 </div>
 
-<!-- Team Header Card -->
-<div class="mb-8 rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6">
-  <div class="flex flex-col gap-6 md:flex-row md:items-center md:gap-8">
-    <!-- Team Logo -->
-    <div class="flex items-center justify-center">
+  <section class="app-surface border rounded-3 p-3 p-md-4 mb-4">
+  <div class="d-flex flex-column flex-md-row align-items-md-center gap-4">
+    <div class="d-flex align-items-center justify-content-center">
       {% if team.logo %}
       <img
         alt="{{ team.name }}"
-        class="h-32 w-32 rounded-2xl border-4 border-primary object-cover"
+        class="app-team-logo rounded-3 border border-4 border-primary object-fit-cover"
         src="{{ team.logo.url }}"
       />
       {% else %}
-      <div class="flex h-32 w-32 items-center justify-center rounded-2xl border-4 border-primary bg-[#282e39]">
-        <span class="material-symbols-outlined text-5xl text-primary">shield</span>
+      <div class="app-team-placeholder d-flex align-items-center justify-content-center rounded-3 border border-4 border-primary">
+        <span class="material-symbols-outlined text-primary">shield</span>
       </div>
       {% endif %}
     </div>
 
     <!-- Team Info -->
-    <div class="flex-1">
-      <h2 class="mb-2 text-3xl font-black">{{ team.name }}</h2>
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg text-primary">person</span>
-          <p class="text-sm text-[#9da6b9]">
-            <span class="font-bold text-white">Entrenador/Delegado:</span> {{ team.coach }}
+    <div class="flex-grow-1">
+      <h2 class="h3 fw-bold mb-3">{{ team.name }}</h2>
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined text-primary">person</span>
+          <p class="small text-secondary mb-0">
+            <span class="fw-bold text-white">Entrenador/Delegado:</span> {{ team.coach }}
           </p>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg text-primary">event_available</span>
-          <p class="text-sm text-[#9da6b9]">
-            <span class="font-bold text-white">Jornada:</span>
+        <div class="d-flex align-items-center gap-2">
+          <span class="material-symbols-outlined text-primary">event_available</span>
+          <p class="small text-secondary mb-0">
+            <span class="fw-bold text-white">Jornada:</span>
             {% if team.is_available_for_matchday %}
-            <span class="text-green-300">Disponible</span>
+            <span class="text-success">Disponible</span>
             {% else %}
-            <span class="text-red-300">No disponible</span>
+            <span class="text-danger">No disponible</span>
             {% endif %}
           </p>
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Content Grid -->
-<div class="grid gap-8 lg:grid-cols-2">
-  <!-- Players Section -->
-  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
-    <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <h3 class="flex items-center gap-2 text-lg font-bold">
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+  <section class="app-surface border rounded-3 overflow-hidden h-100">
+    <div class="border-bottom px-3 px-md-4 py-3">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <h3 class="h5 fw-bold d-flex align-items-center gap-2 mb-0">
           <span class="material-symbols-outlined text-primary">groups</span>
           Plantilla
         </h3>
         {% if can_add_players %}
         <a
           href="{% url 'player_create' team.slug %}?{{ category_query }}"
-          class="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white transition hover:bg-primary/90"
+          class="btn btn-sm btn-primary d-inline-flex align-items-center gap-2"
         >
-          <span class="material-symbols-outlined text-sm">person_add</span>
+          <span class="material-symbols-outlined small">person_add</span>
           Añadir jugador
         </a>
         {% endif %}
       </div>
     </div>
-    <div class="p-6">
+    <div class="p-3 p-md-4">
       {% if team_players|length == 0 %}
-      <div class="rounded-lg border border-[#282e39] bg-[#282e39] p-4 text-center">
-        <p class="text-sm text-[#9da6b9]">Sin jugadores registrados</p>
+      <div class="app-empty-state border rounded-2 p-3 text-center">
+        <p class="small text-secondary mb-0">Sin jugadores registrados</p>
       </div>
       {% else %}
-      <div class="flex flex-col gap-2">
+      <div class="d-flex flex-column gap-2">
         {% for player in team_players %}
-        <div class="flex items-center gap-3 rounded-lg border border-[#282e39] bg-[#282e39] p-3 transition-all hover:border-primary hover:bg-primary/5">
-          <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-xs text-white">
+        <div class="d-flex align-items-center gap-2 rounded-2 border p-2">
+          <div class="app-icon-button rounded-circle bg-primary border-0 fw-bold small text-white">
             {{ player.number|default_if_none:"" }}
           </div>
           {% if player.show_photo and player.photo %}
           <button
             type="button"
-            class="group flex flex-1 items-center gap-3 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-primary"
+            class="d-flex flex-grow-1 align-items-center gap-2 text-start text-reset text-decoration-none p-0 border-0 bg-transparent"
             data-bs-toggle="modal"
             data-bs-target="#playerPhotoModal"
             data-player-name="{{ player.name|escape }}"
             data-player-photo="{{ player.photo.url }}"
             aria-label="Ver foto ampliada de {{ player.name }}"
           >
-            <div class="h-10 w-10 overflow-hidden rounded-full border border-[#282e39] bg-[#1c1f27]">
-              <img src="{{ player.photo.url }}" alt="{{ player.name }}" class="h-full w-full object-cover transition group-hover:scale-105" />
+            <div class="app-player-avatar overflow-hidden rounded-circle border">
+              <img src="{{ player.photo.url }}" alt="{{ player.name }}" class="w-100 h-100 object-fit-cover" />
             </div>
-            <div class="flex-1">
-              <p class="flex flex-wrap items-center gap-2 text-sm font-bold">
+            <div class="flex-grow-1">
+              <p class="d-flex flex-wrap align-items-center gap-2 small fw-bold mb-0">
                 <span>{{ player.name }}</span>
                 {% if player.is_reinforcement %}
-                <span class="rounded-full border border-amber-300/70 bg-amber-300/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+                <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">
                   Refuerzo
                 </span>
                 {% endif %}
                 {% if player.show_sub35 and player.is_sub35 %}
-                <span class="rounded-full border border-cyan-300/70 bg-cyan-300/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200">
+                <span class="badge rounded-pill bg-info-subtle text-info-emphasis">
                   Sub35
                 </span>
                 {% endif %}
               </p>
-              <div class="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#9da6b9]">
+              <div class="d-flex flex-wrap align-items-center gap-2 small text-secondary mt-1">
                 <span>{{ player.position }}</span>
                 {% if player.show_graduation_year and player.graduation_year %}
                 <span>• Egreso {{ player.graduation_year }}</span>
@@ -171,26 +167,26 @@
             </div>
           </button>
           {% elif player.show_photo %}
-          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-[#4b5563] bg-[#1c1f27] text-[10px] font-bold uppercase text-[#9da6b9]">
+          <div class="app-player-avatar d-flex align-items-center justify-content-center rounded-circle border border-dashed small fw-bold text-secondary">
             Foto
           </div>
           {% endif %}
           {% if not player.show_photo or not player.photo %}
-          <div class="flex-1">
-            <p class="flex flex-wrap items-center gap-2 text-sm font-bold">
+          <div class="flex-grow-1">
+            <p class="d-flex flex-wrap align-items-center gap-2 small fw-bold mb-0">
               <span>{{ player.name }}</span>
               {% if player.is_reinforcement %}
-              <span class="rounded-full border border-amber-300/70 bg-amber-300/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+              <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">
                 Refuerzo
               </span>
               {% endif %}
               {% if player.show_sub35 and player.is_sub35 %}
-              <span class="rounded-full border border-cyan-300/70 bg-cyan-300/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200">
+              <span class="badge rounded-pill bg-info-subtle text-info-emphasis">
                 Sub35
               </span>
               {% endif %}
             </p>
-            <div class="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#9da6b9]">
+            <div class="d-flex flex-wrap align-items-center gap-2 small text-secondary mt-1">
               <span>{{ player.position }}</span>
               {% if player.show_graduation_year and player.graduation_year %}
               <span>• Egreso {{ player.graduation_year }}</span>
@@ -202,22 +198,22 @@
           </div>
           {% endif %}
           {% if can_edit_players %}
-          <div class="flex items-center gap-2">
+          <div class="d-flex align-items-center gap-2">
             <a
               href="{% url 'player_edit' team.slug player.id %}?{{ category_query }}"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[#1c1f27] text-white transition hover:bg-[#101622]"
+              class="btn btn-sm btn-outline-secondary app-icon-button rounded-2"
               title="Editar jugador"
               aria-label="Editar jugador"
             >
-              <span class="material-symbols-outlined text-sm">edit</span>
+              <span class="material-symbols-outlined small">edit</span>
             </a>
             <a
               href="{% url 'player_delete' team.slug player.id %}?{{ category_query }}"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-red-600 text-white transition hover:bg-red-500"
+              class="btn btn-sm btn-outline-danger app-icon-button rounded-2"
               title="Eliminar jugador"
               aria-label="Eliminar jugador"
             >
-              <span class="material-symbols-outlined text-sm">delete</span>
+              <span class="material-symbols-outlined small">delete</span>
             </a>
           </div>
           {% endif %}
@@ -227,26 +223,27 @@
       {% endif %}
     </div>
   </section>
+  </div>
 
-  <!-- Upcoming Matches Section -->
-  <section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
-    <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
-      <h3 class="flex items-center gap-2 text-lg font-bold">
+  <div class="col-12 col-lg-6">
+  <section class="app-surface border rounded-3 overflow-hidden h-100">
+    <div class="border-bottom px-3 px-md-4 py-3">
+      <h3 class="h5 fw-bold d-flex align-items-center gap-2 mb-0">
         <span class="material-symbols-outlined text-primary">calendar_today</span>
         Partidos Próximos
       </h3>
     </div>
-    <div class="p-6">
+    <div class="p-3 p-md-4">
       {% if next_opponents %}
-      <div class="flex flex-col gap-3">
+      <div class="d-flex flex-column gap-2">
         {% for opponent in next_opponents %}
-        <div class="rounded-lg border border-[#282e39] bg-[#282e39] p-4 transition-all hover:border-primary hover:bg-primary/5">
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <p class="text-sm font-bold text-white">{{ opponent.team.name }}</p>
-              <p class="text-xs text-[#9da6b9]">Partido pendiente</p>
+        <div class="border rounded-2 p-3">
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <div class="flex-grow-1">
+              <p class="small fw-bold text-white mb-1">{{ opponent.team.name }}</p>
+              <p class="small text-secondary mb-0">Partido pendiente</p>
             </div>
-            <span class="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
+            <span class="badge rounded-pill bg-primary">
               VS
             </span>
           </div>
@@ -254,46 +251,47 @@
         {% endfor %}
       </div>
       {% else %}
-      <div class="rounded-lg border border-[#282e39] bg-[#282e39] p-4 text-center">
-        <p class="text-sm text-[#9da6b9]">Sin partidos próximos</p>
+      <div class="app-empty-state border rounded-2 p-3 text-center">
+        <p class="small text-secondary mb-0">Sin partidos próximos</p>
       </div>
       {% endif %}
     </div>
   </section>
+  </div>
 </div>
 
-<!-- Results and Pending Card Payments -->
-<div class="mt-8 grid gap-8 lg:grid-cols-2">
-<section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
-  <div class="border-b border-[#282e39] bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
-    <h3 class="flex items-center gap-2 text-lg font-bold">
+<div class="row g-4 mt-0">
+<div class="col-12 col-lg-6">
+<section class="app-surface border rounded-3 overflow-hidden h-100">
+  <div class="border-bottom px-3 px-md-4 py-3">
+    <h3 class="h5 fw-bold d-flex align-items-center gap-2 mb-0">
       <span class="material-symbols-outlined text-primary">bar_chart</span>
       Resultados de Partidos
     </h3>
   </div>
-  <div class="p-4">
+  <div class="p-3 p-md-4">
     {% if results %}
     <div class="overflow-x-auto">
-      <div class="flex flex-col gap-2">
+      <div class="d-flex flex-column gap-2">
         {% for r in results %}
-        <div class="flex items-center justify-between gap-4 rounded-lg border border-[#282e39] bg-[#282e39] p-3 transition-all hover:border-primary">
-          <div class="flex-1">
-            <p class="text-xs text-[#9da6b9] font-bold uppercase tracking-wider">{{ r.date }}</p>
-            <p class="text-sm font-bold text-white">
+        <div class="d-flex align-items-center justify-content-between gap-3 rounded-2 border p-3">
+          <div class="flex-grow-1">
+            <p class="small text-secondary fw-bold text-uppercase">{{ r.date }}</p>
+            <p class="small fw-bold text-white mb-0">
               {% if r.is_home %}
-              <span class="text-[#9da6b9]">vs</span> {{ r.opponent }}
+              <span class="text-secondary">vs</span> {{ r.opponent }}
               {% else %}
-              <span class="text-[#9da6b9]">@</span> {{ r.opponent }}
+              <span class="text-secondary">@</span> {{ r.opponent }}
               {% endif %}
             </p>
           </div>
-          <div class="flex items-center gap-3">
-            <span class="text-lg font-black text-white">{{ r.goals_for }}-{{ r.goals_against }}</span>
+          <div class="d-flex align-items-center gap-2">
+            <span class="h5 fw-bold text-white mb-0">{{ r.goals_for }}-{{ r.goals_against }}</span>
             <span
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full font-bold text-xs text-white
-              {% if r.result == 'G' %}bg-accent-green
-              {% elif r.result == 'E' %}bg-[#9da6b9]
-              {% elif r.result == 'P' %}bg-red-500
+              class="app-result-indicator d-inline-flex align-items-center justify-content-center rounded-circle fw-bold small text-white
+              {% if r.result == 'G' %}bg-success
+              {% elif r.result == 'E' %}bg-secondary
+              {% elif r.result == 'P' %}bg-danger
               {% endif %}"
             >
               {% if r.result == 'G' %}G{% elif r.result == 'E' %}E{% else %}P{% endif %}
@@ -304,60 +302,64 @@
       </div>
     </div>
     {% else %}
-    <div class="rounded-lg border border-[#282e39] bg-[#282e39] p-4 text-center">
-      <p class="text-sm text-[#9da6b9]">Sin resultados disponibles</p>
+    <div class="app-empty-state border rounded-2 p-3 text-center">
+      <p class="small text-secondary mb-0">Sin resultados disponibles</p>
     </div>
     {% endif %}
   </div>
 </section>
+</div>
 
-<section class="rounded-3xl border border-[#282e39] bg-[#1c1f27] overflow-hidden">
-  <div class="border-b border-[#282e39] bg-gradient-to-r from-orange-500/10 to-transparent px-6 py-4">
-    <div class="flex items-center justify-between gap-3">
-      <h3 class="flex items-center gap-2 text-lg font-bold">
-        <span class="material-symbols-outlined text-orange-400">credit_card</span>
+<div class="col-12 col-lg-6">
+<section class="app-surface border rounded-3 overflow-hidden h-100">
+  <div class="border-bottom px-3 px-md-4 py-3">
+    <div class="d-flex align-items-center justify-content-between gap-3">
+      <h3 class="h5 fw-bold d-flex align-items-center gap-2 mb-0">
+        <span class="material-symbols-outlined text-warning">credit_card</span>
         Tarjetas Pendientes
       </h3>
-      <span class="rounded-full bg-orange-500/20 px-2.5 py-1 text-xs font-bold text-orange-300">{{ pending_card_events|length }}</span>
+      <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">{{ pending_card_events|length }}</span>
     </div>
   </div>
-  <div class="p-4">
+  <div class="p-3 p-md-4">
     {% if pending_card_events %}
-    <div class="flex flex-col gap-2">
+    <div class="d-flex flex-column gap-2">
       {% for event in pending_card_events %}
-      <div class="flex items-center justify-between gap-3 rounded-lg border border-[#282e39] bg-[#282e39] p-3">
+      <div class="d-flex align-items-center justify-content-between gap-3 rounded-2 border p-3">
         <div class="min-w-0">
-          <div class="flex items-center gap-2">
-            <p class="truncate text-sm font-bold text-white">{{ event.player.name }}</p>
+          <div class="d-flex align-items-center gap-2">
+            <p class="text-truncate small fw-bold text-white mb-0">{{ event.player.name }}</p>
             {% if event.event_type == 'yellow_card' %}
-            <span class="rounded bg-yellow-500/20 px-2 py-0.5 text-[10px] font-bold text-yellow-300">Amarilla</span>
+            <span class="badge bg-warning-subtle text-warning-emphasis">Amarilla</span>
             {% else %}
-            <span class="rounded bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-300">Roja</span>
+            <span class="badge bg-danger-subtle text-danger-emphasis">Roja</span>
             {% endif %}
           </div>
-          <p class="mt-1 truncate text-xs text-[#9da6b9]">{{ event.match.home_team.name }} vs {{ event.match.away_team.name }} · {{ event.match.date|date:"d/m/Y" }}</p>
+          <p class="text-truncate small text-secondary mt-1 mb-0">{{ event.match.home_team.name }} vs {{ event.match.away_team.name }} · {{ event.match.date|date:"d/m/Y" }}</p>
         </div>
         {% if user.role == 'ORGANIZER' %}
         <a
           href="{% url 'register_card_payment' event.id %}?{{ category_query }}"
-          class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/20 text-primary transition hover:bg-primary hover:text-white"
+          class="btn btn-sm btn-outline-primary app-icon-button rounded-2 flex-shrink-0"
           title="Registrar pago"
           aria-label="Registrar pago de {{ event.player.name }}"
         >
-          <span class="material-symbols-outlined text-sm">payments</span>
+          <span class="material-symbols-outlined small">payments</span>
         </a>
         {% endif %}
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <div class="rounded-lg border border-[#282e39] bg-[#282e39] p-4 text-center">
-      <p class="text-sm text-[#9da6b9]">Sin tarjetas pendientes de pago</p>
+    <div class="app-empty-state border rounded-2 p-3 text-center">
+      <p class="small text-secondary mb-0">Sin tarjetas pendientes de pago</p>
     </div>
     {% endif %}
   </div>
 </section>
 </div>
+</div>
+</section>
 
 <div
   aria-hidden="true"
@@ -366,9 +368,9 @@
   tabindex="-1"
 >
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content border border-[#282e39] bg-[#1c1f27] text-white">
-      <div class="modal-header border-b border-[#282e39]">
-        <h5 class="modal-title text-lg font-bold" id="playerPhotoModalLabel">Foto del jugador</h5>
+    <div class="modal-content app-surface text-white">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="playerPhotoModalLabel">Foto del jugador</h5>
         <button
           type="button"
           class="btn-close btn-close-white"
@@ -376,11 +378,11 @@
           aria-label="Cerrar"
         ></button>
       </div>
-      <div class="modal-body p-4">
-        <div class="overflow-hidden rounded-2xl border border-[#282e39] bg-[#101622]">
+      <div class="modal-body p-3 p-md-4">
+        <div class="overflow-hidden rounded-3 border app-surface">
           <img
             alt="Foto del jugador"
-            class="max-h-[75vh] w-full object-contain"
+            class="app-player-photo-preview w-100 object-fit-contain"
             id="playerPhotoModalImage"
             src=""
           />

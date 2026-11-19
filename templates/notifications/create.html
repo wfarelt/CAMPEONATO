@@ -4,68 +4,75 @@
 {% block header_title %}Nueva Notificacion{% endblock %}
 
 {% block content %}
-<div class="mx-auto mt-4 w-full max-w-3xl rounded-3xl border border-[#282e39] bg-[#1c1f27] p-6 md:mt-6 md:p-8">
-  <div class="mb-6">
-    <h1 class="m-0 text-2xl font-black text-white">Enviar notificacion</h1>
-    <p class="mt-2 text-sm text-[#9da6b9]">Puedes enviarla para todos, por equipo, por usuario o por rol.</p>
-  </div>
+<div class="container py-4 py-lg-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-9">
+      <header class="mb-4">
+        <h1 class="h3 fw-bold">Enviar notificacion</h1>
+        <p class="small text-white-50 mb-0">Puedes enviarla para todos, por equipo, por usuario o por rol.</p>
+      </header>
 
-  <form method="post" class="space-y-4">
+  <form method="post" class="row g-3">
     {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="col-12">
+      <div class="alert alert-danger mb-0" role="alert">{{ form.non_field_errors }}</div>
+    </div>
+    {% endif %}
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_title">Titulo</label>
+    <div class="col-12">
+      <label class="form-label fw-semibold" for="id_title">Titulo</label>
       {{ form.title }}
-      {% if form.title.errors %}<p class="mt-1 text-xs text-red-400">{{ form.title.errors|join:", " }}</p>{% endif %}
+      {% if form.title.errors %}<div class="invalid-feedback d-block">{{ form.title.errors|join:", " }}</div>{% endif %}
     </div>
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_message">Mensaje</label>
+    <div class="col-12">
+      <label class="form-label fw-semibold" for="id_message">Mensaje</label>
       {{ form.message }}
-      {% if form.message.errors %}<p class="mt-1 text-xs text-red-400">{{ form.message.errors|join:", " }}</p>{% endif %}
+      {% if form.message.errors %}<div class="invalid-feedback d-block">{{ form.message.errors|join:", " }}</div>{% endif %}
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2">
-      <div>
-        <label class="mb-1 block text-sm font-semibold text-white" for="id_category">Categoria</label>
+    <div class="col-12 col-md-6">
+        <label class="form-label fw-semibold" for="id_category">Categoria</label>
         {{ form.category }}
-        {% if form.category.errors %}<p class="mt-1 text-xs text-red-400">{{ form.category.errors|join:", " }}</p>{% endif %}
-      </div>
-      <div>
-        <label class="mb-1 block text-sm font-semibold text-white" for="id_audience_type">Audiencia</label>
+        {% if form.category.errors %}<div class="invalid-feedback d-block">{{ form.category.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label fw-semibold" for="id_audience_type">Audiencia</label>
         {{ form.audience_type }}
-        {% if form.audience_type.errors %}<p class="mt-1 text-xs text-red-400">{{ form.audience_type.errors|join:", " }}</p>{% endif %}
-      </div>
+        {% if form.audience_type.errors %}<div class="invalid-feedback d-block">{{ form.audience_type.errors|join:", " }}</div>{% endif %}
     </div>
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_role">Rol (solo para audiencia por rol)</label>
+    <div class="col-12">
+      <label class="form-label fw-semibold" for="id_role">Rol (solo para audiencia por rol)</label>
       {{ form.role }}
-      {% if form.role.errors %}<p class="mt-1 text-xs text-red-400">{{ form.role.errors|join:", " }}</p>{% endif %}
+      {% if form.role.errors %}<div class="invalid-feedback d-block">{{ form.role.errors|join:", " }}</div>{% endif %}
     </div>
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_target_teams">Equipos objetivo (solo para audiencia por equipo)</label>
+    <div class="col-12">
+      <label class="form-label fw-semibold" for="id_target_teams">Equipos objetivo (solo para audiencia por equipo)</label>
       {{ form.target_teams }}
-      {% if form.target_teams.errors %}<p class="mt-1 text-xs text-red-400">{{ form.target_teams.errors|join:", " }}</p>{% endif %}
+      {% if form.target_teams.errors %}<div class="invalid-feedback d-block">{{ form.target_teams.errors|join:", " }}</div>{% endif %}
     </div>
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_target_users">Usuarios objetivo (solo para audiencia por usuario)</label>
+    <div class="col-12">
+      <label class="form-label fw-semibold" for="id_target_users">Usuarios objetivo (solo para audiencia por usuario)</label>
       {{ form.target_users }}
-      {% if form.target_users.errors %}<p class="mt-1 text-xs text-red-400">{{ form.target_users.errors|join:", " }}</p>{% endif %}
+      {% if form.target_users.errors %}<div class="invalid-feedback d-block">{{ form.target_users.errors|join:", " }}</div>{% endif %}
     </div>
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_expires_at">Expira en (opcional)</label>
+    <div class="col-12">
+      <label class="form-label fw-semibold" for="id_expires_at">Expira en (opcional)</label>
       {{ form.expires_at }}
-      {% if form.expires_at.errors %}<p class="mt-1 text-xs text-red-400">{{ form.expires_at.errors|join:", " }}</p>{% endif %}
+      {% if form.expires_at.errors %}<div class="invalid-feedback d-block">{{ form.expires_at.errors|join:", " }}</div>{% endif %}
     </div>
 
-    <div class="flex flex-wrap items-center gap-3 pt-2">
-      <button type="submit" class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90">Enviar</button>
-      <a href="{% url 'notifications_inbox' %}?{{ category_query }}" class="rounded-xl bg-[#282e39] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#343b48]">Cancelar</a>
+    <div class="col-12 d-flex flex-wrap gap-2 pt-2">
+      <button type="submit" class="btn btn-primary">Enviar</button>
+      <a href="{% url 'notifications_inbox' %}?{{ category_query }}" class="btn btn-outline-secondary">Cancelar</a>
     </div>
   </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

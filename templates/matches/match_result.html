@@ -5,6 +5,25 @@
 
 {% block styles %}
 <style>
+  .app-score-input {
+    min-width: 0;
+    min-height: 3.75rem;
+    font-size: 2rem;
+  }
+  .team-logo {
+    height: 4rem;
+    width: 4rem;
+  }
+  .result-player-select {
+    background-color: var(--app-bg);
+    color: var(--bs-body-color);
+  }
+  .result-min-width-0 {
+    min-width: 0;
+  }
+  .result-roster-list {
+    max-height: 11rem;
+  }
     @media (max-width: 768px) {
         .team-logo {
             height: 2.25rem;
@@ -20,17 +39,17 @@
     }
     /* Sharper border so two-digit scores are easy to spot */
     .score-input input[type="number"] {
-        border: 2px solid #3d4f6e !important;
+      border-width: 2px;
     }
     .score-input input[type="number"]:focus {
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 3px rgba(99,102,241,.2) !important;
+      border-color: var(--bs-primary);
+      box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="space-y-5">
+<div class="d-grid gap-3">
 
   <!-- ── HERO SCOREBOARD ──────────────────────────────────────────── -->
   {% if can_edit_results %}
@@ -42,63 +61,65 @@
     <input type="hidden" name="court" value="{{ match.court }}" />
     <input type="hidden" name="status" value="finished" />
 
-    <div class="overflow-hidden rounded-2xl bg-[#13161e] border border-[#1e2330]">
+    <div class="app-surface border rounded-3 overflow-hidden">
 
       <!-- Match metadata -->
-      <div class="pt-5 text-center">
-        <p class="text-xs font-medium uppercase tracking-widest text-[#4a5470]">
-          {% if match.match_day %}{{ match.match_day.description|default:"Jornada" }} &middot; {% endif %}{{ match.get_court_display }}
+      <div class="p-3 pb-0 text-center">
+        <p class="small fw-medium text-uppercase text-white-50 mb-0">
+          {% if match.match_day %}{{ match.match_day.description|default:"Jornada" }} | {% endif %}{{ match.get_court_display }}
         </p>
       </div>
 
       <!-- Teams & Score -->
-      <div class="flex items-center justify-between gap-4 px-6 py-6">
+      <div class="row align-items-center g-2 g-md-3 p-3 p-md-4">
 
         <!-- Home team -->
-        <div class="flex flex-1 flex-col items-center gap-2 min-w-0 ">
-          <div class="team-logo flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#1c2235]">
+        <div class="col d-flex flex-column align-items-center gap-2 result-min-width-0">
+          <div class="team-logo d-flex align-items-center justify-content-center overflow-hidden rounded-circle app-surface border">
             {% if match.home_team.logo %}
-            <img src="{{ match.home_team.logo.url }}" alt="{{ match.home_team.name }}" class="h-full w-full object-contain p-1.5">
+            <img src="{{ match.home_team.logo.url }}" alt="" class="w-100 h-100 object-fit-contain p-1">
             {% else %}
-            <span class="text-2xl font-bold text-white">{{ match.home_team.name|slice:":1"|upper }}</span>
+            <span class="h4 fw-bold mb-0">{{ match.home_team.name|slice:":1"|upper }}</span>
             {% endif %}
           </div>
-          <p class="team-name-text text-sm font-semibold text-white text-center leading-tight">{{ match.home_team.name }}</p>
-          <p class="team-label text-xs text-[#4a5470] uppercase tracking-wide">Local</p>
+          <p class="team-name-text small fw-semibold text-center text-break mb-0">{{ match.home_team.name }}</p>
+          <p class="team-label small text-uppercase text-white-50 mb-0">Local</p>
         </div>
 
         <!-- Score inputs -->
-        <div class="flex shrink-0 items-center gap-3">
-          <div class="score-input w-24">{{ match_form.home_score }}</div>
-          <span class="text-3xl font-light text-[#2a3550]">&#8211;</span>
-          <div class="score-input w-24">{{ match_form.away_score }}</div>
+        <div class="col-6 col-md-4 order-3 order-md-2 mx-auto">
+          <div class="d-flex align-items-center gap-2">
+            <div class="score-input flex-fill">{{ match_form.home_score }}</div>
+            <span class="h3 fw-light text-white-50 mb-0">-</span>
+            <div class="score-input flex-fill">{{ match_form.away_score }}</div>
+          </div>
         </div>
 
         <!-- Away team -->
-        <div class="flex flex-1 flex-col items-center gap-2 min-w-0">
-          <div class="team-logo flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#1c2235]">
+        <div class="col d-flex flex-column align-items-center gap-2 result-min-width-0 order-2 order-md-3">
+          <div class="team-logo d-flex align-items-center justify-content-center overflow-hidden rounded-circle app-surface border">
             {% if match.away_team.logo %}
-            <img src="{{ match.away_team.logo.url }}" alt="{{ match.away_team.name }}" class="h-full w-full object-contain p-1.5">
+            <img src="{{ match.away_team.logo.url }}" alt="" class="w-100 h-100 object-fit-contain p-1">
             {% else %}
-            <span class="text-2xl font-bold text-white">{{ match.away_team.name|slice:":1"|upper }}</span>
+            <span class="h4 fw-bold mb-0">{{ match.away_team.name|slice:":1"|upper }}</span>
             {% endif %}
           </div>
-          <p class="team-name-text text-sm font-semibold text-white text-center leading-tight">{{ match.away_team.name }}</p>
-          <p class="team-label text-xs text-[#4a5470] uppercase tracking-wide">Visitante</p>
+          <p class="team-name-text small fw-semibold text-center text-break mb-0">{{ match.away_team.name }}</p>
+          <p class="team-label small text-uppercase text-white-50 mb-0">Visitante</p>
         </div>
 
       </div>
 
       <!-- Actions row -->
-      <div class="flex items-center justify-between border-t border-[#1e2330] px-6 py-3">
-        <a href="{% url 'match_detail' match.slug %}?{{ category_query }}" class="text-sm text-[#4a5470] hover:text-[#9da6b9] transition">
-          &larr; Volver al detalle
+      <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 border-top p-3">
+        <a href="{% url 'match_detail' match.slug %}?{{ category_query }}" class="btn btn-link text-start text-decoration-none px-0">
+          <span class="material-symbols-outlined align-middle" aria-hidden="true">arrow_back</span> Volver al detalle
         </a>
-        <div class="flex gap-2">
-          <a href="{% url 'match_detail' match.slug %}?{{ category_query }}" class="px-4 py-2 rounded-xl text-sm text-[#9da6b9] hover:bg-[#1c2235] transition">
+        <div class="d-flex gap-2 justify-content-end">
+          <a href="{% url 'match_detail' match.slug %}?{{ category_query }}" class="btn btn-outline-secondary">
             Cancelar
           </a>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-medium transition">
+          <button type="submit" class="btn btn-primary">
             Finalizar partido
           </button>
         </div>
@@ -107,48 +128,48 @@
     </div>
   </form>
   {% else %}
-  <div class="overflow-hidden rounded-2xl border border-[#1e2330] bg-[#13161e] p-6 text-center">
-    <p class="text-xs font-medium uppercase text-[#4a5470]">{% if match.match_day %}{{ match.match_day.description|default:"Jornada" }} · {% endif %}{{ match.get_court_display }}</p>
-    <div class="mt-4 flex items-center justify-center gap-4 text-white">
-      <span class="font-semibold">{{ match.home_team.name }}</span>
-      <strong class="text-2xl">{{ match.home_score }} - {{ match.away_score }}</strong>
-      <span class="font-semibold">{{ match.away_team.name }}</span>
+  <div class="app-surface border rounded-3 p-3 p-md-4 text-center">
+    <p class="small fw-medium text-uppercase text-white-50">{% if match.match_day %}{{ match.match_day.description|default:"Jornada" }} · {% endif %}{{ match.get_court_display }}</p>
+    <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
+      <span class="fw-semibold">{{ match.home_team.name }}</span>
+      <strong class="h3 mb-0">{{ match.home_score }} - {{ match.away_score }}</strong>
+      <span class="fw-semibold">{{ match.away_team.name }}</span>
     </div>
-    <p class="mt-3 text-xs text-[#9da6b9]">No tienes permisos para registrar resultados o eventos en este partido.</p>
+    <p class="small text-white-50 mt-3 mb-0">No tienes permisos para registrar resultados o eventos en este partido.</p>
   </div>
   {% endif %}
 
   <!-- ── EVENTS ──────────────────────────────────────────────────── -->
-  <div id="events" class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+  <div id="events" class="row g-3">
 
     {% if can_edit_results %}
     <!-- LEFT: Unified registration -->
-    <div class="lg:col-span-2 rounded-2xl bg-[#1c1f27] border border-[#1e2330] p-5">
-      <p class="mb-4 text-xs font-semibold uppercase tracking-widest text-[#4a5470]">Registrar evento</p>
+    <div class="col-12 col-lg-5 app-surface border rounded-3 p-3 p-md-4">
+      <h2 class="h6 fw-bold text-uppercase text-white-50 mb-3">Registrar evento</h2>
 
       <!-- Team toggle -->
-      <div class="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-[#101622] p-1">
+      <div class="btn-group w-100 mb-3" role="group" aria-label="Seleccionar equipo">
         <button type="button" id="team-toggle-home"
-          class="rounded-lg py-2.5 text-sm font-semibold text-white bg-primary transition truncate px-2">
+          class="btn btn-primary text-truncate">
           {{ match.home_team.name }}
         </button>
         <button type="button" id="team-toggle-away"
-          class="rounded-lg py-2.5 text-sm font-semibold text-[#9da6b9] transition hover:text-white truncate px-2">
+          class="btn btn-outline-secondary text-truncate">
           {{ match.away_team.name }}
         </button>
       </div>
 
       {% if event_form.player.errors %}
-      <p class="mb-3 text-xs text-red-400">{{ event_form.player.errors|join:", " }}</p>
+      <p class="small text-danger mb-3">{{ event_form.player.errors|join:", " }}</p>
       {% endif %}
 
-      <form method="post" class="event-form space-y-3">
+      <form method="post" class="event-form d-grid gap-3">
         {% csrf_token %}
         <input type="hidden" name="action" value="add_event" />
 
         <!-- Home players (active by default) -->
         <select id="psel-home" name="player"
-          class="w-full rounded-xl bg-[#101622] text-white px-3 py-2.5 text-sm border border-[#1e2330] focus:border-primary focus:outline-none"
+          class="form-select result-player-select"
           required>
           <option value="">Seleccionar jugador</option>
           {% for player in players %}{% if player.team_id == match.home_team_id %}
@@ -158,7 +179,7 @@
 
         <!-- Away players (hidden & disabled by default) -->
         <select id="psel-away" name="player"
-          class="hidden w-full rounded-xl bg-[#101622] text-white px-3 py-2.5 text-sm border border-[#1e2330] focus:border-primary focus:outline-none"
+          class="d-none form-select result-player-select"
           required disabled>
           <option value="">Seleccionar jugador</option>
           {% for player in players %}{% if player.team_id == match.away_team_id %}
@@ -170,44 +191,49 @@
         <input type="hidden" name="event_type" value="" />
 
         <!-- Event type buttons -->
-        <div class="grid grid-cols-3 gap-2 pt-1">
+        <div class="row row-cols-3 g-2">
+          <div class="col">
           <button type="submit" data-event-type="goal"
-            class="flex flex-col items-center gap-1.5 rounded-xl border border-[#1a4025] bg-[#0d2414] py-3.5 text-xs font-semibold text-green-400 transition hover:bg-[#132b1a]">
-            <span class="text-lg leading-none">⚽</span>Gol
+            class="btn btn-outline-success w-100 d-flex flex-column align-items-center gap-1 py-3 small fw-semibold">
+            <span aria-hidden="true">⚽</span>Gol
           </button>
+          </div>
+          <div class="col">
           <button type="submit" data-event-type="yellow_card"
-            class="flex flex-col items-center gap-1.5 rounded-xl border border-[#4a3518] bg-[#2a2010] py-3.5 text-xs font-semibold text-yellow-400 transition hover:bg-[#352812]">
-            <span class="text-lg leading-none">🟨</span>Amarilla
+            class="btn btn-outline-warning w-100 d-flex flex-column align-items-center gap-1 py-3 small fw-semibold">
+            <span aria-hidden="true">🟨</span>Amarilla
           </button>
+          </div>
+          <div class="col">
           <button type="submit" data-event-type="red_card"
-            class="flex flex-col items-center gap-1.5 rounded-xl border border-[#4a2020] bg-[#2a1010] py-3.5 text-xs font-semibold text-red-400 transition hover:bg-[#351414]">
-            <span class="text-lg leading-none">🟥</span>Roja
+            class="btn btn-outline-danger w-100 d-flex flex-column align-items-center gap-1 py-3 small fw-semibold">
+            <span aria-hidden="true">🟥</span>Roja
           </button>
+          </div>
         </div>
       </form>
 
       <!-- Collapsible player roster -->
-      <details class="group mt-4">
-        <summary class="flex cursor-pointer select-none items-center gap-1.5 text-xs text-[#4a5470] hover:text-[#9da6b9] transition">
-          <span class="transition-transform group-open:rotate-90">▶</span>
+      <details class="mt-3">
+        <summary class="d-flex align-items-center gap-2 small text-white-50">
           Ver plantel
         </summary>
-        <div id="plantel-home" class="mt-2 max-h-44 overflow-y-auto">
+        <div id="plantel-home" class="result-roster-list mt-2 overflow-y-auto">
           {% for player in players %}{% if player.team_id == match.home_team_id %}
-          <div class="flex justify-between border-b border-[#1c2235] px-3 py-1.5 text-xs text-[#9da6b9] last:border-none">
-            <span>{{ player.name }}</span><span class="text-[#4a5470]">#{{ player.number }}</span>
+          <div class="d-flex justify-content-between border-bottom py-2 small text-white-50">
+            <span>{{ player.name }}</span><span>#{{ player.number }}</span>
           </div>
           {% endif %}{% empty %}
-          <p class="px-3 py-2 text-xs text-[#4a5470]">Sin jugadores.</p>
+          <p class="small text-white-50 py-2">Sin jugadores.</p>
           {% endfor %}
         </div>
-        <div id="plantel-away" class="hidden mt-2 max-h-44 overflow-y-auto">
+        <div id="plantel-away" class="result-roster-list d-none mt-2 overflow-y-auto">
           {% for player in players %}{% if player.team_id == match.away_team_id %}
-          <div class="flex justify-between border-b border-[#1c2235] px-3 py-1.5 text-xs text-[#9da6b9] last:border-none">
-            <span>{{ player.name }}</span><span class="text-[#4a5470]">#{{ player.number }}</span>
+          <div class="d-flex justify-content-between border-bottom py-2 small text-white-50">
+            <span>{{ player.name }}</span><span>#{{ player.number }}</span>
           </div>
           {% endif %}{% empty %}
-          <p class="px-3 py-2 text-xs text-[#4a5470]">Sin jugadores.</p>
+          <p class="small text-white-50 py-2">Sin jugadores.</p>
           {% endfor %}
         </div>
       </details>
@@ -215,64 +241,64 @@
     {% endif %}
 
     <!-- RIGHT: Unified events log -->
-    <div class="lg:col-span-3 rounded-2xl bg-[#1c1f27] border border-[#1e2330] p-5">
-      <p class="mb-4 text-xs font-semibold uppercase tracking-widest text-[#4a5470]">Eventos del partido</p>
+    <div class="col-12 col-lg-7 app-surface border rounded-3 p-3 p-md-4">
+      <h2 class="h6 fw-bold text-uppercase text-white-50 mb-3">Eventos del partido</h2>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div class="row row-cols-1 row-cols-sm-2 g-3">
 
         <!-- Goals -->
         <div>
-          <div class="mb-2 flex items-center gap-2">
-            <span class="text-base leading-none">⚽</span>
-            <span class="text-xs font-semibold uppercase tracking-wide text-[#cfd6e6]">Goles</span>
-            <span class="ml-auto rounded-full bg-[#101622] px-2 py-0.5 text-xs text-[#4a5470]">{{ goal_events|length }}</span>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span aria-hidden="true">⚽</span>
+            <span class="small fw-semibold text-uppercase">Goles</span>
+            <span class="badge text-bg-secondary ms-auto">{{ goal_events|length }}</span>
           </div>
-          <div class="space-y-1">
+          <div class="d-grid gap-1">
             {% for event in goal_events %}
-            <div class="flex items-center justify-between rounded-lg bg-[#101622] px-3 py-2">
-              <div class="min-w-0">
-                <p class="truncate text-sm font-medium text-white">{{ event.player.name }}</p>
-                <p class="text-xs text-[#4a5470]">{{ event.team.name }} &middot; #{{ event.player.number }}</p>
+            <div class="app-surface border rounded-2 px-3 py-2 d-flex align-items-center justify-content-between gap-2">
+              <div class="result-min-width-0">
+                <p class="small fw-medium text-break mb-1">{{ event.player.name }}</p>
+                <p class="small text-white-50 mb-0">{{ event.team.name }} | #{{ event.player.number }}</p>
               </div>
-              {% if can_edit_results %}<form method="post" class="state-form ml-2 shrink-0">
+              {% if can_edit_results %}<form method="post" class="state-form ms-2 flex-shrink-0">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete_event" />
                 <input type="hidden" name="event_id" value="{{ event.id }}" />
-                <button type="submit" class="px-1 text-xs text-[#2a3550] transition hover:text-red-400">✕</button>
+                <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Eliminar gol"><span class="material-symbols-outlined" aria-hidden="true">close</span></button>
               </form>{% endif %}
             </div>
             {% empty %}
-            <p class="px-1 text-xs text-[#2a3550]">Sin goles aún.</p>
+            <p class="small text-white-50 mb-0">Sin goles aún.</p>
             {% endfor %}
           </div>
         </div>
 
         <!-- Cards -->
         <div>
-          <div class="mb-2 flex items-center gap-2">
-            <span class="text-base leading-none">🟨</span>
-            <span class="text-xs font-semibold uppercase tracking-wide text-[#cfd6e6]">Tarjetas</span>
-            <span class="ml-auto rounded-full bg-[#101622] px-2 py-0.5 text-xs text-[#4a5470]">{{ card_events|length }}</span>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span aria-hidden="true">🟨</span>
+            <span class="small fw-semibold text-uppercase">Tarjetas</span>
+            <span class="badge text-bg-secondary ms-auto">{{ card_events|length }}</span>
           </div>
-          <div class="space-y-1">
+          <div class="d-grid gap-1">
             {% for event in card_events %}
-            <div class="flex items-center justify-between rounded-lg bg-[#101622] px-3 py-2">
-              <div class="flex min-w-0 items-center gap-2">
-                <span class="shrink-0 text-sm leading-none">{% if event.event_type == "yellow_card" %}🟨{% else %}🟥{% endif %}</span>
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-medium text-white">{{ event.player.name }}</p>
-                  <p class="text-xs text-[#4a5470]">{{ event.team.name }} &middot; #{{ event.player.number }}</p>
+            <div class="app-surface border rounded-2 px-3 py-2 d-flex align-items-center justify-content-between gap-2">
+              <div class="d-flex align-items-center gap-2 result-min-width-0">
+                <span class="flex-shrink-0" aria-hidden="true">{% if event.event_type == "yellow_card" %}🟨{% else %}🟥{% endif %}</span>
+                <div class="result-min-width-0">
+                  <p class="small fw-medium text-break mb-1">{{ event.player.name }}</p>
+                  <p class="small text-white-50 mb-0">{{ event.team.name }} | #{{ event.player.number }}</p>
                 </div>
               </div>
-              {% if can_edit_results %}<form method="post" class="state-form ml-2 shrink-0">
+              {% if can_edit_results %}<form method="post" class="state-form ms-2 flex-shrink-0">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete_event" />
                 <input type="hidden" name="event_id" value="{{ event.id }}" />
-                <button type="submit" class="px-1 text-xs text-[#2a3550] transition hover:text-red-400">✕</button>
+                <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Eliminar tarjeta"><span class="material-symbols-outlined" aria-hidden="true">close</span></button>
               </form>{% endif %}
             </div>
             {% empty %}
-            <p class="px-1 text-xs text-[#2a3550]">Sin tarjetas aún.</p>
+            <p class="small text-white-50 mb-0">Sin tarjetas aún.</p>
             {% endfor %}
           </div>
         </div>
@@ -304,11 +330,11 @@
 
     const setActive = (btn, on) => {
       if (on) {
-        btn.classList.add('bg-primary', 'text-white');
-        btn.classList.remove('text-[#9da6b9]');
+        btn.classList.add('btn-primary');
+        btn.classList.remove('btn-outline-secondary');
       } else {
-        btn.classList.remove('bg-primary', 'text-white');
-        btn.classList.add('text-[#9da6b9]');
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline-secondary');
       }
     };
 
@@ -317,12 +343,12 @@
       const isHome = team === 'home';
       setActive(homeBtn, isHome);
       setActive(awayBtn, !isHome);
-      pselHome.classList.toggle('hidden', !isHome);
+      pselHome.classList.toggle('d-none', !isHome);
       pselHome.disabled = !isHome;
-      pselAway.classList.toggle('hidden', isHome);
+      pselAway.classList.toggle('d-none', isHome);
       pselAway.disabled = isHome;
-      if (plantelHome) plantelHome.classList.toggle('hidden', !isHome);
-      if (plantelAway) plantelAway.classList.toggle('hidden', isHome);
+      if (plantelHome) plantelHome.classList.toggle('d-none', !isHome);
+      if (plantelAway) plantelAway.classList.toggle('d-none', isHome);
     };
 
     homeBtn.addEventListener('click', () => setTeam('home'));

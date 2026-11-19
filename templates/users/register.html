@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registrarse</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link
       href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
       rel="stylesheet"
@@ -14,53 +14,96 @@
       body {
         font-family: "Lexend", sans-serif;
       }
+
+      .register-page {
+        min-height: 100vh;
+        background: #101622;
+      }
+
+      .register-brand-panel {
+        min-height: 100vh;
+        background: linear-gradient(145deg, #14532d, #166534 58%, #15803d);
+      }
+
+      .register-brand-content {
+        width: 100%;
+        max-width: 30rem;
+        background: rgba(8, 24, 15, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .register-card {
+        width: min(100%, 32rem);
+        background: #1c1f27;
+        border-color: #282e39 !important;
+      }
+
+      .register-control {
+        color: #f3f5f8;
+        border-color: #3b4352;
+        background: #101622;
+      }
+
+      .register-control::placeholder {
+        color: #9da6b9;
+      }
+
+      .register-control:focus {
+        color: #f3f5f8;
+        border-color: #198754;
+        background: #101622;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.2);
+      }
     </style>
   </head>
-  <body class="min-h-screen bg-slate-950 text-white">
-    <div class="relative grid min-h-screen lg:grid-cols-2">
-      <div
-        class="hidden lg:flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-500 to-cyan-400 p-10"
-      >
-        <div class="w-full max-w-md rounded-3xl bg-black/25 p-10 backdrop-blur-sm">
+  <body class="register-page text-light">
+    <main class="container-fluid register-page">
+      <div class="row min-vh-100">
+      <section class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center register-brand-panel p-4 p-xl-5" aria-label="Futbol Santa Cruz">
+        <div class="register-brand-content rounded-3 p-4 p-xl-5 text-center">
           <img
             src="{% static 'tournament/img/futbolscz_logo.png' %}"
             alt="FUTBOL SANTA CRUZ"
-            class="mx-auto mb-8 h-40 w-40 rounded-2xl object-cover shadow-2xl"
+            class="mb-4 rounded-3 bg-white p-2 object-fit-cover"
+            width="128"
+            height="128"
           />
-          <h1 class="text-center text-3xl font-black">FUTBOL</h1>
-          <h4 class="text-center text-xl font-bold text-blue-200">SANTA CRUZ</h4>
-          <p class="mt-3 text-center text-sm text-white/90">
+          <h1 class="h2 fw-bold">FUTBOL</h1>
+          <h2 class="h4 fw-bold text-white">SANTA CRUZ</h2>
+          <p class="mt-3 mb-0">
             Crea tu cuenta para seguir a tu equipo favorito y más.
           </p>
         </div>
-      </div>
+      </section>
 
-      <div class="flex items-center justify-center p-6 sm:p-10">
-        <div class="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
-          <div class="mb-6 text-center lg:hidden">
+      <section class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-3 p-sm-4 p-xl-5" aria-labelledby="register-title">
+        <div class="register-card border rounded-3 p-4 p-sm-5">
+          <div class="d-lg-none text-center mb-4">
             <img
               src="{% static 'tournament/img/futbolscz_logo.png' %}"
               alt="FUTBOL SANTA CRUZ"
-              class="mx-auto mb-4 h-20 w-20 rounded-2xl object-cover"
+              class="mb-3 rounded-3 bg-white p-1 object-fit-cover"
+              width="80"
+              height="80"
             />
-            <h1 class="text-xl font-bold">FUTBOL</h1>
-            <h4 class="text-xl font-bold">SANTA CRUZ</h4>
+            <h1 class="h5 fw-bold mb-0">FUTBOL SANTA CRUZ</h1>
           </div>
 
-          <h2 class="mb-1 text-2xl font-extrabold">Crear cuenta</h2>
-          <p class="mb-6 text-sm text-slate-400">Regístrate como jugador</p>
+          <header class="mb-4">
+            <h2 class="h3 fw-bold mb-1" id="register-title">Crear cuenta</h2>
+            <p class="small text-white-50 mb-0">Regístrate como jugador</p>
+          </header>
 
           {% if form.errors %}
-          <div class="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div class="alert alert-danger" role="alert">
             Por favor corrige los errores indicados.
           </div>
           {% endif %}
 
-          <form method="post" class="space-y-4">
+          <form method="post" class="row g-3">
             {% csrf_token %}
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label for="id_first_name" class="mb-1 block text-sm text-slate-300">Nombre</label>
+            <div class="col-12 col-sm-6">
+                <label for="id_first_name" class="form-label fw-semibold">Nombre</label>
                 <input
                   id="id_first_name"
                   name="first_name"
@@ -68,70 +111,71 @@
                   required
                   autofocus
                   value="{{ form.first_name.value|default:'' }}"
-                  class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                  class="form-control register-control"
                   placeholder="Tu nombre"
                 />
                 {% if form.first_name.errors %}
-                <p class="mt-1 text-xs text-red-400">{{ form.first_name.errors|join:", " }}</p>
+                <div class="invalid-feedback d-block">{{ form.first_name.errors|join:", " }}</div>
                 {% endif %}
-              </div>
-              <div>
-                <label for="id_last_name" class="mb-1 block text-sm text-slate-300">Apellido</label>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label for="id_last_name" class="form-label fw-semibold">Apellido</label>
                 <input
                   id="id_last_name"
                   name="last_name"
                   type="text"
                   required
                   value="{{ form.last_name.value|default:'' }}"
-                  class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                  class="form-control register-control"
                   placeholder="Tu apellido"
                 />
                 {% if form.last_name.errors %}
-                <p class="mt-1 text-xs text-red-400">{{ form.last_name.errors|join:", " }}</p>
+                <div class="invalid-feedback d-block">{{ form.last_name.errors|join:", " }}</div>
                 {% endif %}
-              </div>
             </div>
 
-            <div>
-              <label for="id_username" class="mb-1 block text-sm text-slate-300">Usuario</label>
+            <div class="col-12">
+              <label for="id_username" class="form-label fw-semibold">Usuario</label>
               <input
                 id="id_username"
                 name="username"
                 type="text"
                 required
+                autocomplete="username"
                 value="{{ form.username.value|default:'' }}"
-                class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                class="form-control register-control"
                 placeholder="Elige un nombre de usuario"
               />
               {% if form.username.errors %}
-              <p class="mt-1 text-xs text-red-400">{{ form.username.errors|join:", " }}</p>
+              <div class="invalid-feedback d-block">{{ form.username.errors|join:", " }}</div>
               {% endif %}
             </div>
 
-            <div>
-              <label for="id_email" class="mb-1 block text-sm text-slate-300">Correo electrónico</label>
+            <div class="col-12">
+              <label for="id_email" class="form-label fw-semibold">Correo electrónico</label>
               <input
                 id="id_email"
                 name="email"
                 type="email"
                 required
+                autocomplete="email"
                 value="{{ form.email.value|default:'' }}"
-                class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                class="form-control register-control"
                 placeholder="correo@ejemplo.com"
               />
               {% if form.email.errors %}
-              <p class="mt-1 text-xs text-red-400">{{ form.email.errors|join:", " }}</p>
+              <div class="invalid-feedback d-block">{{ form.email.errors|join:", " }}</div>
               {% endif %}
             </div>
 
-            <div>
-              <label for="id_favorite_team" class="mb-1 block text-sm text-slate-300">
-                Equipo favorito <span class="text-slate-500">(opcional)</span>
+            <div class="col-12">
+              <label for="id_favorite_team" class="form-label fw-semibold">
+                Equipo favorito <span class="text-white-50">(opcional)</span>
               </label>
               <select
                 id="id_favorite_team"
                 name="favorite_team"
-                class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white focus:border-blue-500 focus:outline-none"
+                class="form-select register-control"
               >
                 <option value="">— Sin equipo favorito —</option>
                 {% for team in form.favorite_team.field.queryset %}
@@ -142,57 +186,59 @@
                 {% endfor %}
               </select>
               {% if form.favorite_team.errors %}
-              <p class="mt-1 text-xs text-red-400">{{ form.favorite_team.errors|join:", " }}</p>
+              <div class="invalid-feedback d-block">{{ form.favorite_team.errors|join:", " }}</div>
               {% endif %}
             </div>
 
-            <div>
-              <label for="id_password1" class="mb-1 block text-sm text-slate-300">Contraseña</label>
+            <div class="col-12">
+              <label for="id_password1" class="form-label fw-semibold">Contraseña</label>
               <input
                 id="id_password1"
                 name="password1"
                 type="password"
                 required
-                class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                autocomplete="new-password"
+                class="form-control register-control"
                 placeholder="Elige una contraseña"
               />
               {% if form.password1.errors %}
-              <p class="mt-1 text-xs text-red-400">{{ form.password1.errors|join:", " }}</p>
+              <div class="invalid-feedback d-block">{{ form.password1.errors|join:", " }}</div>
               {% endif %}
             </div>
 
-            <div>
-              <label for="id_password2" class="mb-1 block text-sm text-slate-300">Confirmar contraseña</label>
+            <div class="col-12">
+              <label for="id_password2" class="form-label fw-semibold">Confirmar contraseña</label>
               <input
                 id="id_password2"
                 name="password2"
                 type="password"
                 required
-                class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                autocomplete="new-password"
+                class="form-control register-control"
                 placeholder="Repite tu contraseña"
               />
               {% if form.password2.errors %}
-              <p class="mt-1 text-xs text-red-400">{{ form.password2.errors|join:", " }}</p>
+              <div class="invalid-feedback d-block">{{ form.password2.errors|join:", " }}</div>
               {% endif %}
             </div>
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <a
-                href="{% url 'login' %}"
-                class="inline-flex w-full items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-slate-700"
-              >
+            <div class="col-12 row g-2 pt-1">
+              <div class="col-12 col-sm-6">
+              <a href="{% url 'login' %}" class="btn btn-outline-secondary w-100">
                 Ya tengo cuenta
               </a>
-              <button
-                type="submit"
-                class="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-500"
-              >
+              </div>
+              <div class="col-12 col-sm-6">
+              <button type="submit" class="btn btn-success w-100">
                 Registrarse
               </button>
+              </div>
             </div>
           </form>
         </div>
+      </section>
       </div>
+    </main>
     </div>
   </body>
 </html>

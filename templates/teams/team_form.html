@@ -5,74 +5,41 @@
 {% block header_title %}{% if is_edit %}Editar Equipo{% else %}Crear Equipo{% endif %}{% endblock %}
 
 {% block content %}
-<div class="mx-auto w-full max-w-3xl rounded-3xl border border-[#282e39] bg-[#1c1f27] p-8">
-  <div class="mb-6">
-    <h2 class="text-2xl font-black text-white">
-      {% if is_edit %}Editar {{ team.name }}{% else %}Registrar nuevo equipo{% endif %}
-    </h2>
-    <p class="mt-2 text-sm text-[#9da6b9]">Campeonato: {{ championship_category_label }}</p>
-  </div>
+<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
+  <div class="app-form-narrow mx-auto w-100">
+    <header class="mb-4">
+      <p class="small text-secondary mb-1">{{ championship_category_label }}{% if selected_tournament %} · {{ selected_tournament.name }}{% endif %}</p>
+      <h1 class="h3 fw-bold text-white mb-0">{% if is_edit %}Editar {{ team.name }}{% else %}Registrar nuevo equipo{% endif %}</h1>
+    </header>
 
-  <form method="post" enctype="multipart/form-data" class="space-y-5">
+  <form method="post" enctype="multipart/form-data" class="app-surface border rounded-3 p-3 p-md-4">
     {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_name">Nombre</label>
-      {{ form.name }}
-      {% if form.name.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.name.errors|join:", " }}</p>
-      {% endif %}
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="col-12 {% if field.name == 'coach' or field.name == 'manager' %}col-md-6{% endif %}">
+        {% if field.name == 'is_available_for_matchday' %}
+        <div class="form-check app-surface border rounded-3 p-3 ps-5">
+          {{ field }}
+          <label class="form-check-label fw-semibold text-white" for="{{ field.id_for_label }}">Disponible para jornada</label>
+          <p class="small text-secondary mt-2 mb-0">Si se desactiva, el equipo no aparecerá en las recomendaciones automáticas.</p>
+        </div>
+        {% else %}
+        <label class="form-label small fw-semibold text-secondary" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% endif %}
+        {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+      </div>
+      {% endfor %}
     </div>
 
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_coach">Entrenador/Delegado</label>
-      {{ form.coach }}
-      {% if form.coach.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.coach.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_logo">Logo/Escudo del equipo</label>
-      {{ form.logo }}
-      {% if form.logo.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.logo.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      <label class="mb-1 block text-sm font-semibold text-white" for="id_manager">Manager</label>
-      {{ form.manager }}
-      {% if form.manager.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.manager.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
-    <div class="rounded-xl border border-[#282e39] bg-[#101622] p-4">
-      <label class="flex items-center gap-3 text-sm font-semibold text-white" for="id_is_available_for_matchday">
-        {{ form.is_available_for_matchday }}
-        <span>Disponible para jornada</span>
-      </label>
-      {% if form.is_available_for_matchday.errors %}
-      <p class="mt-1 text-xs text-red-400">{{ form.is_available_for_matchday.errors|join:", " }}</p>
-      {% endif %}
-      <p class="mt-2 text-xs text-[#9da6b9]">Si esta desactivado, el equipo no se usara en recomendaciones automaticas de partidos.</p>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-3 pt-2">
-      <button
-        type="submit"
-        class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90"
-      >
-        {% if is_edit %}Guardar cambios{% else %}Crear equipo{% endif %}
-      </button>
-      <a
-        href="{% url 'teams' %}?{{ category_query }}"
-        class="rounded-xl bg-[#282e39] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#343b48]"
-      >
-        Cancelar
-      </a>
+    <div class="d-flex flex-column flex-sm-row gap-2 mt-4 pt-3 border-top">
+      <button type="submit" class="btn btn-primary">{% if is_edit %}Guardar cambios{% else %}Crear equipo{% endif %}</button>
+      <a href="{% url 'teams' %}?{{ category_query }}" class="btn btn-outline-light">Cancelar</a>
     </div>
   </form>
+  </div>
+</section>
 </div>
 {% endblock %}

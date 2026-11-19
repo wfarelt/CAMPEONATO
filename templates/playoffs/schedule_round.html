@@ -4,82 +4,88 @@
 {% block header_title %}Programar {{ round_label }}{% endblock %}
 
 {% block content %}
-<div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-10">
-    <a href="{% url 'playoffs' %}?{{ category_query }}" class="inline-flex items-center gap-2 text-sm text-[#9da6b9] transition hover:text-white">
-        <span aria-hidden="true">←</span> Volver al cuadro
+<div class="container py-4 py-lg-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+    <a href="{% url 'playoffs' %}?{{ category_query }}" class="btn btn-link link-light text-decoration-none px-0 d-inline-flex align-items-center gap-2">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al cuadro
     </a>
 
-    <header class="mt-5 border-b border-[#282e39] pb-5">
-        <p class="text-sm text-[#9da6b9]">{{ championship_category_label }}</p>
-        <h1 class="mt-1 text-3xl font-bold">Crear jornada de {{ round_schedule_label }}</h1>
-        <p class="mt-2 text-sm text-[#9da6b9]">Los equipos clasificados ya están asignados a sus llaves.</p>
+    <header class="border-bottom pb-3 mb-4">
+        <p class="small text-white-50 mb-1">{{ championship_category_label }}</p>
+        <h1 class="h3 fw-bold">Crear jornada de {{ round_schedule_label }}</h1>
+        <p class="small text-white-50 mb-0">Los equipos clasificados ya están asignados a sus llaves.</p>
     </header>
 
-    <section class="mt-6 rounded-2xl border border-[#282e39] bg-[#1c1f27] p-5 sm:p-6">
-        <h2 class="text-lg font-semibold">Cruces de la ronda</h2>
-        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+    <section class="app-surface border rounded-3 p-3 p-md-4 mb-4" aria-labelledby="round-ties-title">
+        <h2 class="h5 fw-bold" id="round-ties-title">Cruces de la ronda</h2>
+        <div class="row g-3 mt-1">
             {% for tie in round_ties %}
-            <div class="rounded-xl border border-[#282e39] bg-[#14171d] px-4 py-3">
-                <p class="text-xs font-semibold uppercase tracking-wider text-[#9da6b9]">Llave {{ tie.position }}</p>
-                <p class="mt-2 font-medium text-white">{{ tie.home_team.name }} <span class="text-[#9da6b9]">vs</span> {{ tie.away_team.name }}</p>
+            <div class="col-12 col-sm-6">
+              <div class="app-surface border rounded-3 p-3 h-100">
+                <p class="small fw-semibold text-uppercase text-white-50 mb-2">Llave {{ tie.position }}</p>
+                <p class="fw-medium mb-0">{{ tie.home_team.name }} <span class="text-white-50">vs</span> {{ tie.away_team.name }}</p>
+              </div>
             </div>
             {% endfor %}
         </div>
     </section>
 
-    <form method="post" class="mt-6 rounded-2xl border border-[#282e39] bg-[#1c1f27] p-5 sm:p-6">
+    <form method="post" class="app-surface border rounded-3 p-3 p-md-4">
         {% csrf_token %}
-        <h2 class="text-lg font-semibold">Datos de la jornada</h2>
-        {% if form.non_field_errors %}<div class="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ form.non_field_errors }}</div>{% endif %}
-        <div class="mt-5 grid gap-4 sm:grid-cols-2">
-            <div>
-                <label class="mb-1.5 block text-sm text-[#c5cada]" for="{{ form.match_date.id_for_label }}">{{ form.match_date.label }}</label>
+        <h2 class="h5 fw-bold">Datos de la jornada</h2>
+        {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="row g-3 mt-1">
+            <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold" for="{{ form.match_date.id_for_label }}">{{ form.match_date.label }}</label>
                 {{ form.match_date }}
-                {% if form.match_date.errors %}<p class="mt-1 text-xs text-red-300">{{ form.match_date.errors|join:", " }}</p>{% endif %}
+                {% if form.match_date.errors %}<div class="invalid-feedback d-block">{{ form.match_date.errors|join:", " }}</div>{% endif %}
             </div>
-            <div>
-                <label class="mb-1.5 block text-sm text-[#c5cada]" for="{{ form.match_time.id_for_label }}">{{ form.match_time.label }}</label>
+            <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold" for="{{ form.match_time.id_for_label }}">{{ form.match_time.label }}</label>
                 {{ form.match_time }}
-                {% if form.match_time.errors %}<p class="mt-1 text-xs text-red-300">{{ form.match_time.errors|join:", " }}</p>{% endif %}
+                {% if form.match_time.errors %}<div class="invalid-feedback d-block">{{ form.match_time.errors|join:", " }}</div>{% endif %}
             </div>
-            <div>
-                <label class="mb-1.5 block text-sm text-[#c5cada]" for="{{ form.court.id_for_label }}">{{ form.court.label }}</label>
+            <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold" for="{{ form.court.id_for_label }}">{{ form.court.label }}</label>
                 {{ form.court }}
-                {% if form.court.errors %}<p class="mt-1 text-xs text-red-300">{{ form.court.errors|join:", " }}</p>{% endif %}
+                {% if form.court.errors %}<div class="invalid-feedback d-block">{{ form.court.errors|join:", " }}</div>{% endif %}
             </div>
-            <div>
-                <label class="mb-1.5 block text-sm text-[#c5cada]" for="{{ form.format.id_for_label }}">{{ form.format.label }}</label>
+            <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold" for="{{ form.format.id_for_label }}">{{ form.format.label }}</label>
                 {{ form.format }}
-                {% if form.format.errors %}<p class="mt-1 text-xs text-red-300">{{ form.format.errors|join:", " }}</p>{% endif %}
+                {% if form.format.errors %}<div class="invalid-feedback d-block">{{ form.format.errors|join:", " }}</div>{% endif %}
             </div>
         </div>
-        <div id="second-leg-fields" class="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-                <label class="mb-1.5 block text-sm text-[#c5cada]" for="{{ form.second_leg_date.id_for_label }}">{{ form.second_leg_date.label }}</label>
+        <div id="second-leg-fields" class="row g-3 mt-1 d-none">
+            <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold" for="{{ form.second_leg_date.id_for_label }}">{{ form.second_leg_date.label }}</label>
                 {{ form.second_leg_date }}
-                {% if form.second_leg_date.errors %}<p class="mt-1 text-xs text-red-300">{{ form.second_leg_date.errors|join:", " }}</p>{% endif %}
+                {% if form.second_leg_date.errors %}<div class="invalid-feedback d-block">{{ form.second_leg_date.errors|join:", " }}</div>{% endif %}
             </div>
-            <div>
-                <label class="mb-1.5 block text-sm text-[#c5cada]" for="{{ form.second_leg_time.id_for_label }}">{{ form.second_leg_time.label }}</label>
+            <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold" for="{{ form.second_leg_time.id_for_label }}">{{ form.second_leg_time.label }}</label>
                 {{ form.second_leg_time }}
-                {% if form.second_leg_time.errors %}<p class="mt-1 text-xs text-red-300">{{ form.second_leg_time.errors|join:", " }}</p>{% endif %}
+                {% if form.second_leg_time.errors %}<div class="invalid-feedback d-block">{{ form.second_leg_time.errors|join:", " }}</div>{% endif %}
             </div>
         </div>
 
-        <div class="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-[#c5cada]">
+        <div class="alert alert-warning mt-4 mb-0" role="note">
             {% if penalties_enabled %}
             Si la llave queda empatada en puntos, el organizador podrá registrar los penales al finalizar todos los partidos.
             {% else %}
             El desempate por penales está desactivado en la configuración de esta categoría.
             {% endif %}
         </div>
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#282e39] pt-5">
-            <a href="{% url 'playoffs' %}?{{ category_query }}" class="rounded-xl px-4 py-2.5 text-sm text-[#9da6b9] transition hover:bg-[#282e39]">Cancelar</a>
-            <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90">
-                <span class="material-symbols-outlined text-lg">event_available</span>Crear jornada
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 border-top mt-4 pt-3">
+            <a href="{% url 'playoffs' %}?{{ category_query }}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-2">
+                <i class="bi bi-calendar-check" aria-hidden="true"></i>Crear jornada
             </button>
         </div>
     </form>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -94,7 +100,7 @@
 
     const updateSecondLegFields = () => {
       const show = format.value === "home_and_away";
-      secondLegFields.classList.toggle("hidden", !show);
+            secondLegFields.classList.toggle("d-none", !show);
       secondLegDate.required = show;
       secondLegTime.required = show;
     };

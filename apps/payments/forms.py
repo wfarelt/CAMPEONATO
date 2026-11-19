@@ -5,11 +5,7 @@ from django import forms
 from apps.payments.models import CardPayment
 
 
-INPUT_CLASS = (
-    "w-full rounded-xl border border-[#282e39] bg-[#101622] "
-    "px-4 py-3 text-white placeholder:text-[#9da6b9] "
-    "focus:border-primary focus:ring-primary"
-)
+INPUT_CLASS = "form-control bg-dark text-white border-secondary"
 
 
 class CardPaymentForm(forms.ModelForm):
@@ -21,7 +17,7 @@ class CardPaymentForm(forms.ModelForm):
                 attrs={"class": INPUT_CLASS, "min": "0", "step": "0.01"}
             ),
             "paid": forms.CheckboxInput(
-                attrs={"class": "w-5 h-5 rounded border-[#282e39] bg-[#101622] text-primary"}
+                attrs={"class": "form-check-input"}
             ),
             "paid_date": forms.DateInput(
                 attrs={"type": "date", "class": INPUT_CLASS}
