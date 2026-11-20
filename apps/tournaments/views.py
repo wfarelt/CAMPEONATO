@@ -1,4 +1,5 @@
-from django.http import Http404, HttpResponseForbidden
+from django.contrib import messages
+from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -12,9 +13,9 @@ from apps.core.categories import (
 )
 from apps.matches.models import Match
 from apps.teams.models import Team
-from apps.tournaments.forms import MatchDayForm, MatchFormSet, TournamentForm, get_match_formset_class
+from apps.tournaments.forms import HomepageChampionshipForm, MatchDayForm, MatchFormSet, TournamentForm, get_match_formset_class
 from apps.users.permissions import can_manage_tournament, organizer_required
-from apps.tournaments.models import MatchDay, Tournament
+from apps.tournaments.models import ActiveChampionship, MatchDay, Tournament
 from apps.tournaments.services import (
     recommend_matches_for_matchday,
     save_matchday_with_matches,
@@ -25,6 +26,27 @@ from apps.notifications.models import NotificationAudienceType, NotificationCate
 
 
 WIZARD_SESSION_KEY = "create_matchday_wizard"
+
+
+@login_required
+def set_active_championship(request):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    is_admin = getattr(request.user, "role", None) == "ADMIN" or request.user.is_superuser
+    is_organizer = getattr(request.user, "role", None) == "ORGANIZER"
+    if not (is_admin or is_organizer):
+        return HttpResponseForbidden("Solo administradores y organizadores pueden seleccionar el campeonato activo.")
+
+    form = HomepageChampionshipForm(request.POST, user=request.user)
+    if not form.is_valid():
+        messages.error(request, "Selecciona un campeonato en curso que tengas permiso para administrar.")
+        return redirect("home")
+
+    tournament = form.cleaned_data["tournament"]
+    ActiveChampionship.objects.update_or_create(pk=1, defaults={"tournament": tournament})
+    messages.success(request, f"{tournament.name} quedó como campeonato activo para todos los usuarios.")
+    return redirect(f"{reverse('home')}?category={tournament.category}&tournament={tournament.pk}")
 
 
 @login_required

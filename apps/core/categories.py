@@ -21,14 +21,47 @@ def get_championship_label(category):
     return _CATEGORY_LABELS[normalized_category]
 
 
+def can_select_championship(user):
+    """Return whether the user may browse seasons and change the active one."""
+    return (
+        getattr(user, "role", None) in {"ADMIN", "ORGANIZER"}
+        or getattr(user, "is_superuser", False)
+    )
+
+
+def get_active_championship():
+    """Return the site's configured active championship, if any."""
+    from apps.tournaments.models import ActiveChampionship
+
+    active = ActiveChampionship.objects.select_related("tournament").filter(pk=1).first()
+    return active.tournament if active else None
+
+
 def get_request_championship_category(request):
-    """Resolve selected category from query string in HTTP requests."""
+    """Resolve the requested category, defaulting to the site's active championship."""
+    active_championship = get_active_championship()
+    if not can_select_championship(request.user):
+        return active_championship.category if active_championship else DEFAULT_CHAMPIONSHIP_CATEGORY
+
     raw_category = request.GET.get("category")
-    return normalize_championship_category(raw_category)
+    if raw_category is not None:
+        return normalize_championship_category(raw_category)
+    return active_championship.category if active_championship else DEFAULT_CHAMPIONSHIP_CATEGORY
 
 
 def get_request_tournament(request, category=None):
-    """Return the selected tournament or reject malformed/cross-category IDs."""
+    """Resolve an explicit tournament or fall back to the site's active championship."""
+    active_championship = get_active_championship()
+    if not can_select_championship(request.user):
+        if active_championship and (category is None or active_championship.category == category):
+            return active_championship
+        return None
+
+    if "tournament" not in request.GET:
+        if active_championship and (category is None or active_championship.category == category):
+            return active_championship
+        return None
+
     tournament_id = request.GET.get("tournament")
     if not tournament_id:
         return None

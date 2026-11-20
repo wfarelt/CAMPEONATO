@@ -6,12 +6,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from apps.core.categories import get_request_championship_category, get_request_tournament
+from apps.core.categories import get_active_championship, get_request_championship_category, get_request_tournament
 from apps.matches.forms import MatchEventForm, MatchResultForm
 from apps.matches.models import Match, MatchEvent
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
 from apps.playoffs.services import get_tie_aggregate, get_tie_matches, resolve_tie
 from apps.teams.models import Player
+from apps.tournaments.forms import HomepageChampionshipForm
 from apps.notifications.services import create_and_dispatch_notification
 from apps.notifications.models import NotificationAudienceType, NotificationCategory
 from apps.users.permissions import can_manage_match
@@ -39,7 +40,20 @@ def home(request):
         else:
             messages.error(request, "Por favor completa todos los campos.")
         return redirect(f"{reverse('home')}?{_tournament_query(category, tournament)}")
-    return render(request, "home.html", build_home_context(category=category, tournament=tournament))
+    context = build_home_context(category=category, tournament=tournament)
+    is_admin = getattr(request.user, "role", None) == "ADMIN" or request.user.is_superuser
+    is_organizer = getattr(request.user, "role", None) == "ORGANIZER"
+    if is_admin or is_organizer:
+        active_championship = get_active_championship()
+        form = HomepageChampionshipForm(
+            user=request.user,
+            initial={"tournament": active_championship},
+        )
+        if active_championship and not form.fields["tournament"].queryset.filter(pk=active_championship.pk).exists():
+            form.initial.pop("tournament", None)
+        context["active_championship_form"] = form
+        context["has_active_championship_options"] = form.fields["tournament"].queryset.exists()
+    return render(request, "home.html", context)
 
 
 @login_required

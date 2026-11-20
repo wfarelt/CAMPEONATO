@@ -11,7 +11,7 @@ from apps.matches.services import build_home_context, build_home_playoff_context
 from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
 from apps.playoffs.services import generate_playoff
 from apps.teams.models import Player, Team
-from apps.tournaments.models import MatchDay, Tournament
+from apps.tournaments.models import ActiveChampionship, MatchDay, Tournament
 from apps.users.models import User
 
 
@@ -75,12 +75,133 @@ class MatchServicesTests(TestCase):
         response = self.client.get(reverse("dashboard"), {"category": "seniors"})
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'href="/static/tournament/css/dashboard.css"')
+        self.assertNotContains(response, "<style>")
         self.assertContains(response, 'class="row row-cols-2 row-cols-md-4 g-2 g-md-3"')
         self.assertContains(response, 'class="app-surface border rounded-3 overflow-hidden"')
         self.assertContains(response, "Resumen del Campeonato")
-        self.assertContains(response, "Equipos con mas goles")
+        self.assertContains(response, "Equipos con más goles")
+        self.assertContains(response, f'Categoría {response.context["championship_category_label"]}')
         self.assertContains(response, "Alpha FC")
-        self.assertContains(response, "Ver Estadisticas Completas")
+        self.assertContains(response, "Ver estadísticas completas")
+
+    def test_home_defaults_to_active_championship_for_all_users(self):
+        active = Tournament.objects.create(
+            name="Global Active Season",
+            season="2026",
+            category="super_seniors",
+            status=Tournament.IN_PROGRESS,
+        )
+        ActiveChampionship.objects.create(tournament=active)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.context["championship_category"], "super_seniors")
+        self.assertEqual(response.context["selected_tournament"], active)
+        self.assertEqual(response.context["active_championship"], active)
+
+    def test_only_admins_and_organizers_see_active_championship_selector(self):
+        admin = User.objects.create_user(username="selector-admin", password="secret", role="ADMIN")
+        organizer = User.objects.create_user(username="selector-organizer", password="secret", role="ORGANIZER")
+        player = User.objects.create_user(username="selector-player", password="secret", role="PLAYER")
+        selectable = Tournament.objects.create(
+            name="Selectable Season",
+            season="2026",
+            category="seniors",
+            status=Tournament.IN_PROGRESS,
+        )
+        selectable.organizers.add(organizer)
+
+        self.client.force_login(admin)
+        admin_response = self.client.get(reverse("home"))
+        self.client.force_login(organizer)
+        organizer_response = self.client.get(reverse("home"))
+        self.client.force_login(player)
+        player_response = self.client.get(reverse("home"))
+
+        self.assertContains(admin_response, "Definir campeonato activo para todos")
+        self.assertContains(admin_response, 'action="/campeonatos/activo/"')
+        self.assertContains(admin_response, selectable.name)
+        self.assertContains(organizer_response, "Definir campeonato activo para todos")
+        self.assertContains(organizer_response, selectable.name)
+        self.assertNotContains(player_response, "Definir campeonato activo para todos")
+
+    def test_other_roles_ignore_explicit_category_and_tournament(self):
+        player = User.objects.create_user(username="locked-player", password="secret", role="PLAYER")
+        active = Tournament.objects.create(name="Only Visible Season", season="2026", category="super_seniors")
+        other = Tournament.objects.create(name="Hidden Season", season="2025", category="seniors")
+        ActiveChampionship.objects.create(tournament=active)
+        self.client.force_login(player)
+
+        response = self.client.get(
+            reverse("home"),
+            {"category": "seniors", "tournament": str(other.pk)},
+        )
+
+        self.assertEqual(response.context["championship_category"], "super_seniors")
+        self.assertEqual(response.context["selected_tournament"], active)
+        self.assertNotContains(response, 'id="championship-category"')
+        self.assertNotContains(response, 'id="championship-tournament"')
+        self.assertEqual(list(response.context["championship_tournaments"]), [active])
+
+    def test_explicit_all_tournaments_selection_overrides_global_default(self):
+        active = Tournament.objects.create(
+            name="Selected Global Season",
+            season="2026",
+            category="super_seniors",
+            status=Tournament.IN_PROGRESS,
+        )
+        ActiveChampionship.objects.create(tournament=active)
+        organizer = User.objects.create_user(username="season-browser", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
+
+        response = self.client.get(reverse("home"), {"category": "super_seniors", "tournament": ""})
+
+        self.assertIsNone(response.context["selected_tournament"])
+        self.assertEqual(response.context["championship_category"], "super_seniors")
+
+    def test_admin_can_set_global_active_championship(self):
+        admin = User.objects.create_user(username="active-admin", password="secret", role="ADMIN")
+        tournament = Tournament.objects.create(
+            name="Admin Season",
+            season="2026",
+            category="seniors",
+            status=Tournament.IN_PROGRESS,
+        )
+        self.client.force_login(admin)
+
+        response = self.client.post(reverse("set_active_championship"), {"tournament": tournament.pk})
+
+        self.assertRedirects(
+            response,
+            f"{reverse('home')}?category=seniors&tournament={tournament.pk}",
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(ActiveChampionship.objects.get(pk=1).tournament, tournament)
+
+    def test_organizer_can_set_any_season_as_the_active_championship(self):
+        organizer = User.objects.create_user(username="active-organizer", password="secret", role="ORGANIZER")
+        assigned = Tournament.objects.create(
+            name="Old Unassigned Season",
+            season="2026",
+            category="seniors",
+            status=Tournament.COMPLETED,
+        )
+        self.client.force_login(organizer)
+
+        accepted = self.client.post(reverse("set_active_championship"), {"tournament": assigned.pk})
+
+        self.assertEqual(accepted.status_code, 302)
+        self.assertEqual(ActiveChampionship.objects.get(pk=1).tournament, assigned)
+
+    def test_other_roles_cannot_change_active_championship(self):
+        player = User.objects.create_user(username="active-player", password="secret", role="PLAYER")
+        self.client.force_login(player)
+
+        response = self.client.post(reverse("set_active_championship"), {"tournament": "1"})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(ActiveChampionship.objects.exists())
 
     def test_match_detail_renders_bootstrap_score_and_print_sheet(self):
         Player.objects.create(team=self.team_a, name="Home Print Player", number=7, position="FW")
@@ -125,6 +246,8 @@ class MatchServicesTests(TestCase):
         tournament = Tournament.objects.create(name="Liga 2026", season="2026", category="seniors")
         settings = LeagueSettings.objects.create(category="seniors", playoffs_enabled=True)
         Playoff.objects.create(category="seniors", settings=settings, tournament=tournament)
+        organizer = User.objects.create_user(username="playoff-organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(organizer)
 
         response = self.client.get("/", {"category": "seniors", "tournament": tournament.pk})
 

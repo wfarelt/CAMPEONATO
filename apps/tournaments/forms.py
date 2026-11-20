@@ -8,6 +8,19 @@ from apps.teams.models import Team
 from apps.tournaments.models import MatchDay, Tournament
 
 
+class HomepageChampionshipForm(forms.Form):
+    tournament = forms.ModelChoiceField(
+        queryset=Tournament.objects.none(),
+        label="Campeonato activo",
+        empty_label="Selecciona un campeonato",
+        widget=forms.Select(attrs={"class": "active-championship-select"}),
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["tournament"].queryset = Tournament.objects.all().order_by("-season", "name")
+
+
 class MatchDayForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)

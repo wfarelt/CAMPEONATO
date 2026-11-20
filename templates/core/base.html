@@ -28,7 +28,7 @@
     />
     {% block styles %}{% endblock %}
   </head>
-  <body class="app-body">
+  <body class="app-body {% if request.resolver_match.url_name == 'dashboard' %}app-body--dashboard{% endif %}">
     <div class="d-flex vh-100 overflow-hidden">
       {% with current_url=request.resolver_match.url_name %}
       <!-- Side Navigation -->
@@ -80,7 +80,7 @@
       </div>
       {% endwith %}
       <!-- Main Content -->
-      <main class="flex-grow-1 overflow-auto app-content-scroll">
+      <main class="flex-grow-1 overflow-auto app-content-scroll {% if request.resolver_match.url_name == 'dashboard' %}app-content-scroll--dashboard{% endif %}">
         <!-- Top Header -->
         <header class="sticky-top d-flex align-items-center justify-content-between gap-3 border-bottom app-topbar px-3 px-sm-4 px-xl-5 py-3">
           <div class="d-flex align-items-center gap-3">
@@ -101,7 +101,7 @@
             </h2>
           </div>
           <div class="d-flex align-items-center gap-2 gap-sm-3">
-            {% if request.resolver_match.url_name == 'home' %}
+            {% if request.resolver_match.url_name == 'home' and can_select_championship %}
             <form action="{% url 'home' %}" class="d-none d-sm-block" method="get">
               <label class="visually-hidden" for="championship-category">Categoría</label>
               <select
@@ -116,7 +116,7 @@
               </select>
             </form>
             {% endif %}
-            {% if championship_tournaments %}
+            {% if championship_tournaments and can_select_championship %}
             <form action="{{ request.path }}" class="d-none d-sm-block" method="get">
               <input type="hidden" name="category" value="{{ championship_category }}" />
               <label class="visually-hidden" for="championship-tournament">Temporada</label>
@@ -202,7 +202,7 @@
             </div>
           </div>
         </header>
-        {% if request.resolver_match.url_name == 'home' %}
+        {% if request.resolver_match.url_name == 'home' and can_select_championship %}
         <div class="app-mobile-search-strip d-sm-none border-bottom px-3 py-3">
           <form action="{{ request.path }}" class="mb-3" method="get">
             <label class="visually-hidden" for="championship-category-mobile">Categoría</label>

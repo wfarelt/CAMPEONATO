@@ -60,6 +60,23 @@ class Tournament(models.Model):
 		return f"{self.name} - {self.season} ({get_championship_label(self.category)})"
 
 
+class ActiveChampionship(models.Model):
+	id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+	tournament = models.ForeignKey(Tournament, on_delete=models.PROTECT, related_name="active_home_selections")
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		verbose_name = "Campeonato activo del sitio"
+		verbose_name_plural = "Campeonato activo del sitio"
+
+	def save(self, *args, **kwargs):
+		self.pk = 1
+		super().save(*args, **kwargs)
+
+	def __str__(self):
+		return str(self.tournament)
+
+
 class TournamentTeam(models.Model):
 	tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="team_memberships")
 	team = models.ForeignKey("teams.Team", on_delete=models.PROTECT, related_name="tournament_memberships")

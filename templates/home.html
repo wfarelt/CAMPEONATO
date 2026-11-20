@@ -66,6 +66,21 @@
         </h1>
         <p class="hero-tagline">/ FÚTBOL | AMISTAD | PASIÓN</p>
         <p class="hero-desc">Más que un campeonato, somos una familia unida por la pasión del fútbol. ¡Vamos por la gloria!</p>
+        {% if selected_tournament %}
+        <p class="active-championship-label">CAMPEONATO MOSTRADO: <strong>{{ selected_tournament.name }} · {{ selected_tournament.season }}</strong></p>
+        {% endif %}
+        {% if active_championship_form %}
+        <form class="active-championship-control" method="post" action="{% url 'set_active_championship' %}">
+            {% csrf_token %}
+            {% if has_active_championship_options %}
+            <label for="{{ active_championship_form.tournament.id_for_label }}">Definir campeonato activo para todos</label>
+            {{ active_championship_form.tournament }}
+            <button type="submit" class="btn-active-championship">Guardar</button>
+            {% else %}
+            <p class="active-championship-empty">No tienes campeonatos en curso asignados para seleccionar.</p>
+            {% endif %}
+        </form>
+        {% endif %}
         <a href="#jornada" class="btn-primary">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white">
                 <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>

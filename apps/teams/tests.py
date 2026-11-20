@@ -291,6 +291,7 @@ class TeamCrudPermissionsTests(TestCase):
         self.assertContains(response, "class=\"row g-4\"")
         self.assertContains(response, "app-surface border rounded-3")
         self.assertContains(response, "id=\"playerPhotoModal\"")
+        self.assertContains(response, 'src="/static/tournament/img/default_logo.jpg"')
         self.assertContains(response, "Sin jugadores registrados")
 
     def test_team_detail_includes_only_pending_card_payments(self):
