@@ -6,6 +6,34 @@ from django.db.models import Q
 
 from apps.matches.models import Match
 from apps.teams.models import Team
+from apps.tournaments.models import TournamentPlayer, TournamentTeam
+
+
+def initialize_tournament_rosters(tournament, teams):
+	"""Copy each team's latest active roster into its new tournament entry."""
+	for team in teams:
+		tournament_team = TournamentTeam.objects.filter(tournament=tournament, team=team).first()
+		if tournament_team is None:
+			continue
+
+		previous_entry = (
+			TournamentTeam.objects.filter(team=team)
+			.exclude(tournament=tournament)
+			.order_by("-tournament__created_at", "-pk")
+			.first()
+		)
+		if previous_entry is None:
+			player_ids = team.players.values_list("pk", flat=True)
+		else:
+			player_ids = previous_entry.roster_entries.filter(is_active=True).values_list("player_id", flat=True)
+
+		TournamentPlayer.objects.bulk_create(
+			[
+				TournamentPlayer(tournament_team=tournament_team, player_id=player_id)
+				for player_id in player_ids
+			],
+			ignore_conflicts=True,
+		)
 
 
 def save_matchday_with_matches(matchday_form, formset):

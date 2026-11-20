@@ -6,10 +6,12 @@ from django.urls import reverse
 
 from apps.core.categories import get_request_championship_category, get_request_tournament
 from apps.standings.selectors import get_opponents_with_points, get_results_by_team
-from apps.teams.forms import PlayerForm, TeamForm, TeamManagerSettingsForm
+from apps.teams.forms import PlayerForm, TeamForm, TeamManagerSettingsForm, TournamentPlayerForm
 from apps.teams.models import Player
 from apps.matches.models import Match, MatchEvent
 from apps.teams.selectors import build_team_api_data, get_all_teams, get_team_or_404
+from apps.tournaments.services import initialize_tournament_rosters
+from apps.tournaments.models import TournamentPlayer, TournamentTeam
 from apps.users.permissions import (
     can_manage_tournament,
     can_add_players_to_team,
@@ -48,7 +50,13 @@ def team_detail_view(request, team_slug):
     category = get_request_championship_category(request)
     tournament = get_request_tournament(request, category)
     team = get_team_or_404(team_slug, category=category, tournament=tournament)
-    team_players = team.players.annotate(
+    team_players = team.players.all()
+    if tournament is not None:
+        team_players = team_players.filter(
+            tournament_roster_entries__tournament_team__tournament=tournament,
+            tournament_roster_entries__is_active=True,
+        )
+    team_players = team_players.annotate(
         position_order=Case(
             When(position="GK", then=Value(0)),
             When(position="DF", then=Value(1)),
@@ -61,6 +69,7 @@ def team_detail_view(request, team_slug):
     context = {
         "team": team,
         "team_players": team_players,
+        "selected_tournament": tournament,
         "next_opponents": get_opponents_with_points(team, tournament=tournament),
         "results": get_results_by_team(team, tournament=tournament),
         "pending_card_events": (
@@ -106,6 +115,7 @@ def team_create_view(request):
             team.save()
             if tournament:
                 tournament.teams.add(team)
+                initialize_tournament_rosters(tournament, [team])
             return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
     else:
         form = TeamForm()
@@ -204,6 +214,9 @@ def player_create_view(request, team_slug):
             player = form.save(commit=False)
             player.team = team
             player.save()
+            if tournament is not None:
+                tournament_team = get_object_or_404(TournamentTeam, tournament=tournament, team=team)
+                TournamentPlayer.objects.create(tournament_team=tournament_team, player=player)
             return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
     else:
         form = PlayerForm(user=request.user)
@@ -212,6 +225,38 @@ def player_create_view(request, team_slug):
         request,
         "teams/player_form.html",
         {"form": form, "team": team, "is_edit": False},
+    )
+
+
+@login_required
+def player_register_view(request, team_slug):
+    category = get_request_championship_category(request)
+    tournament = get_request_tournament(request, category)
+    if tournament is None:
+        return HttpResponseForbidden("Selecciona una temporada para inscribir jugadores existentes.")
+    access_error = _tournament_access_error(request.user, tournament)
+    if access_error:
+        return access_error
+    team = get_team_or_404(team_slug, category=category, tournament=tournament)
+
+    if not can_add_players_to_team(request.user, team):
+        return HttpResponseForbidden("No tienes permisos para inscribir jugadores en esta temporada.")
+
+    tournament_team = get_object_or_404(TournamentTeam, tournament=tournament, team=team)
+    form = TournamentPlayerForm(request.POST or None, team=team, tournament_team=tournament_team)
+    has_available_players = form.fields["player"].queryset.exists()
+    if request.method == "POST" and form.is_valid():
+        TournamentPlayer.objects.update_or_create(
+            tournament_team=tournament_team,
+            player=form.cleaned_data["player"],
+            defaults={"is_active": True},
+        )
+        return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
+
+    return render(
+        request,
+        "teams/player_register.html",
+        {"form": form, "team": team, "tournament": tournament, "has_available_players": has_available_players},
     )
 
 
@@ -257,15 +302,31 @@ def player_delete_view(request, team_slug, player_id):
         return HttpResponseForbidden("No tienes permisos para eliminar jugadores de este equipo.")
 
     player = get_object_or_404(Player, pk=player_id, team=team)
+    can_remove_player = tournament is None and not player.tournament_roster_entries.exists() and not player.match_events.exists()
+    roster_entry = None
+    if tournament is not None:
+        roster_entry = get_object_or_404(
+            TournamentPlayer,
+            player=player,
+            tournament_team__tournament=tournament,
+            tournament_team__team=team,
+            is_active=True,
+        )
 
     if request.method == "POST":
-        player.delete()
+        if tournament is not None:
+            roster_entry.is_active = False
+            roster_entry.save(update_fields=["is_active"])
+        elif not can_remove_player:
+            return HttpResponseForbidden("Este jugador tiene historial. Selecciona una temporada para retirarlo sin borrar sus registros.")
+        else:
+            player.delete()
         return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
 
     return render(
         request,
         "teams/player_confirm_delete.html",
-        {"team": team, "player": player},
+        {"team": team, "player": player, "tournament": tournament, "can_remove_player": can_remove_player},
     )
 
 
@@ -294,6 +355,11 @@ def team_report_view(request, team_slug):
         matches = matches.filter(match_day__tournament=tournament)
 
     players = team.players.order_by("number", "name").all()
+    if tournament is not None:
+        players = players.filter(
+            tournament_roster_entries__tournament_team__tournament=tournament,
+            tournament_roster_entries__is_active=True,
+        )
 
     # Initialize a nested structure: player_id -> match_id -> counters
     stats = {p.id: {m.id: {"goals": 0, "yellow_cards": 0, "red_cards": 0} for m in matches} for p in players}

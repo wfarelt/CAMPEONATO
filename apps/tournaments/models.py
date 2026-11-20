@@ -99,6 +99,30 @@ class TournamentTeam(models.Model):
 		return f"{self.team} - {self.tournament}"
 
 
+class TournamentPlayer(models.Model):
+	tournament_team = models.ForeignKey(TournamentTeam, on_delete=models.CASCADE, related_name="roster_entries")
+	player = models.ForeignKey("teams.Player", on_delete=models.PROTECT, related_name="tournament_roster_entries")
+	is_active = models.BooleanField(default=True, verbose_name="Activo en la temporada")
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		constraints = [
+			models.UniqueConstraint(fields=["tournament_team", "player"], name="unique_player_per_tournament_team"),
+		]
+		ordering = ["player__number", "player__name"]
+		verbose_name = "Jugador inscrito en temporada"
+		verbose_name_plural = "Jugadores inscritos en temporada"
+
+	def clean(self):
+		super().clean()
+		if self.tournament_team_id and self.player_id:
+			if self.player.team_id != self.tournament_team.team_id:
+				raise ValidationError("El jugador debe pertenecer al equipo inscrito en la temporada.")
+
+	def __str__(self):
+		return f"{self.player} - {self.tournament_team.tournament}"
+
+
 class MatchDay(models.Model):
 	tournament = models.ForeignKey(
 		Tournament,

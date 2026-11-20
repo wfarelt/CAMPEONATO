@@ -17,7 +17,7 @@
     </a>
     {% if user.role == 'ORGANIZER' %}
     <a
-      class="btn btn-primary app-icon-button rounded-2"
+      class="btn btn-secondary app-icon-button rounded-2"
       href="{% url 'team_edit' team.slug %}?{{ category_query }}"
       title="Editar equipo"
       aria-label="Editar equipo"
@@ -42,7 +42,7 @@
     </a>
     {% elif can_edit_team_profile %}
     <a
-      class="btn btn-primary d-inline-flex align-items-center gap-2"
+      class="btn btn-secondary d-inline-flex align-items-center gap-2"
       href="{% url 'team_manager_settings' team.slug %}?{{ category_query }}"
       title="Editar configuracion del equipo"
       aria-label="Editar configuracion del equipo"
@@ -110,8 +110,17 @@
           class="btn btn-sm btn-primary d-inline-flex align-items-center gap-2"
         >
           <span class="material-symbols-outlined small">person_add</span>
-          Añadir jugador
+          Nuevo jugador
         </a>
+        {% if selected_tournament %}
+        <a
+          href="{% url 'player_register' team.slug %}?{{ category_query }}"
+          class="btn btn-sm btn-secondary d-inline-flex align-items-center gap-2"
+        >
+          <span class="material-symbols-outlined small">person_add_alt</span>
+          Inscribir existente
+        </a>
+        {% endif %}
         {% endif %}
       </div>
     </div>
@@ -209,8 +218,8 @@
             <a
               href="{% url 'player_delete' team.slug player.id %}?{{ category_query }}"
               class="btn btn-sm btn-outline-danger app-icon-button rounded-2"
-              title="Eliminar jugador"
-              aria-label="Eliminar jugador"
+              title="{% if selected_tournament %}Retirar de esta temporada{% else %}Eliminar jugador{% endif %}"
+              aria-label="{% if selected_tournament %}Retirar de esta temporada{% else %}Eliminar jugador{% endif %}"
             >
               <span class="material-symbols-outlined small">delete</span>
             </a>
@@ -339,7 +348,7 @@
         {% if user.role == 'ORGANIZER' %}
         <a
           href="{% url 'register_card_payment' event.id %}?{{ category_query }}"
-          class="btn btn-sm btn-outline-primary app-icon-button rounded-2 flex-shrink-0"
+          class="btn btn-sm btn-outline-secondary app-icon-button rounded-2 flex-shrink-0"
           title="Registrar pago"
           aria-label="Registrar pago de {{ event.player.name }}"
         >

@@ -1,3 +1,8 @@
+.matches-layout {
+  width: 100%;
+  min-width: 0;
+}
+
 .match-fixture-card {
   color: inherit;
   border-color: var(--app-border) !important;
@@ -9,7 +14,7 @@
 .match-fixture-card:focus-visible {
   color: inherit;
   border-color: var(--app-primary) !important;
-  background: #202633;
+  background: var(--app-surface-hover);
 }
 
 .match-team-logo,
@@ -21,7 +26,7 @@
   justify-content: center;
   border: 2px solid var(--app-border);
   border-radius: 50%;
-  background: #141a25;
+  background: #0f172a;
   object-fit: contain;
 }
 
@@ -32,7 +37,7 @@
 }
 
 .match-team-initial-away {
-  border-color: #3a4252;
+  border-color: var(--app-border);
 }
 
 .match-team-name {
@@ -44,9 +49,14 @@
 }
 
 .match-versus {
-  color: #fff;
+  color: #0f172a;
   background: var(--app-primary);
   font-size: 0.8rem;
+}
+
+.match-fixture-card .badge.text-bg-primary {
+  color: #0f172a;
+  background: #2dff3a !important;
 }
 
 .match-form-dot {
@@ -63,7 +73,8 @@
 }
 
 .match-form-win {
-  background: #198754;
+  color: #0f172a;
+  background: #2dff3a;
 }
 
 .match-form-draw {
@@ -71,7 +82,8 @@
 }
 
 .match-form-loss {
-  background: #dc3545;
+  color: #0f172a;
+  background: #ff4d6d;
 }
 
 .match-result-group {
@@ -80,7 +92,7 @@
 }
 
 .match-result-group > header {
-  background: linear-gradient(90deg, var(--app-primary), #0f4dc7);
+  background: #172238;
 }
 
 .match-result-row,
@@ -93,7 +105,7 @@
 
 .match-result-row:hover,
 .match-result-row:focus-visible {
-  color: #fff;
+  color: var(--app-text);
   background: var(--app-surface-hover);
 }
 
@@ -109,6 +121,17 @@
   object-fit: cover;
 }
 
+.match-result-logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-hover);
+  color: var(--app-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .match-result-team {
   min-width: 0;
   overflow: hidden;
@@ -120,11 +143,11 @@
 }
 
 .match-result-winner {
-  color: #75d69a;
+  color: #2dff3a;
 }
 
 .match-result-loser {
-  color: #9da6b9;
+  color: #94a3b8;
 }
 
 .match-result-score {
@@ -134,6 +157,7 @@
   color: #fff;
   background: var(--app-surface-hover);
   font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 

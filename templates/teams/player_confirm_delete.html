@@ -1,22 +1,35 @@
 {% extends "core/base.html" %}
 
-{% block title %}Eliminar Jugador{% endblock %}
+{% block title %}{% if tournament %}Retirar jugador de temporada{% else %}Eliminar Jugador{% endif %}{% endblock %}
 
-{% block header_title %}Eliminar Jugador{% endblock %}
+{% block header_title %}{% if tournament %}Retirar jugador de temporada{% else %}Eliminar Jugador{% endif %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
   <section class="app-surface border border-danger rounded-3 p-3 p-md-4 app-form-narrow">
-    <h2 class="h4 mb-3">Eliminar jugador</h2>
+    <h2 class="h4 mb-3">{% if tournament %}Retirar de {{ tournament.name }}{% else %}Eliminar jugador{% endif %}</h2>
     <p class="text-body-secondary">
-      Vas a eliminar al jugador <strong>{{ player.name }}</strong> del equipo
-      <strong>{{ team.name }}</strong>.
+      {% if tournament %}
+      <strong>{{ player.name }}</strong> dejará de integrar la plantilla de <strong>{{ team.name }}</strong> en esta temporada.
+      {% else %}
+      Vas a eliminar al jugador <strong>{{ player.name }}</strong> del equipo <strong>{{ team.name }}</strong>.
+      {% endif %}
     </p>
+    {% if tournament %}
+    <p class="text-body-secondary">La ficha del jugador y sus eventos históricos se conservarán. Podrás volver a inscribirlo después.</p>
+    {% elif can_remove_player %}
     <p class="text-danger">Esta acción no se puede deshacer.</p>
+    {% else %}
+    <p class="text-danger">Este jugador tiene historial de temporadas o partidos y no se puede eliminar. Selecciona una temporada para retirarlo sin borrar sus registros.</p>
+    {% endif %}
 
     <form method="post" class="d-flex flex-wrap gap-2 mt-4">
       {% csrf_token %}
+      {% if tournament %}
+      <button type="submit" class="btn btn-warning">Retirar de temporada</button>
+      {% elif can_remove_player %}
       <button type="submit" class="btn btn-danger">Confirmar eliminación</button>
+      {% endif %}
       <a href="{% url 'team' team.slug %}?{{ category_query }}" class="btn btn-outline-secondary">Cancelar</a>
     </form>
   </section>

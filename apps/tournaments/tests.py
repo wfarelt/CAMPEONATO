@@ -6,10 +6,14 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.matches.models import Match
-from apps.teams.models import Team
+from apps.teams.models import Player, Team
 from apps.tournaments.forms import MatchDayForm, MatchForm, get_match_formset_class
-from apps.tournaments.models import MatchDay, Tournament, TournamentTeam
-from apps.tournaments.services import recommend_matches_for_matchday, validate_matchday_teams
+from apps.tournaments.models import MatchDay, Tournament, TournamentPlayer, TournamentTeam
+from apps.tournaments.services import (
+    initialize_tournament_rosters,
+    recommend_matches_for_matchday,
+    validate_matchday_teams,
+)
 from apps.users.models import User
 
 
@@ -266,6 +270,22 @@ class TournamentModelTests(TestCase):
         self.assertTrue(recommendation["possible"])
         self.assertEqual(len(recommendation["matches"]), 1)
 
+    def test_new_tournament_copies_only_the_previous_active_roster(self):
+        returning_player = Player.objects.create(team=self.team, name="Returning", position="FW")
+        leaving_player = Player.objects.create(team=self.team, name="Leaving", position="DF")
+        self.tournament.teams.add(self.team)
+        initialize_tournament_rosters(self.tournament, [self.team])
+        TournamentPlayer.objects.filter(tournament_team__tournament=self.tournament, player=leaving_player).update(
+            is_active=False
+        )
+
+        new_tournament = Tournament.objects.create(name="Liga Seniors", season="2027", category="seniors")
+        new_tournament.teams.add(self.team)
+        initialize_tournament_rosters(new_tournament, [self.team])
+
+        new_roster = TournamentPlayer.objects.filter(tournament_team__tournament=new_tournament)
+        self.assertQuerySetEqual(new_roster.values_list("player_id", flat=True), [returning_player.pk])
+
 
 class TournamentManagementViewsTests(TestCase):
     def setUp(self):
@@ -274,6 +294,7 @@ class TournamentManagementViewsTests(TestCase):
         self.team = Team.objects.create(name="Enrolled Team", coach="Coach", category="seniors")
 
     def test_organizer_can_create_tournament_and_enroll_teams(self):
+        player = Player.objects.create(team=self.team, name="Returning Player", position="FW")
         self.client.force_login(self.organizer)
 
         form_page = self.client.get(f"{reverse('tournament_create')}?category=seniors")
@@ -301,6 +322,13 @@ class TournamentManagementViewsTests(TestCase):
         tournament = Tournament.objects.get(name="Liga Apertura", season="2026")
         self.assertEqual(list(tournament.teams.all()), [self.team])
         self.assertTrue(tournament.organizers.filter(pk=self.organizer.pk).exists())
+        self.assertTrue(
+            TournamentPlayer.objects.filter(
+                tournament_team__tournament=tournament,
+                player=player,
+                is_active=True,
+            ).exists()
+        )
 
     def test_matchday_wizard_uses_bootstrap_layout_for_first_two_steps(self):
         self.client.force_login(self.organizer)

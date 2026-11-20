@@ -11,7 +11,7 @@ from apps.matches.services import build_home_context, build_home_playoff_context
 from apps.playoffs.models import LeagueSettings, Playoff, PlayoffMatch, PlayoffTie
 from apps.playoffs.services import generate_playoff
 from apps.teams.models import Player, Team
-from apps.tournaments.models import ActiveChampionship, MatchDay, Tournament
+from apps.tournaments.models import ActiveChampionship, MatchDay, Tournament, TournamentPlayer, TournamentTeam
 from apps.users.models import User
 
 
@@ -57,6 +57,46 @@ class MatchServicesTests(TestCase):
             time=time(13, 0),
             status="finished",
         )
+
+    def test_match_views_use_only_the_active_season_roster(self):
+        tournament = Tournament.objects.create(name="Roster League", season="2026", category="seniors")
+        organizer = User.objects.create_user(username="roster-match-organizer", password="secret", role="ORGANIZER")
+        tournament.organizers.add(organizer)
+        self.client.force_login(organizer)
+        tournament.teams.add(self.team_a, self.team_b)
+        matchday = MatchDay.objects.create(
+            tournament=tournament,
+            date=date(2026, 6, 1),
+            category="seniors",
+            description="Roster Round",
+        )
+        match = Match.objects.create(
+            match_day=matchday,
+            home_team=self.team_a,
+            away_team=self.team_b,
+            date=matchday.date,
+            time=time(17, 0),
+        )
+        active_player = Player.objects.create(team=self.team_a, name="Active Player", position="FW")
+        inactive_player = Player.objects.create(team=self.team_a, name="Inactive Player", position="DF")
+        home_membership = TournamentTeam.objects.get(tournament=tournament, team=self.team_a)
+        TournamentPlayer.objects.create(tournament_team=home_membership, player=active_player)
+        TournamentPlayer.objects.create(tournament_team=home_membership, player=inactive_player, is_active=False)
+
+        detail_response = self.client.get(
+            reverse("match_detail", kwargs={"match_slug": match.slug}),
+            {"category": "seniors", "tournament": tournament.pk},
+        )
+        result_response = self.client.get(
+            reverse("match_result", kwargs={"match_slug": match.slug}),
+            {"category": "seniors", "tournament": tournament.pk},
+        )
+
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual([player.pk for player in detail_response.context["home_players"]], [active_player.pk])
+        self.assertEqual(result_response.status_code, 200)
+        event_player_ids = set(result_response.context["event_form"].fields["player"].queryset.values_list("pk", flat=True))
+        self.assertEqual(event_player_ids, {active_player.pk})
 
     def test_build_home_context_uses_latest_matchday(self):
         LeagueSettings.objects.create(category="seniors", teams_classified=4)

@@ -1,0 +1,83 @@
+.app-body--teams {
+  --app-bg: #0f172a;
+  --app-surface: #172238;
+  --app-surface-hover: #202e45;
+  --app-border: #29364e;
+  --app-text: #e2e8f0;
+  --app-text-muted: #94a3b8;
+  --app-primary: #2dff3a;
+  --bs-primary: #2dff3a;
+  --bs-primary-rgb: 45, 255, 58;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.app-body--teams .app-topbar,
+.app-body--teams .app-sidebar,
+.app-body--teams .app-content-scroll--teams,
+.app-body--teams .app-mobile-search-strip {
+  background-color: #0f172a;
+}
+
+.app-body--teams .app-nav-link.active {
+  background-color: #172238;
+  color: #2dff3a;
+}
+
+.teams-layout {
+  width: 100%;
+  min-width: 0;
+}
+
+.teams-layout .text-secondary,
+.teams-eyebrow {
+  color: #94a3b8 !important;
+}
+
+.teams-layout .app-team-card {
+  overflow: hidden;
+  border: 1px solid #29364e;
+  border-radius: 16px;
+  background: #172238;
+}
+
+.teams-layout .app-team-card:hover {
+  border-color: #2dff3a;
+}
+
+.teams-layout .app-team-logo-stage {
+  min-height: 10rem;
+  background: #0b1222;
+}
+
+.teams-layout .app-team-placeholder {
+  color: #94a3b8;
+  border-radius: 12px !important;
+  background: #202e45;
+}
+
+.teams-layout .card-body {
+  border-color: #29364e !important;
+  padding: 1.25rem;
+}
+
+.teams-layout .badge {
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.teams-layout .badge.text-bg-success {
+  background: #2dff3a !important;
+  color: #0f172a !important;
+}
+
+.teams-layout .badge.text-bg-danger {
+  background: #29364e !important;
+  color: #94a3b8 !important;
+}
+
+.teams-layout .app-empty-state {
+  border-color: #29364e !important;
+  border-radius: 16px !important;
+  background: #172238;
+}

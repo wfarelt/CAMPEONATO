@@ -1,20 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
     <title>Reporte - {{ team.name }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 12px; font-size:12px; }
-        .header { display:flex; align-items:center; gap:12px; }
-        .logo { width:64px; height:64px; object-fit:cover; border:1px solid #ddd; }
-        table { width:100%; border-collapse:collapse; margin-top:12px; }
-        th, td { border:1px solid #ccc; padding:4px 6px; font-size:11px; }
-        th { background:#f7f7f7; }
-        .match-col { white-space:normal; font-size:11px; max-width:140px; word-wrap:break-word; text-align:center; }
-        th.match-col > div { display:block; }
-        .small { font-size:11px; color:#444; }
-        @media print { .no-print { display:none; } }
-    </style>
+    <link rel="stylesheet" href="{% static 'teams/css/team-report.css' %}" />
 </head>
 <body>
     <div class="header">
@@ -80,7 +70,8 @@
     </table>
 
     <div style="margin-top:16px;">
-        <button class="no-print" onclick="window.print()">Imprimir reporte</button>
+        <button class="no-print app-report-print-button" data-print-report type="button">Imprimir reporte</button>
     </div>
+    <script src="{% static 'teams/js/team-report.js' %}" defer></script>
 </body>
 </html>

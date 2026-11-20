@@ -1,14 +1,23 @@
 {% extends "core/base.html" %}
+{% load static %}
 
 {% block title %}Equipos - Panel del Campeonato{% endblock %}
 
 {% block header_title %}Equipos{% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="{% static 'tournament/css/teams.css' %}" />
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'teams/js/teams.js' %}" defer></script>
+{% endblock %}
+
 {% block content %}
-<section class="container-fluid app-page-content px-3 px-lg-4 py-4">
+<section class="teams-layout d-grid gap-4">
   <header class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
     <div>
-      <p class="small text-secondary mb-1">{{ championship_category_label }}{% if selected_tournament %} · {{ selected_tournament.name }}{% endif %}</p>
+      <p class="teams-eyebrow small mb-1">{{ championship_category_label }}{% if selected_tournament %} · {{ selected_tournament.name }}{% endif %}</p>
       <h1 class="h3 fw-bold text-white mb-1">Equipos</h1>
       <p class="text-secondary mb-0">Equipos participantes y su disponibilidad.</p>
     </div>
@@ -25,7 +34,10 @@
     <article class="card app-team-card h-100">
       <div class="app-team-logo-stage d-flex align-items-center justify-content-center p-3">
         {% if team.logo %}
-        <img alt="Escudo de {{ team.name }}" class="app-team-logo object-fit-contain" src="{{ team.logo.url }}" />
+        <img alt="Escudo de {{ team.name }}" class="app-team-logo object-fit-contain" data-team-logo src="{{ team.logo.url }}" />
+        <div class="app-team-placeholder d-none align-items-center justify-content-center rounded-3" data-team-logo-fallback aria-hidden="true">
+          <i class="bi bi-shield-fill"></i>
+        </div>
         {% else %}
         <div class="app-team-placeholder d-flex align-items-center justify-content-center rounded-3" aria-hidden="true">
           <i class="bi bi-shield-fill"></i>
@@ -44,7 +56,7 @@
         </div>
 
         {% if user.role != 'PLAYER' %}
-        <a class="btn btn-primary btn-sm mt-auto d-inline-flex align-items-center justify-content-center gap-2" href="{% url 'team' team.slug %}?{{ category_query }}">
+        <a class="btn btn-secondary btn-sm mt-auto d-inline-flex align-items-center justify-content-center gap-2" href="{% url 'team' team.slug %}?{{ category_query }}">
           Ver detalles<i class="bi bi-arrow-right" aria-hidden="true"></i>
         </a>
         {% endif %}

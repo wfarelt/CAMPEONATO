@@ -9,29 +9,29 @@
 }
 
 .app-body--dashboard {
-  --app-bg: #0a0a0c;
-  --app-surface: #16161a;
-  --app-surface-hover: #202024;
-  --app-border: #26262c;
-  --app-text: #ffffff;
-  --app-text-muted: #8e8e93;
-  --app-primary: #00e676;
-  --bs-primary: #00e676;
-  --bs-primary-rgb: 0, 230, 118;
-  background: #0a0a0c;
-  color: #ffffff;
+  --app-bg: #0f172a;
+  --app-surface: #172238;
+  --app-surface-hover: #202e45;
+  --app-border: #29364e;
+  --app-text: #e2e8f0;
+  --app-text-muted: #94a3b8;
+  --app-primary: #2dff3a;
+  --bs-primary: #2dff3a;
+  --bs-primary-rgb: 45, 255, 58;
+  background: #0f172a;
+  color: #e2e8f0;
 }
 
 .app-body--dashboard .app-topbar,
 .app-body--dashboard .app-sidebar,
 .app-body--dashboard .app-content-scroll--dashboard,
 .app-body--dashboard .app-mobile-search-strip {
-  background-color: #0a0a0c;
+  background-color: #0f172a;
 }
 
 .app-body--dashboard .app-nav-link.active {
-  background-color: #16161a;
-  color: #00e676;
+  background-color: #172238;
+  color: #2dff3a;
 }
 
 .dashboard-layout,
@@ -45,49 +45,24 @@
   font-variant-numeric: tabular-nums;
 }
 
-.dashboard-layout .app-surface {
-  border-color: #26262c !important;
-  border-radius: 16px !important;
-  background-color: #16161a;
-}
-
+.dashboard-layout .app-surface,
 .dashboard-layout .app-empty-state {
-  border-color: #26262c !important;
+  border-color: #29364e !important;
   border-radius: 16px !important;
-  background-color: #16161a;
-  color: #8e8e93;
+  background-color: #172238;
 }
 
 .dashboard-layout h2 {
-  color: #ffffff;
+  color: #e2e8f0;
   font-weight: 600 !important;
 }
 
 .dashboard-layout .text-white-50 {
-  color: #8e8e93 !important;
+  color: #94a3b8 !important;
 }
 
 .dashboard-layout .text-primary {
-  color: #00e676 !important;
-}
-
-.dashboard-layout .btn {
-  border-radius: 8px;
-}
-
-.dashboard-layout .btn-secondary,
-.dashboard-layout .btn-primary {
-  border-color: #00e676;
-  background-color: #00e676;
-  color: #0a0a0c;
-  font-weight: 600;
-}
-
-.dashboard-layout .btn-secondary:hover,
-.dashboard-layout .btn-primary:hover {
-  border-color: #33ed92;
-  background-color: #33ed92;
-  color: #0a0a0c;
+  color: #2dff3a !important;
 }
 
 .dashboard-summary-section {
@@ -96,16 +71,16 @@
 
 .dashboard-metric {
   min-height: 7rem;
-  border: 1px solid #26262c !important;
-  background: #16161a;
+  border: 1px solid #29364e !important;
+  background: #172238;
 }
 
 .sponsors-marquee-track {
-  animation: sponsors-marquee 26s linear infinite;
   display: flex;
   width: max-content;
   align-items: center;
   gap: 0.75rem;
+  animation: sponsors-marquee 26s linear infinite;
 }
 
 .sponsors-marquee-track:hover,
@@ -123,12 +98,12 @@
 
 .sponsors-marquee-fade-left {
   left: 0;
-  background: linear-gradient(to right, #0a0a0c, transparent);
+  background: linear-gradient(to right, #0f172a, transparent);
 }
 
 .sponsors-marquee-fade-right {
   right: 0;
-  background: linear-gradient(to left, #0a0a0c, transparent);
+  background: linear-gradient(to left, #0f172a, transparent);
 }
 
 .sponsor-marquee-item {
@@ -141,7 +116,7 @@
   margin-inline: auto;
   padding: 0.25rem;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.95);
+  background: #e2e8f0;
   object-fit: contain;
 }
 
@@ -170,7 +145,7 @@
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
-  border: 1px solid #26262c;
+  border: 1px solid #29364e;
   border-radius: 50%;
   object-fit: cover;
 }

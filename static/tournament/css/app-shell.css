@@ -1,13 +1,19 @@
 :root {
-  --bs-primary: #135bec;
-  --bs-primary-rgb: 19, 91, 236;
-  --app-bg: #101622;
-  --app-surface: #1c1f27;
-  --app-surface-hover: #282e39;
-  --app-border: #282e39;
-  --app-text: #f3f5f8;
-  --app-text-muted: #9da6b9;
-  --app-primary: #135bec;
+  --bs-primary: #2dff3a;
+  --bs-primary-rgb: 45, 255, 58;
+  --bs-success: #2dff3a;
+  --bs-success-rgb: 45, 255, 58;
+  --bs-danger: #ff4d6d;
+  --bs-danger-rgb: 255, 77, 109;
+  --bs-warning: #f9c74f;
+  --bs-warning-rgb: 249, 199, 79;
+  --app-bg: #0f172a;
+  --app-surface: #172238;
+  --app-surface-hover: #202e45;
+  --app-border: #29364e;
+  --app-text: #e2e8f0;
+  --app-text-muted: #94a3b8;
+  --app-primary: #2dff3a;
 }
 
 body.app-body {
@@ -34,7 +40,7 @@ body.app-body {
   width: 2.5rem;
   height: 2.5rem;
   flex: 0 0 2.5rem;
-  color: #fff;
+  color: var(--app-bg);
   background: var(--app-primary);
 }
 
@@ -60,7 +66,7 @@ body.app-body {
   min-height: 4.25rem;
   color: var(--app-text);
   border-color: var(--app-border) !important;
-  background: rgba(16, 22, 34, 0.94);
+  background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(12px);
 }
 
@@ -100,7 +106,7 @@ body.app-body {
   right: -0.3rem;
   min-width: 1.1rem;
   padding: 0.05rem 0.2rem;
-  color: #fff;
+  color: var(--app-bg);
   border-radius: 999px;
   background: var(--app-primary);
   font-size: 0.65rem;
@@ -129,14 +135,14 @@ body.app-body {
 }
 
 .app-login-button {
-  color: #fff;
+  color: var(--app-bg);
   border-color: var(--app-primary);
   background: var(--app-primary);
 }
 
 .app-login-button:hover {
-  color: #fff;
-  background: #0f4dc7;
+  color: var(--app-bg);
+  background: #58ff61;
 }
 
 .app-select {
@@ -316,7 +322,7 @@ body.app-body {
 
 .app-nav-link.active {
   background-color: var(--app-primary);
-  color: #fff;
+  color: var(--app-bg);
 }
 
 .app-nav-link .bi {
@@ -341,6 +347,92 @@ body.app-body {
 
 .app-content-scroll::-webkit-scrollbar {
   display: none;
+}
+
+body.app-body .btn {
+  border-radius: 8px;
+}
+
+body.app-body .btn-primary,
+body.app-body .btn-success {
+  --bs-btn-color: #0f172a;
+  --bs-btn-bg: #2dff3a;
+  --bs-btn-border-color: #2dff3a;
+  --bs-btn-hover-color: #0f172a;
+  --bs-btn-hover-bg: #58ff61;
+  --bs-btn-hover-border-color: #58ff61;
+  --bs-btn-focus-shadow-rgb: 45, 255, 58;
+  --bs-btn-active-color: #0f172a;
+  --bs-btn-active-bg: #25e632;
+  --bs-btn-active-border-color: #25e632;
+  --bs-btn-disabled-color: #0f172a;
+  --bs-btn-disabled-bg: #2dff3a;
+  --bs-btn-disabled-border-color: #2dff3a;
+  font-weight: 600;
+}
+
+body.app-body .btn-secondary {
+  --bs-btn-color: #e2e8f0;
+  --bs-btn-bg: #172238;
+  --bs-btn-border-color: #29364e;
+  --bs-btn-hover-color: #ffffff;
+  --bs-btn-hover-bg: #202e45;
+  --bs-btn-hover-border-color: #42516a;
+  --bs-btn-active-color: #ffffff;
+  --bs-btn-active-bg: #202e45;
+  --bs-btn-active-border-color: #42516a;
+}
+
+body.app-body .btn-outline-secondary,
+body.app-body .btn-outline-light {
+  --bs-btn-color: #e2e8f0;
+  --bs-btn-border-color: #475569;
+  --bs-btn-hover-color: #0f172a;
+  --bs-btn-hover-bg: #e2e8f0;
+  --bs-btn-hover-border-color: #e2e8f0;
+  --bs-btn-active-color: #0f172a;
+  --bs-btn-active-bg: #cbd5e1;
+  --bs-btn-active-border-color: #cbd5e1;
+}
+
+body.app-body .btn-outline-primary {
+  --bs-btn-color: #2dff3a;
+  --bs-btn-border-color: #2dff3a;
+  --bs-btn-hover-color: #0f172a;
+  --bs-btn-hover-bg: #2dff3a;
+  --bs-btn-hover-border-color: #2dff3a;
+  --bs-btn-active-color: #0f172a;
+  --bs-btn-active-bg: #25e632;
+  --bs-btn-active-border-color: #25e632;
+}
+
+body.app-body .btn-danger {
+  --bs-btn-color: #0f172a;
+  --bs-btn-bg: #ff4d6d;
+  --bs-btn-border-color: #ff4d6d;
+  --bs-btn-hover-color: #0f172a;
+  --bs-btn-hover-bg: #ff7189;
+  --bs-btn-hover-border-color: #ff7189;
+  --bs-btn-active-color: #0f172a;
+  --bs-btn-active-bg: #ef3d5d;
+  --bs-btn-active-border-color: #ef3d5d;
+}
+
+body.app-body .btn-outline-danger {
+  --bs-btn-color: #ff4d6d;
+  --bs-btn-border-color: #ff4d6d;
+  --bs-btn-hover-color: #0f172a;
+  --bs-btn-hover-bg: #ff4d6d;
+  --bs-btn-hover-border-color: #ff4d6d;
+}
+
+body.app-body .btn-warning {
+  --bs-btn-color: #0f172a;
+  --bs-btn-bg: #f9c74f;
+  --bs-btn-border-color: #f9c74f;
+  --bs-btn-hover-color: #0f172a;
+  --bs-btn-hover-bg: #ffda75;
+  --bs-btn-hover-border-color: #ffda75;
 }
 
 @media (prefers-reduced-motion: reduce) {

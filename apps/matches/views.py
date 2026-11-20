@@ -28,6 +28,16 @@ def _tournament_query(category, tournament):
     return query
 
 
+def _match_team_players(team, match):
+    players = team.players.all()
+    if match.match_day_id and match.match_day.tournament_id:
+        players = players.filter(
+            tournament_roster_entries__tournament_team__tournament_id=match.match_day.tournament_id,
+            tournament_roster_entries__is_active=True,
+        )
+    return players.order_by("number", "name")
+
+
 def home(request):
     category = get_request_championship_category(request)
     tournament = get_request_tournament(request, category)
@@ -89,7 +99,7 @@ def statistics(request):
 def match_detail_view(request, match_slug):
     category = get_request_championship_category(request)
     tournament = get_request_tournament(request, category)
-    match_query = Match.objects.select_related("home_team", "away_team", "match_day").filter(
+    match_query = Match.objects.select_related("home_team", "away_team", "match_day__tournament").filter(
         slug=match_slug,
         home_team__category=category,
         away_team__category=category,
@@ -97,8 +107,8 @@ def match_detail_view(request, match_slug):
     if tournament is not None:
         match_query = match_query.filter(match_day__tournament=tournament)
     match = get_object_or_404(match_query)
-    home_players = list(match.home_team.players.all().order_by("number"))
-    away_players = list(match.away_team.players.all().order_by("number"))
+    home_players = list(_match_team_players(match.home_team, match))
+    away_players = list(_match_team_players(match.away_team, match))
     return render(request, "matches/match_detail.html", {
         "match": match,
         "home_players": home_players,
@@ -123,7 +133,13 @@ def match_result_view(request, match_slug):
     can_edit_results = can_manage_match(request.user, match)
     if request.method == "POST" and not can_edit_results:
         return HttpResponseForbidden("No tienes permisos para registrar resultados en este partido.")
-    players = Player.objects.filter(team__in=[match.home_team, match.away_team]).select_related("team").order_by(
+    players = Player.objects.filter(team__in=[match.home_team, match.away_team]).select_related("team")
+    if match.match_day_id and match.match_day.tournament_id:
+        players = players.filter(
+            tournament_roster_entries__tournament_team__tournament_id=match.match_day.tournament_id,
+            tournament_roster_entries__is_active=True,
+        )
+    players = players.order_by(
         "team__name",
         "name",
     )

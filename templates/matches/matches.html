@@ -8,9 +8,13 @@
 <link rel="stylesheet" href="{% static 'tournament/css/matches.css' %}" />
 {% endblock %}
 
+{% block scripts %}
+<script src="{% static 'matches/js/matches.js' %}" defer></script>
+{% endblock %}
+
 {% block content %}
-<main class="container-fluid app-page-content px-3 px-lg-4 py-4">
-  <section class="mb-5" aria-labelledby="upcoming-heading">
+<div class="matches-layout d-grid gap-5">
+  <section aria-labelledby="upcoming-heading">
     <div class="row align-items-end justify-content-between g-3 mb-4">
       <div class="col">
         <h1 class="h3 fw-bold text-white mb-1" id="upcoming-heading">Próximos partidos</h1>
@@ -44,7 +48,8 @@
           <div class="row align-items-center g-2 px-2 py-4">
             <div class="col-5 text-center">
               {% if match.home_team_logo %}
-              <img src="{{ match.home_team_logo }}" alt="" class="match-team-logo mb-2" />
+              <img src="{{ match.home_team_logo }}" alt="" class="match-team-logo mb-2" data-match-logo />
+              <span class="match-team-initial mb-2 d-none" data-match-logo-fallback aria-hidden="true">{{ match.home_team|slice:":1" }}</span>
               {% else %}
               <span class="match-team-initial mb-2" aria-hidden="true">{{ match.home_team|slice:":1" }}</span>
               {% endif %}
@@ -56,7 +61,8 @@
             </div>
             <div class="col-5 text-center">
               {% if match.away_team_logo %}
-              <img src="{{ match.away_team_logo }}" alt="" class="match-team-logo mb-2" />
+              <img src="{{ match.away_team_logo }}" alt="" class="match-team-logo mb-2" data-match-logo />
+              <span class="match-team-initial match-team-initial-away mb-2 d-none" data-match-logo-fallback aria-hidden="true">{{ match.away_team|slice:":1" }}</span>
               {% else %}
               <span class="match-team-initial match-team-initial-away mb-2" aria-hidden="true">{{ match.away_team|slice:":1" }}</span>
               {% endif %}
@@ -129,7 +135,12 @@
           <a href="{% url 'match_detail' match.slug %}?{{ category_query }}" class="list-group-item list-group-item-action match-result-row">
             <div class="row align-items-center g-2">
               <div class="col-5 d-flex align-items-center gap-2 match-team-column">
-                {% if match.home_team_logo %}<img src="{{ match.home_team_logo }}" alt="" class="match-result-logo" />{% endif %}
+                {% if match.home_team_logo %}
+                <img src="{{ match.home_team_logo }}" alt="" class="match-result-logo" data-match-logo />
+                <span class="match-result-logo match-result-logo-fallback d-none" data-match-logo-fallback aria-hidden="true">{{ match.home_team|slice:":1" }}</span>
+                {% else %}
+                <span class="match-result-logo match-result-logo-fallback" aria-hidden="true">{{ match.home_team|slice:":1" }}</span>
+                {% endif %}
                 <span class="match-result-team {% if match.home_score > match.away_score %}match-result-winner{% elif match.home_score < match.away_score %}match-result-loser{% endif %}">{{ match.home_team }}</span>
               </div>
               <div class="col-2 text-center">
@@ -138,7 +149,12 @@
               </div>
               <div class="col-5 d-flex align-items-center justify-content-end gap-2 match-team-column">
                 <span class="match-result-team text-end {% if match.away_score > match.home_score %}match-result-winner{% elif match.away_score < match.home_score %}match-result-loser{% endif %}">{{ match.away_team }}</span>
-                {% if match.away_team_logo %}<img src="{{ match.away_team_logo }}" alt="" class="match-result-logo" />{% endif %}
+                {% if match.away_team_logo %}
+                <img src="{{ match.away_team_logo }}" alt="" class="match-result-logo" data-match-logo />
+                <span class="match-result-logo match-result-logo-fallback d-none" data-match-logo-fallback aria-hidden="true">{{ match.away_team|slice:":1" }}</span>
+                {% else %}
+                <span class="match-result-logo match-result-logo-fallback" aria-hidden="true">{{ match.away_team|slice:":1" }}</span>
+                {% endif %}
               </div>
             </div>
           </a>
@@ -154,5 +170,5 @@
     </div>
     {% endif %}
   </section>
-</main>
+</div>
 {% endblock %}

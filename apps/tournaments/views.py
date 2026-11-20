@@ -17,6 +17,7 @@ from apps.tournaments.forms import HomepageChampionshipForm, MatchDayForm, Match
 from apps.users.permissions import can_manage_tournament, organizer_required
 from apps.tournaments.models import ActiveChampionship, MatchDay, Tournament
 from apps.tournaments.services import (
+    initialize_tournament_rosters,
     recommend_matches_for_matchday,
     save_matchday_with_matches,
     validate_matchday_teams,
@@ -69,7 +70,9 @@ def tournament_create(request):
     if request.method == "POST" and form.is_valid():
         tournament = form.save()
         tournament.organizers.add(request.user)
-        tournament.teams.set(form.cleaned_data["teams"])
+        selected_teams = list(form.cleaned_data["teams"])
+        tournament.teams.set(selected_teams)
+        initialize_tournament_rosters(tournament, selected_teams)
         return redirect(f"{reverse('tournaments_list')}?category={tournament.category}")
     return render(request, "tournaments/tournament_form.html", {"form": form, "is_edit": False})
 
@@ -86,8 +89,12 @@ def tournament_edit(request, tournament_id):
     )
     form = TournamentForm(request.POST or None, instance=tournament)
     if request.method == "POST" and form.is_valid():
+        previous_team_ids = set(tournament.teams.values_list("pk", flat=True))
         tournament = form.save()
-        tournament.teams.set(form.cleaned_data["teams"])
+        selected_teams = list(form.cleaned_data["teams"])
+        tournament.teams.set(selected_teams)
+        newly_enrolled_teams = [team for team in selected_teams if team.pk not in previous_team_ids]
+        initialize_tournament_rosters(tournament, newly_enrolled_teams)
         return redirect(f"{reverse('tournaments_list')}?category={tournament.category}")
     return render(
         request,

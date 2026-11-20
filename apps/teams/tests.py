@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from datetime import date
+from datetime import date, time
 from django.test import TestCase
 from django.urls import reverse
 
@@ -16,6 +16,7 @@ from apps.teams.forms import PlayerForm
 from apps.matches.models import Match, MatchEvent
 from apps.payments.models import CardPayment
 from apps.teams.models import Player, Team
+from apps.tournaments.models import MatchDay, Tournament, TournamentPlayer, TournamentTeam
 
 
 class TeamCrudPermissionsTests(TestCase):
@@ -74,6 +75,9 @@ class TeamCrudPermissionsTests(TestCase):
         response = self.client.get(f"{reverse('teams')}?category=seniors")
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'href="/static/tournament/css/teams.css"')
+        self.assertContains(response, 'src="/static/teams/js/teams.js"')
+        self.assertContains(response, 'class="app-body app-body--teams"')
         self.assertContains(response, "row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3")
         self.assertContains(response, "app-team-card")
         self.assertContains(response, self.team.name)
@@ -408,3 +412,80 @@ class TeamCrudPermissionsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.team.refresh_from_db()
         self.assertFalse(self.team.is_available_for_matchday)
+
+
+class TournamentPlayerRosterViewTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.organizer = User.objects.create_user(username="roster-organizer", password="secret", role="ORGANIZER")
+        self.client.force_login(self.organizer)
+        self.team = Team.objects.create(name="Roster Team", coach="Coach", category="seniors")
+        self.opponent = Team.objects.create(name="Roster Opponent", coach="Coach", category="seniors")
+        self.previous_tournament = Tournament.objects.create(name="Liga", season="2025", category="seniors")
+        self.previous_tournament.organizers.add(self.organizer)
+        self.previous_tournament.teams.add(self.team)
+        self.tournament = Tournament.objects.create(name="Liga", season="2026", category="seniors")
+        self.tournament.organizers.add(self.organizer)
+        self.tournament.teams.add(self.team, self.opponent)
+
+    def test_new_player_is_registered_only_in_selected_tournament(self):
+        response = self.client.post(
+            f"{reverse('player_create', kwargs={'team_slug': self.team.slug})}?category=seniors&tournament={self.tournament.pk}",
+            {"name": "New Season Player", "number": 9, "position": "FW"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        player = Player.objects.get(team=self.team, name="New Season Player")
+        self.assertTrue(
+            TournamentPlayer.objects.filter(
+                tournament_team__tournament=self.tournament,
+                player=player,
+                is_active=True,
+            ).exists()
+        )
+        self.assertFalse(
+            TournamentPlayer.objects.filter(tournament_team__tournament=self.previous_tournament, player=player).exists()
+        )
+
+    def test_removing_and_reinscribing_player_preserves_match_history(self):
+        player = Player.objects.create(team=self.team, name="Returning Player", position="FW")
+        tournament_team = TournamentTeam.objects.get(tournament=self.tournament, team=self.team)
+        roster_entry = TournamentPlayer.objects.create(tournament_team=tournament_team, player=player)
+        matchday = MatchDay.objects.create(
+            tournament=self.tournament,
+            category="seniors",
+            date=date(2026, 6, 1),
+        )
+        match = Match.objects.create(
+            match_day=matchday,
+            home_team=self.team,
+            away_team=self.opponent,
+            date=matchday.date,
+            time=time(17, 0),
+        )
+        event = MatchEvent.objects.create(
+            match=match,
+            player=player,
+            team=self.team,
+            event_type=MatchEvent.GOAL,
+        )
+        query = f"category=seniors&tournament={self.tournament.pk}"
+
+        response = self.client.post(
+            f"{reverse('player_delete', kwargs={'team_slug': self.team.slug, 'player_id': player.pk})}?{query}"
+        )
+
+        self.assertEqual(response.status_code, 302)
+        roster_entry.refresh_from_db()
+        self.assertFalse(roster_entry.is_active)
+        self.assertTrue(Player.objects.filter(pk=player.pk).exists())
+        self.assertTrue(MatchEvent.objects.filter(pk=event.pk).exists())
+
+        response = self.client.post(
+            f"{reverse('player_register', kwargs={'team_slug': self.team.slug})}?{query}",
+            {"player": player.pk},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        roster_entry.refresh_from_db()
+        self.assertTrue(roster_entry.is_active)

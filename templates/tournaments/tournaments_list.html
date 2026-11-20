@@ -37,7 +37,7 @@
           <td>{{ tournament.teams.count }}</td>
           <td>
             <div class="d-flex justify-content-end gap-2">
-              <a class="btn btn-outline-primary btn-sm" href="{% url 'teams' %}?category={{ tournament.category }}&amp;tournament={{ tournament.pk }}">Equipos</a>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'teams' %}?category={{ tournament.category }}&amp;tournament={{ tournament.pk }}">Equipos</a>
               <a class="btn btn-outline-light btn-sm" href="{% url 'tournament_edit' tournament.pk %}?category={{ tournament.category }}">Editar</a>
             </div>
           </td>

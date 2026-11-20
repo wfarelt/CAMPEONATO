@@ -86,3 +86,16 @@ class PlayerForm(forms.ModelForm):
                 self.fields.pop(field_name, None)
 
         self.fields["number"].required = False
+
+
+class TournamentPlayerForm(forms.Form):
+    player = forms.ModelChoiceField(
+        queryset=Player.objects.none(),
+        label="Jugador existente",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    def __init__(self, *args, team, tournament_team, **kwargs):
+        super().__init__(*args, **kwargs)
+        active_player_ids = tournament_team.roster_entries.filter(is_active=True).values_list("player_id", flat=True)
+        self.fields["player"].queryset = team.players.exclude(pk__in=active_player_ids).order_by("name")

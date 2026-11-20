@@ -28,7 +28,7 @@
     />
     {% block styles %}{% endblock %}
   </head>
-  <body class="app-body {% if request.resolver_match.url_name == 'dashboard' %}app-body--dashboard{% endif %}">
+  <body class="app-body{% if request.resolver_match.url_name == 'dashboard' %} app-body--dashboard{% endif %}{% if request.resolver_match.url_name == 'teams' %} app-body--teams{% endif %}">
     <div class="d-flex vh-100 overflow-hidden">
       {% with current_url=request.resolver_match.url_name %}
       <!-- Side Navigation -->
@@ -80,7 +80,7 @@
       </div>
       {% endwith %}
       <!-- Main Content -->
-      <main class="flex-grow-1 overflow-auto app-content-scroll {% if request.resolver_match.url_name == 'dashboard' %}app-content-scroll--dashboard{% endif %}">
+      <main class="flex-grow-1 overflow-auto app-content-scroll{% if request.resolver_match.url_name == 'dashboard' %} app-content-scroll--dashboard{% endif %}{% if request.resolver_match.url_name == 'teams' %} app-content-scroll--teams{% endif %}">
         <!-- Top Header -->
         <header class="sticky-top d-flex align-items-center justify-content-between gap-3 border-bottom app-topbar px-3 px-sm-4 px-xl-5 py-3">
           <div class="d-flex align-items-center gap-3">
