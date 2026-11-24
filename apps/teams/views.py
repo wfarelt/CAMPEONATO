@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
@@ -305,13 +306,15 @@ def player_delete_view(request, team_slug, player_id):
     can_remove_player = tournament is None and not player.tournament_roster_entries.exists() and not player.match_events.exists()
     roster_entry = None
     if tournament is not None:
-        roster_entry = get_object_or_404(
-            TournamentPlayer,
+        roster_entry = TournamentPlayer.objects.filter(
             player=player,
             tournament_team__tournament=tournament,
             tournament_team__team=team,
             is_active=True,
-        )
+        ).first()
+        if roster_entry is None:
+            messages.info(request, "El jugador ya no está inscrito en esta temporada.")
+            return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
 
     if request.method == "POST":
         if tournament is not None:

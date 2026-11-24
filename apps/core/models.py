@@ -37,7 +37,7 @@ APP_CONFIGURATION_METADATA = {
 	TEAM_MANAGER_ENABLE_PLAYERS: {
 		"label": "Team Manager puede habilitar jugadores",
 		"description": "Permite que el rol Team Manager gestione la habilitacion de jugadores.",
-		"default": False,
+		"default": True,
 		"group": "general",
 	},
 	TEAM_MANAGER_EDIT_TEAM: {

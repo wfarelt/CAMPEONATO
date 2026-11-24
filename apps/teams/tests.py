@@ -168,6 +168,10 @@ class TeamCrudPermissionsTests(TestCase):
         )
 
     def test_team_manager_cannot_create_player_when_setting_disabled(self):
+        AppConfiguration.objects.update_or_create(
+            key=TEAM_MANAGER_ENABLE_PLAYERS,
+            defaults={"is_enabled": False},
+        )
         self.client.force_login(self.team_manager)
         response = self.client.post(
             f"{reverse('player_create', kwargs={'team_slug': self.team.slug})}?category=seniors",
@@ -218,6 +222,10 @@ class TeamCrudPermissionsTests(TestCase):
         self.assertContains(response, "btn btn-danger")
 
     def test_team_manager_cannot_edit_player(self):
+        AppConfiguration.objects.update_or_create(
+            key=TEAM_MANAGER_ENABLE_PLAYERS,
+            defaults={"is_enabled": False},
+        )
         player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")
         self.client.force_login(self.team_manager)
         response = self.client.post(
@@ -271,6 +279,26 @@ class TeamCrudPermissionsTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+        self.assertFalse(Player.objects.filter(pk=player.id).exists())
+
+    def test_team_manager_can_edit_and_delete_assigned_player_by_default(self):
+        player = Player.objects.create(team=self.team, name="Mario", number=7, position="DF")
+        self.client.force_login(self.team_manager)
+
+        edit_response = self.client.post(
+            f"{reverse('player_edit', kwargs={'team_slug': self.team.slug, 'player_id': player.id})}?category=seniors",
+            {"name": "Mario Editado", "number": 7, "position": "DF"},
+        )
+
+        self.assertEqual(edit_response.status_code, 302)
+        player.refresh_from_db()
+        self.assertEqual(player.name, "Mario Editado")
+
+        delete_response = self.client.post(
+            f"{reverse('player_delete', kwargs={'team_slug': self.team.slug, 'player_id': player.id})}?category=seniors"
+        )
+
+        self.assertEqual(delete_response.status_code, 302)
         self.assertFalse(Player.objects.filter(pk=player.id).exists())
 
     def test_team_players_are_ordered_by_position(self):
@@ -478,6 +506,14 @@ class TournamentPlayerRosterViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         roster_entry.refresh_from_db()
         self.assertFalse(roster_entry.is_active)
+        self.assertTrue(Player.objects.filter(pk=player.pk).exists())
+        self.assertTrue(MatchEvent.objects.filter(pk=event.pk).exists())
+
+        repeated_response = self.client.post(
+            f"{reverse('player_delete', kwargs={'team_slug': self.team.slug, 'player_id': player.pk})}?{query}"
+        )
+
+        self.assertEqual(repeated_response.status_code, 302)
         self.assertTrue(Player.objects.filter(pk=player.pk).exists())
         self.assertTrue(MatchEvent.objects.filter(pk=event.pk).exists())
 
