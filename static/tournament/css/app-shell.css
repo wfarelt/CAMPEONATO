@@ -23,6 +23,10 @@ body.app-body {
   font-family: "Lexend", sans-serif;
 }
 
+body.app-body .text-body-secondary {
+  color: var(--app-text-muted) !important;
+}
+
 .app-sidebar {
   width: 16.5rem;
   flex: 0 0 16.5rem;

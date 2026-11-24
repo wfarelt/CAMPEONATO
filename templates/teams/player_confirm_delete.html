@@ -8,7 +8,7 @@
 <div class="container-fluid">
   <section class="app-surface border border-danger rounded-3 p-3 p-md-4 app-form-narrow">
     <h2 class="h4 mb-3">{% if tournament %}Retirar de {{ tournament.name }}{% else %}Eliminar jugador{% endif %}</h2>
-    <p class="text-body-secondary">
+    <p>
       {% if tournament %}
       <strong>{{ player.name }}</strong> dejará de integrar la plantilla de <strong>{{ team.name }}</strong> en esta temporada.
       {% else %}
@@ -16,7 +16,7 @@
       {% endif %}
     </p>
     {% if tournament %}
-    <p class="text-body-secondary">La ficha del jugador y sus eventos históricos se conservarán. Podrás volver a inscribirlo después.</p>
+    <p>La ficha del jugador y sus eventos históricos se conservarán. Podrás volver a inscribirlo después.</p>
     {% elif can_remove_player %}
     <p class="text-danger">Esta acción no se puede deshacer.</p>
     {% else %}
