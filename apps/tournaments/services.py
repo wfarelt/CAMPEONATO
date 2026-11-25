@@ -67,8 +67,6 @@ def save_matchday_with_matches(matchday_form, formset):
 def validate_matchday_teams(matchday, team_ids):
 	"""Ensure every fixture team belongs to the matchday's category/season."""
 	team_ids = list(team_ids)
-	if len(team_ids) != len(set(team_ids)):
-		raise ValidationError("Un equipo no puede aparecer en más de un partido de la misma jornada.")
 	teams = Team.objects.filter(pk__in=set(team_ids), category=matchday.category)
 	if matchday.tournament_id:
 		teams = teams.filter(tournament_memberships__tournament_id=matchday.tournament_id)

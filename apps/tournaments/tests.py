@@ -134,7 +134,7 @@ class MatchRecommendationTests(TestCase):
 
         self.assertGreaterEqual(formset.total_form_count(), 2)
 
-    def test_matchday_formset_rejects_reusing_a_team(self):
+    def test_matchday_formset_allows_reusing_a_team_in_different_matches(self):
         formset_class = get_match_formset_class(extra=2)
         formset = formset_class(
             data={
@@ -154,11 +154,21 @@ class MatchRecommendationTests(TestCase):
             form_kwargs={"category": "seniors"},
         )
 
-        self.assertFalse(formset.is_valid())
-        self.assertIn(
-            "Un equipo no puede aparecer en más de un partido de la misma jornada.",
-            formset.non_form_errors(),
+        self.assertTrue(formset.is_valid(), formset.errors)
+
+    def test_matchday_formset_still_rejects_a_team_playing_against_itself(self):
+        form = MatchForm(
+            data={
+                "home_team": str(self.team_a.pk),
+                "away_team": str(self.team_a.pk),
+                "court": str(Match.COURT_1),
+                "time": "10:00",
+            },
+            category="seniors",
         )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("Un equipo no puede jugar contra si mismo.", form.non_field_errors())
 class TournamentModelTests(TestCase):
     def setUp(self):
         self.team = Team.objects.create(name="Season Team", coach="Coach", category="seniors")
@@ -197,15 +207,15 @@ class TournamentModelTests(TestCase):
         with self.assertRaises(ValidationError):
             matchday.full_clean()
 
-    def test_service_rejects_repeated_team_in_matchday(self):
+    def test_service_allows_repeated_team_in_matchday(self):
+        self.tournament.teams.add(self.team)
         matchday = MatchDay(
             tournament=self.tournament,
             category="seniors",
             date=date(2026, 6, 1),
         )
 
-        with self.assertRaises(ValidationError):
-            validate_matchday_teams(matchday, [self.team.pk, self.team.pk])
+        validate_matchday_teams(matchday, [self.team.pk, self.team.pk])
 
     def test_service_rejects_team_not_enrolled_in_matchday_tournament(self):
         unregistered_team = Team.objects.create(name="Unregistered", coach="Coach", category="seniors")
