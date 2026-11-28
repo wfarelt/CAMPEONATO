@@ -1,21 +1,24 @@
 from django.contrib import messages
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET
 
 from apps.core.categories import get_active_championship, get_request_championship_category, get_request_tournament
 from apps.matches.forms import MatchEventForm, MatchResultForm
 from apps.matches.models import Match, MatchEvent
+from apps.payments.models import RegistrationAccount
 from apps.matches.services import build_home_context, build_matches_context, build_statistics_context
 from apps.playoffs.services import get_tie_aggregate, get_tie_matches, resolve_tie
 from apps.teams.models import Player
 from apps.tournaments.forms import HomepageChampionshipForm
 from apps.notifications.services import create_and_dispatch_notification
 from apps.notifications.models import NotificationAudienceType, NotificationCategory
-from apps.users.permissions import can_manage_match
+from apps.users.permissions import can_manage_match, can_manage_tournament
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,6 +39,16 @@ def _match_team_players(team, match):
             tournament_roster_entries__is_active=True,
         )
     return players.order_by("number", "name")
+
+
+def _registration_accounts_for_match(match):
+    return {
+        account.membership.team_id: account
+        for account in RegistrationAccount.objects.filter(
+            membership__tournament_id=match.match_day.tournament_id,
+            membership__team_id__in=[match.home_team_id, match.away_team_id],
+        ).select_related("membership").prefetch_related("payments")
+    }
 
 
 def home(request):
@@ -109,13 +122,44 @@ def match_detail_view(request, match_slug):
     match = get_object_or_404(match_query)
     home_players = list(_match_team_players(match.home_team, match))
     away_players = list(_match_team_players(match.away_team, match))
+    financial_access = bool(
+        match.match_day_id and match.match_day.tournament_id
+        and can_manage_tournament(request.user, match.match_day.tournament)
+    )
+    accounts = _registration_accounts_for_match(match) if financial_access else {}
     return render(request, "matches/match_detail.html", {
         "match": match,
         "home_players": home_players,
         "away_players": away_players,
         "home_padding": range(max(0, 19 - len(home_players))),
         "away_padding": range(max(0, 19 - len(away_players))),
+        "home_registration_account": accounts.get(match.home_team_id),
+        "away_registration_account": accounts.get(match.away_team_id),
+        "financial_access": financial_access,
     })
+
+
+@login_required
+@require_GET
+@never_cache
+def match_registration_summary(request, match_slug):
+    match = get_object_or_404(Match.objects.select_related("match_day__tournament"), slug=match_slug)
+    if not match.match_day_id or not can_manage_tournament(request.user, match.match_day.tournament):
+        return HttpResponseForbidden("No tienes permisos para consultar estos saldos.")
+    accounts = _registration_accounts_for_match(match)
+
+    def summary(team_id):
+        account = accounts.get(team_id)
+        if account is None:
+            return None
+        return {
+            "amount": str(account.agreed_amount),
+            "paid": str(account.total_paid),
+            "balance": str(account.balance),
+            "status": account.payment_status,
+        }
+
+    return JsonResponse({"home": summary(match.home_team_id), "away": summary(match.away_team_id)})
 
 
 @login_required

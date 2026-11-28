@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -12,6 +13,7 @@ from apps.core.categories import (
     normalize_championship_category,
 )
 from apps.matches.models import Match
+from apps.payments.services import record_account_creator
 from apps.teams.models import Team
 from apps.tournaments.forms import HomepageChampionshipForm, MatchDayForm, MatchFormSet, TournamentForm, get_match_formset_class
 from apps.users.permissions import can_manage_tournament, organizer_required
@@ -68,11 +70,13 @@ def tournament_create(request):
     category = get_request_championship_category(request)
     form = TournamentForm(request.POST or None, initial={"category": category})
     if request.method == "POST" and form.is_valid():
-        tournament = form.save()
-        tournament.organizers.add(request.user)
-        selected_teams = list(form.cleaned_data["teams"])
-        tournament.teams.set(selected_teams)
-        initialize_tournament_rosters(tournament, selected_teams)
+        with transaction.atomic():
+            tournament = form.save()
+            tournament.organizers.add(request.user)
+            selected_teams = list(form.cleaned_data["teams"])
+            tournament.teams.set(selected_teams)
+            record_account_creator(tournament, [team.pk for team in selected_teams], request.user)
+            initialize_tournament_rosters(tournament, selected_teams)
         return redirect(f"{reverse('tournaments_list')}?category={tournament.category}")
     return render(request, "tournaments/tournament_form.html", {"form": form, "is_edit": False})
 
@@ -89,13 +93,19 @@ def tournament_edit(request, tournament_id):
     )
     form = TournamentForm(request.POST or None, instance=tournament)
     if request.method == "POST" and form.is_valid():
-        previous_team_ids = set(tournament.teams.values_list("pk", flat=True))
-        tournament = form.save()
-        selected_teams = list(form.cleaned_data["teams"])
-        tournament.teams.set(selected_teams)
-        newly_enrolled_teams = [team for team in selected_teams if team.pk not in previous_team_ids]
-        initialize_tournament_rosters(tournament, newly_enrolled_teams)
-        return redirect(f"{reverse('tournaments_list')}?category={tournament.category}")
+        try:
+            with transaction.atomic():
+                previous_team_ids = set(tournament.teams.values_list("pk", flat=True))
+                tournament = form.save()
+                selected_teams = list(form.cleaned_data["teams"])
+                tournament.teams.set(selected_teams)
+                newly_enrolled_teams = [team for team in selected_teams if team.pk not in previous_team_ids]
+                record_account_creator(tournament, [team.pk for team in newly_enrolled_teams], request.user)
+                initialize_tournament_rosters(tournament, newly_enrolled_teams)
+        except ProtectedError:
+            form.add_error("teams", "No se puede retirar un equipo con historial de pagos de inscripción.")
+        else:
+            return redirect(f"{reverse('tournaments_list')}?category={tournament.category}")
     return render(
         request,
         "tournaments/tournament_form.html",

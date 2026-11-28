@@ -1,0 +1,55 @@
+{% extends "core/base.html" %}
+{% block title %}Inscripciones y cobros{% endblock %}
+{% block header_title %}Inscripciones y cobros{% endblock %}
+{% block content %}
+<section class="app-surface border rounded-3 p-3 p-md-4">
+  <h1 class="h4">Inscripciones y cobros</h1>
+  {% for message in messages %}<div class="alert alert-info" role="alert">{{ message }}</div>{% endfor %}
+  <form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-md-5">
+      <label class="form-label" for="tournament">Campeonato</label>
+      <select class="form-select" id="tournament" name="tournament" required>
+        <option value="">Selecciona un campeonato</option>
+        {% for tournament in tournaments %}
+        <option value="{{ tournament.pk }}" {% if selected.pk == tournament.pk %}selected{% endif %}>{{ tournament }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3"><label class="form-label" for="q">Equipo</label><input class="form-control" id="q" name="q" value="{{ request.GET.q }}"></div>
+    <div class="col-md-2"><label class="form-label" for="status">Estado</label>
+      <select class="form-select" id="status" name="status">
+        <option value="">Todos</option>
+        <option value="PENDIENTE" {% if request.GET.status == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+        <option value="PARCIAL" {% if request.GET.status == 'PARCIAL' %}selected{% endif %}>Parcial</option>
+        <option value="PAGADO" {% if request.GET.status == 'PAGADO' %}selected{% endif %}>Pagado</option>
+      </select>
+    </div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Filtrar</button></div>
+  </form>
+  {% if selected %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h2 class="h5 mb-1">{{ selected }}</h2>
+      {% if fee %}<span>Costo vigente: Bs {{ fee.amount|floatformat:2 }} · {% if fee.is_active %}Activo{% else %}Inactivo{% endif %}</span>
+      {% else %}<span>No hay costo configurado; los equipos aún no tienen cuenta.</span>{% endif %}
+    </div>
+    <a class="btn btn-outline-light" href="{% url 'registration_fee' selected.pk %}">Configurar costo</a>
+  </div>
+  {% if unconfigured_count %}<div class="alert alert-warning">{{ unconfigured_count }} equipo(s) no tienen cuenta. Activa un costo para asignarles el importe vigente.</div>{% endif %}
+  <div class="table-responsive">
+    <table class="table app-table align-middle">
+      <thead><tr><th>Equipo</th><th>Inscripción</th><th>Pagado</th><th>Saldo</th><th>Avance</th><th>Estado</th><th></th></tr></thead>
+      <tbody>{% for account in accounts %}
+        <tr>
+          <th>{{ account.membership.team.name }}</th><td>Bs {{ account.agreed_amount|floatformat:2 }}</td>
+          <td>Bs {{ account.total_paid|floatformat:2 }}</td><td>Bs {{ account.balance|floatformat:2 }}</td>
+          <td>{{ account.percentage_paid|floatformat:0 }}%</td>
+          <td><span class="badge {% if account.payment_status == 'PAGADO' %}text-bg-success{% elif account.payment_status == 'PARCIAL' %}text-bg-warning{% else %}text-bg-danger{% endif %}">{{ account.payment_status }}</span></td>
+          <td><a class="btn btn-outline-light btn-sm" href="{% url 'registration_account' account.pk %}">Ver cuenta</a></td>
+        </tr>
+      {% empty %}<tr><td colspan="7">No hay cuentas para los filtros seleccionados.</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

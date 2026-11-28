@@ -110,6 +110,7 @@
   <div class="print-modal-dialog app-surface border rounded-3 p-3 p-md-4 shadow">
     <h2 id="print-modal-title" class="h5 fw-bold">Imprimir planilla</h2>
     <p class="small text-white-50 mt-2">¿Deseas incluir los números de camiseta de los jugadores?</p>
+    {% if financial_access %}<div id="financial-error" class="alert alert-danger d-none" role="alert"></div>{% endif %}
     <label class="app-surface border rounded-3 p-3 mt-3 d-flex align-items-center justify-content-between gap-3" for="include-player-numbers">
       <span>
         <span class="d-block fw-semibold">Imprimir con números</span>
@@ -152,14 +153,8 @@
       <td style="border:1px solid #000; padding:3px; width:30%;">FISCAL: ___________________</td>
     </tr>
     <tr>
-      <td style="border:1px solid #000; padding:3px;">Fecha <strong>{{ match.date|date:"d" }}</strong> de <strong>{{ match.date|date:"F" }}</strong> de 20<strong>{{ match.date|date:"y" }}</strong></td>
-      <td style="border:1px solid #000; padding:3px;">Hora 1er tiempo: ___________________</td>
+      <td colspan="2" style="border:1px solid #000; padding:3px;">Fecha <strong>{{ match.date|date:"d" }}</strong> de <strong>{{ match.date|date:"F" }}</strong> de 20<strong>{{ match.date|date:"y" }}</strong></td>
       <td style="border:1px solid #000; padding:3px;">Árbitro del partido: ___________________</td>
-    </tr>
-    <tr>
-      <td style="border:1px solid #000; padding:3px;">&nbsp;</td>
-      <td style="border:1px solid #000; padding:3px;">Hora 2do tiempo: ___________________</td>
-      <td style="border:1px solid #000; padding:3px;">Planillero: ___________________</td>
     </tr>
   </table>
 
@@ -256,25 +251,30 @@
       <td style="width:49.5%; padding-top:4px;">
         <table style="width:100%; border-collapse:collapse; font-size:9px;">
           <tr>
-            <td style="border:1px solid #000; padding:4px; width:60%; height:65px; text-align:center; vertical-align:bottom;">
+            <td style="border:1px solid #000; padding:4px; width:30%; height:65px; vertical-align:top;">
+              <strong>Presentó balón:</strong><br>
+              <span style="display:inline-block; width:11px; height:11px; border:1px solid #000; vertical-align:middle; margin-right:3px;"></span> <strong>SI</strong>
+              &nbsp;
+              <span style="display:inline-block; width:11px; height:11px; border:1px solid #000; vertical-align:middle; margin-right:3px;"></span> <strong>NO</strong>
+            </td>
+            <td style="border:1px solid #000; padding:4px; width:40%; height:65px; text-align:center; vertical-align:bottom;">
               Firma del Capitán
             </td>
-            <td style="border:1px solid #000; padding:4px; width:40%; height:65px; vertical-align:top;">
+            <td style="border:1px solid #000; padding:4px; width:30%; height:65px; vertical-align:top;">
               <strong>Resultado Final:</strong><br><br><br>
             </td>
           </tr>
           <tr>
-            <td colspan="2" style="border:1px solid #000; padding:4px; height:45px; vertical-align:top;">
+            <td colspan="3" style="border:1px solid #000; padding:4px; height:45px; vertical-align:top;">
               <strong>Observaciones:</strong>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2" style="border:1px solid #000; padding:4px;">
-              <strong>Presentó balón:</strong>
-              &nbsp;&nbsp;
-              <span style="display:inline-block; width:11px; height:11px; border:1px solid #000; vertical-align:middle; margin-right:3px;"></span> <strong>SI</strong>
-              &nbsp;&nbsp;&nbsp;
-              <span style="display:inline-block; width:11px; height:11px; border:1px solid #000; vertical-align:middle; margin-right:3px;"></span> <strong>NO</strong>
+              {% if financial_access %}
+              <div id="home-financial-summary">{% if home_registration_account %}
+                Inscripción: Bs {{ home_registration_account.agreed_amount|floatformat:2 }} |
+                Pagado: Bs {{ home_registration_account.total_paid|floatformat:2 }} |
+                Saldo: Bs {{ home_registration_account.balance|floatformat:2 }}
+                <strong style="color:{% if home_registration_account.payment_status == 'PAGADO' %}#146c43{% elif home_registration_account.payment_status == 'PARCIAL' %}#997404{% else %}#b02a37{% endif %};">({{ home_registration_account.payment_status }})</strong>
+              {% endif %}</div>
+              {% endif %}
             </td>
           </tr>
         </table>
@@ -286,25 +286,30 @@
       <td style="width:49.5%; padding-top:4px;">
         <table style="width:100%; border-collapse:collapse; font-size:9px;">
           <tr>
-            <td style="border:1px solid #000; padding:4px; width:60%; height:65px; text-align:center; vertical-align:bottom;">
+            <td style="border:1px solid #000; padding:4px; width:30%; height:65px; vertical-align:top;">
+              <strong>Presentó balón:</strong><br>
+              <span style="display:inline-block; width:11px; height:11px; border:1px solid #000; vertical-align:middle; margin-right:3px;"></span> <strong>SI</strong>
+              &nbsp;
+              <span style="display:inline-block; width:11px; height:11px; border:1px solid #000; vertical-align:middle; margin-right:3px;"></span> <strong>NO</strong>
+            </td>
+            <td style="border:1px solid #000; padding:4px; width:40%; height:65px; text-align:center; vertical-align:bottom;">
               Firma del Capitán
             </td>
-            <td style="border:1px solid #000; padding:4px; width:40%; height:65px; vertical-align:top;">
+            <td style="border:1px solid #000; padding:4px; width:30%; height:65px; vertical-align:top;">
               <strong>Resultado Final:</strong><br><br><br>
             </td>
           </tr>
           <tr>
-            <td colspan="2" style="border:1px solid #000; padding:4px; height:45px; vertical-align:top;">
+            <td colspan="3" style="border:1px solid #000; padding:4px; height:45px; vertical-align:top;">
               <strong>Observaciones:</strong>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2" style="border:1px solid #000; padding:4px;">
-              <strong>Presentó balón:</strong>
-              &nbsp;&nbsp;
-              <span style="display:inline-block; width:11px; height:11px; border:1px solid #000; vertical-align:middle; margin-right:3px;"></span> <strong>SI</strong>
-              &nbsp;&nbsp;&nbsp;
-              <span style="display:inline-block; width:11px; height:11px; border:1px solid #000; vertical-align:middle; margin-right:3px;"></span> <strong>NO</strong>
+              {% if financial_access %}
+              <div id="away-financial-summary">{% if away_registration_account %}
+                Inscripción: Bs {{ away_registration_account.agreed_amount|floatformat:2 }} |
+                Pagado: Bs {{ away_registration_account.total_paid|floatformat:2 }} |
+                Saldo: Bs {{ away_registration_account.balance|floatformat:2 }}
+                <strong style="color:{% if away_registration_account.payment_status == 'PAGADO' %}#146c43{% elif away_registration_account.payment_status == 'PARCIAL' %}#997404{% else %}#b02a37{% endif %};">({{ away_registration_account.payment_status }})</strong>
+              {% endif %}</div>
+              {% endif %}
             </td>
           </tr>
         </table>
@@ -323,6 +328,46 @@
     const closeButton = document.getElementById("close-print-modal");
     const confirmButton = document.getElementById("confirm-print");
     const includeNumbers = document.getElementById("include-player-numbers");
+    {% if financial_access %}
+    const financialError = document.getElementById("financial-error");
+    const summaryUrl = "{% url 'match_registration_summary' match.slug %}";
+    let summarySequence = 0;
+    const renderSummary = (id, account) => {
+      const target = document.getElementById(id);
+      target.replaceChildren();
+      if (!account) return;
+      const format = (amount) => Number(amount).toLocaleString("es-BO", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      target.append(document.createTextNode(`Inscripción: Bs ${format(account.amount)} | Pagado: Bs ${format(account.paid)} | Saldo: Bs ${format(account.balance)} `));
+      const status = document.createElement("strong");
+      status.style.color = account.status === "PAGADO" ? "#146c43" : account.status === "PARCIAL" ? "#997404" : "#b02a37";
+      status.textContent = `(${account.status})`;
+      target.append(status);
+    };
+    const refreshSummary = async () => {
+      const sequence = ++summarySequence;
+      try {
+        const response = await fetch(summaryUrl, {credentials: "same-origin", cache: "no-store"});
+        if (!response.ok || !(response.headers.get("content-type") || "").includes("application/json")) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        if (sequence !== summarySequence) return false;
+        renderSummary("home-financial-summary", data.home);
+        renderSummary("away-financial-summary", data.away);
+        financialError.classList.add("d-none");
+        return true;
+      } catch (error) {
+        if (sequence !== summarySequence) return false;
+        console.error("No se pudo actualizar el resumen financiero.", error);
+        financialError.textContent = "No se pudo actualizar el resumen financiero. Inténtalo nuevamente antes de imprimir.";
+        financialError.classList.remove("d-none");
+        return false;
+      }
+    };
+    window.setInterval(() => {
+      if (modal.classList.contains("d-none")) refreshSummary();
+    }, 15000);
+    {% endif %}
 
     if (!openButton || !modal || !closeButton || !confirmButton || !includeNumbers) {
       return;
@@ -353,7 +398,13 @@
         closeModal();
       }
     });
-    confirmButton.addEventListener("click", () => {
+    confirmButton.addEventListener("click", async () => {
+      {% if financial_access %}
+      confirmButton.disabled = true;
+      const updated = await refreshSummary();
+      confirmButton.disabled = false;
+      if (!updated) return;
+      {% endif %}
       document.body.classList.toggle("print-without-player-numbers", !includeNumbers.checked);
       modal.classList.add("d-none");
       modal.classList.remove("d-flex");

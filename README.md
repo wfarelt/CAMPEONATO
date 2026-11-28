@@ -107,6 +107,32 @@ campeonato/
 - **Estadísticas**: Datos detallados de rendimiento de equipos y jugadores
 - **Admin Panel**: Panel administrativo para gestionar todos los datos
 
+### Inscripciones y cobros
+
+En **Inscripciones y cobros**, el administrador o el organizador asignado al
+campeonato configura su costo en bolivianos. Al activarlo se crean cuentas para
+los equipos que todavía no tienen una, incluidos los inscritos previamente;
+cada cuenta conserva ese importe aunque el costo cambie. Mientras el costo esté
+inactivo, los equipos nuevos quedan sin cuenta hasta su activación.
+
+Los responsables pueden consultar el estado de cuenta, registrar pagos
+parciales y anularlos indicando el motivo. Los pagos anulados permanecen en el
+historial y no cuentan para el saldo; no se permiten pagos superiores al saldo.
+El historial de pagos impide retirar la participación del equipo. Las
+configuraciones y las observaciones administrativas conservan su historial y
+usuario responsable. Una inscripción gratuita se considera pagada.
+
+La planilla imprimible muestra el resumen financiero de ambos equipos solamente
+al administrador o al organizador autorizado del campeonato, sin sustituir el
+espacio para observaciones manuales. Las jornadas sin campeonato y los equipos
+sin cuenta no muestran importes. El resumen se actualiza cada 15 segundos y
+se verifica nuevamente antes de imprimir; si falla la actualización, se
+notifica y se impide imprimir datos posiblemente desactualizados.
+
+Para desplegar los cambios, ejecutar `python manage.py migrate`. Las
+migraciones no asignan costos automáticamente: la asignación a equipos
+existentes ocurre cuando se configura y activa el costo del campeonato.
+
 ## 🔧 Configuración
 
 Edita `config/settings.py` para ajustar:

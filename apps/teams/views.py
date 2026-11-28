@@ -2,7 +2,9 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Case, IntegerField, Value, When, Q
+from django.db.models.deletion import ProtectedError
 from django.urls import reverse
 
 from apps.core.categories import get_request_championship_category, get_request_tournament
@@ -10,6 +12,8 @@ from apps.standings.selectors import get_opponents_with_points, get_results_by_t
 from apps.teams.forms import PlayerForm, TeamForm, TeamManagerSettingsForm, TournamentPlayerForm
 from apps.teams.models import Player
 from apps.matches.models import Match, MatchEvent
+from apps.payments.models import RegistrationPayment
+from apps.payments.services import record_account_creator
 from apps.teams.selectors import build_team_api_data, get_all_teams, get_team_or_404
 from apps.tournaments.services import initialize_tournament_rosters
 from apps.tournaments.models import TournamentPlayer, TournamentTeam
@@ -111,12 +115,14 @@ def team_create_view(request):
     if request.method == "POST":
         form = TeamForm(request.POST, request.FILES)
         if form.is_valid():
-            team = form.save(commit=False)
-            team.category = category
-            team.save()
-            if tournament:
-                tournament.teams.add(team)
-                initialize_tournament_rosters(tournament, [team])
+            with transaction.atomic():
+                team = form.save(commit=False)
+                team.category = category
+                team.save()
+                if tournament:
+                    tournament.teams.add(team)
+                    record_account_creator(tournament, [team.pk], request.user)
+                    initialize_tournament_rosters(tournament, [team])
             return redirect(f"{reverse('team', kwargs={'team_slug': team.slug})}?{_tournament_query(category, tournament)}")
     else:
         form = TeamForm()
@@ -164,11 +170,21 @@ def team_delete_view(request, team_slug):
     team = get_team_or_404(team_slug, category=category, tournament=tournament)
 
     if request.method == "POST":
-        if tournament is not None:
-            tournament.teams.remove(team)
+        try:
+            with transaction.atomic():
+                if tournament is not None:
+                    tournament.teams.remove(team)
+                else:
+                    team.delete()
+        except ProtectedError as error:
+            if not any(isinstance(obj, RegistrationPayment) for obj in error.protected_objects):
+                raise
+            return render(request, "teams/team_confirm_delete.html", {
+                "team": team, "selected_category": category,
+                "deletion_error": "No se puede retirar el equipo porque tiene historial de pagos de inscripción.",
+            }, status=409)
         else:
-            team.delete()
-        return redirect(f"{reverse('teams')}?{_tournament_query(category, tournament)}")
+            return redirect(f"{reverse('teams')}?{_tournament_query(category, tournament)}")
 
     return render(request, "teams/team_confirm_delete.html", {"team": team, "selected_category": category})
 

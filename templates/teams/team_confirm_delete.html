@@ -13,6 +13,7 @@
       <strong>{{ championship_category_label }}</strong>.
     </p>
     <p class="text-danger">Esta acción no se puede deshacer.</p>
+    {% if deletion_error %}<div class="alert alert-danger" role="alert">{{ deletion_error }}</div>{% endif %}
 
     <form method="post" class="d-flex flex-wrap gap-2 mt-4">
       {% csrf_token %}

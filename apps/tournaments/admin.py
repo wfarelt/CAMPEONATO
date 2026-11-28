@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from apps.matches.models import Match
+from apps.payments.models import RegistrationAccount
 from apps.tournaments.models import MatchDay, Tournament, TournamentTeam
 
 
@@ -17,6 +18,12 @@ class TournamentAdmin(admin.ModelAdmin):
     search_fields = ("name", "season")
     filter_horizontal = ("organizers",)
     inlines = [TournamentTeamInline]
+
+    def save_formset(self, request, form, formset, change):
+        new_forms = [item for item in formset.forms if item.instance._state.adding] if formset.model is TournamentTeam else []
+        super().save_formset(request, form, formset, change)
+        membership_ids = [item.instance.pk for item in new_forms if item.instance.pk]
+        RegistrationAccount.objects.filter(membership_id__in=membership_ids, created_by__isnull=True).update(created_by=request.user)
 
 
 class MatchInline(admin.TabularInline):
